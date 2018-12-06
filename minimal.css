@@ -3,7 +3,7 @@ body {
     padding-top: 0px;
     padding-bottom: 0px;
     counter-reset: section;
-    font-family: "helvetica-neue", helvetica;
+    font-family: "pt-serif", "PT Serif", serif;
     font-size: 22px;
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
