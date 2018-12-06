@@ -11,3 +11,7 @@ body {
     letter-spacing: 0.1599999964237213px;
     line-height: 32px;
   }
+
+  .bodydark {
+    background: rgb(30, 30, 30);
+  }
