@@ -1,0 +1,13 @@
+body {
+    margin-top: 0px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    counter-reset: section;
+    font-family: "helvetica-neue", helvetica;
+    font-size: 22px;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    color: rgb(0, 0, 0);
+    letter-spacing: 0.1599999964237213px;
+    line-height: 32px;
+  }
