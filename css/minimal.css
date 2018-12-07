@@ -14,4 +14,15 @@ body {
 
   .bodydark {
     background: rgb(30, 30, 30);
+    background-color: rgb(27, 27, 27);
+    position: relative;
+    animation-name: example;
+    animation-duration: 6s;
+    animation-iteration-count: 100;
+    animation-direction: alternate;
   }
+
+@keyframes example {
+  0%   {background-color:rgb(48, 48, 48);}
+  100% {background-color:rgb(40, 40, 40);}
+}
