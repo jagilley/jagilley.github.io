@@ -23,6 +23,6 @@ body {
   }
 
 @keyframes example {
-  0%   {background-color:rgb(48, 48, 48);}
-  100% {background-color:rgb(40, 40, 40);}
+  0%   {background-color:rgb(117, 117, 117);}
+  100% {background-color:rgb(29, 29, 29);}
 }
