@@ -7,21 +7,23 @@ body {
     font-size: 22px;
     font-weight: 300;
     -webkit-font-smoothing: antialiased;
-    color: rgb(228, 228, 228);
+    color: rgb(31, 31, 31);
     letter-spacing: 0.1599999964237213px;
     line-height: 32px;
   }
 
   .bodydark {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("../resources/Headshot.jpg");
+    
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(http://unsplash.it/1900/1900/?random&blur);
     height: 1000px;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: 200%;
     /*
-    linear-gradient(-90deg, red, yellow);
+    background: linear-gradient(-90deg, black, gray);
     */
     position: relative;
+    animation: panning 40s infinite linear;
     /*
     animation-name: bg-pan-left;
     animation-duration: 6s;
@@ -34,11 +36,29 @@ body {
   100% {background-color:rgb(29, 29, 29);}
 }
 
-@keyframes bg-pan-left {
+@keyframes bgpanleft {
   0% {
     background-position: 100% 50%;
   }
   100% {
     background-position: 0% 50%;
+  }
+}
+
+@keyframes panning {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 100%;
+  }
+   50% {
+    background-position: 100% 0%;
+  }
+  75% {
+    background-position: 0 100%;
+  }
+  200% {
+    background-position: 0 0;
   }
 }
