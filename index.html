@@ -30,7 +30,7 @@
 <body class="bodydark">
 
 <div class="header" id="myHeader">
-  <h2>My Header</h2>
+  <h2>Jasper Gilley</h2>
 </div>
 
 <div class="container">
@@ -111,4 +111,18 @@
 
 </div></div></body>
 
-<script type="text/javascript" src="header.js"></script>
+<script>
+    window.onscroll = function() {myFunction()};
+    console.log("aloha");
+    
+    var header = document.getElementById("myHeader");
+    var sticky = header.offsetTop;
+    
+    function myFunction() {
+      if (window.pageYOffset > sticky) {
+        header.classList.add("sticky");
+      } else {
+        header.classList.remove("sticky");
+      }
+    }
+    </script>
