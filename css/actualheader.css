@@ -1,0 +1,13 @@
+body {
+    margin: 0;
+  }
+  .header {
+    padding: 10px 16px;
+    background: rgb(61, 61, 61);
+    color: #f1f1f1;
+  }
+  .sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+  }
