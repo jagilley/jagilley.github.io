@@ -1,0 +1,9 @@
+.bodydark {
+    background: rgb(30, 30, 30);
+    background-color: rgb(112, 0, 0);
+    position: relative;
+    animation-name: bg-pan-left;
+    animation-duration: 6s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+  }
