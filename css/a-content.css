@@ -26,6 +26,10 @@
   animation: tracking-in-expand 0.7s cubic-bezier(0.215, 0.610, 0.355, 1.000) both;
 }
 
+.article-content p {
+    text-align: center;
+}
+
 @keyframes text-shadow-pop-bl {
 0% {
   text-shadow: 0 0 #555555, 0 0 #555555, 0 0 #555555, 0 0 #555555, 0 0 #555555, 0 0 #555555, 0 0 #555555, 0 0 #555555;
