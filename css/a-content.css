@@ -28,6 +28,8 @@
 
 .article-content p {
     text-align: center;
+    margin-left: 15%;
+    margin-right: 15%;
 }
 
 @keyframes text-shadow-pop-bl {
