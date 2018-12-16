@@ -15,11 +15,10 @@ body {
 
   .bodydark {
     
-    background: black url(/resources/earth-at-night-large.jpg);
+    background: black url(http://unsplash.it/1900/1900/?random&blur);
     height: 100%;
     width: 100%;
     background-position: center;
-    background-size: 500%;
     /*
     background-repeat: no-repeat;
     background-size: 200%;
