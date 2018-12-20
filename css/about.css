@@ -1,0 +1,80 @@
+body {
+    margin-top: 0px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    counter-reset: section;
+    font-family: "pt-serif", "PT Serif", "Georgia", serif;
+    font-size: 22px;
+    font-weight: 300;
+    height: 100%;
+    -webkit-font-smoothing: antialiased;
+    color: rgb(228, 228, 228);
+    letter-spacing: 0.1599999964237213px;
+    line-height: 32px;
+  }
+
+  mark {
+    background-color: rgba(27, 27, 27, 0.664);
+    color: rgb(230, 230, 230);
+  }
+
+  canvas {
+    position:absolute;
+    left:0;
+    top:0;
+    z-index:-1;
+  }
+  .bodydark {
+    
+    /*background: ;*/
+    height: 100%;
+    width: 100%;
+    background-position: center;
+    /*
+    background-repeat: no-repeat;
+    background-size: 200%;
+    */
+    /*
+    background: linear-gradient(-90deg, black, gray);
+    */
+    position: relative;
+    animation: panning 60s infinite linear;
+    z-index: 0;
+    /*
+    animation-name: bg-pan-left;
+    animation-duration: 6s;
+    animation-iteration-count: 2;
+    animation-direction: alternate;*/
+  }
+
+@keyframes example {
+  0%   {background-color:rgb(117, 117, 117);}
+  100% {background-color:rgb(29, 29, 29);}
+}
+
+@keyframes bgpanleft {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes panning {
+  0% {
+    background-position: 0% 0%;
+  }
+  25% {
+    background-position: 100% 100%;
+  }
+   50% {
+    background-position: 100% 0%;
+  }
+  75% {
+    background-position: 0 100%;
+  }
+  200% {
+    background-position: 0 0;
+  }
+}
