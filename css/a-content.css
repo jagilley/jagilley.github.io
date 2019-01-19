@@ -1,6 +1,12 @@
 .image-regular img {
     padding-bottom: 200px;
 }
+
+.article-content h1 {
+  text-align: center;
+  font-size: 120px;
+}
+
 .article-content h2 a {
   color: #ccc;
 }
