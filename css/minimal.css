@@ -15,7 +15,7 @@ body {
 
   .bodydark {
     
-    background: black url(http://unsplash.it/1900/1900/?random&blur);
+    background: black;
     height: 100%;
     width: 100%;
     background-position: center;

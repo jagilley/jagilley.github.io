@@ -1,5 +1,7 @@
 // This script controls the header //
 
+console.log("header.js has been activated!")
+
 // When the user scrolls the page, execute myFunction 
 window.onscroll = function() {myFunction()};
 
