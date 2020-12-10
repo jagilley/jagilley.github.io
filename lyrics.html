@@ -26,6 +26,11 @@
   <link href="/css/syntax.css" rel="stylesheet" />
   <link href="/css/hint.min.css" rel="stylesheet" />
   <link href="/css/blogicons.css" rel="stylesheet" />-->
+  <style>
+    body {
+        background-color: #191919;
+    }
+    </style>
 </head>
 
 <body class="bodydark">
@@ -43,18 +48,56 @@
     <div class="article-content">
       <link href="css/a-content.css" rel="stylesheet"/>
 
-<p><mark>&nbsp;LYRICS&nbsp;</mark></p>
+<h2><mark>&nbsp;<a href="javascript:;">JEN, A LYRIC GENERATION TOOL</a>&nbsp;</mark></h2>
 <br>
-<p><mark>&nbsp;If you want to know my thoughts on highway rest stops, the Holodeck, and 
-    brain-computer interfaces (among other things), feel free to visit <a href="cruxcapacitor.com", style="text-decoration: underline">my blog</a>.&nbsp;</mark></p>
-<br>
+<h3><mark>&nbsp;Jasper Gilley&nbsp;</mark></h3>
+<h4><mark>&nbsp;jaspergilley2021@u.northwestern.edu&nbsp;</mark></h4>
+
+<p><mark>&nbsp;Final project for Prof. Pardo's CS396 class at Northwestern University, fall quarter 2020.&nbsp;</mark></p>
+<h5><mark>&nbsp;<a href="javascript:;">SUMMARY</a>&nbsp;</mark></h5>
+<p><mark>&nbsp;Jen is a lyric generation tool capable of writing song lyrics in the style of contemporary popular music. 
+  I trained an instance of OpenAI’s GPT-2 model on a large dataset of song lyrics from a wide variety of musical genres. 
+  This project shows that learning models are capable of at least emulating human-created art in the realm of natural language, 
+  if certainly not emulating the reasons behind creating it.&nbsp;</mark></p>
+  <h5><mark>&nbsp;<a href="javascript:;">RESULTS</a>&nbsp;</mark></h5>
+<p><mark>&nbsp;With a dataset of the lyrics of 114,723 English-language songs found on Kaggle, Jen is capable of replicating lyrics in nearly any genre.
+  Because of the quantity available and because of genre idioms, however, Jen works particularly well on rap lyrics. Here is an example of Jen's rapping:
+  &nbsp;</mark></p>
+<p><mark>&nbsp;<em>When it rains it makin' silver raining<br>
+  When it rained bullets it pimpin' tippin'<br>
+  I turn this city around and I run it<br>
+  I turn this city around and I run it I was sick of them popping caper<br>
+  And hiding out of town<br>
+  When nobody came to party<br>
+  I made my town my vacation<br>
+  When nobody came to party<br>
+  I made my town my vacation<br>
+  When nobody came to party<br>
+  I made my town my vacation I was sick of them popping caper
+  
+  &nbsp;</em></mark></p>
 <p><mark>&nbsp;
-    I've also written some less blog-y essays of which I'm quite proud - you can find these <a href="http://www.jaspergilley.com/writing/", style="text-decoration: underline">here</a>&nbsp;</mark>.
-    </p>
-<br>
-<p><mark>&nbsp;
-    Also an enthusiast of Windows 98. Hence, the site's favicon.</a>&nbsp;</mark>
+    One can observe idiomatic vocabulary in this sample, along with more emergent idiomatic features like similar line endings and repetition of material.&nbsp;</mark>.
 </p>
+<h5><mark>&nbsp;<a href="javascript:;">EVALUATION</a>&nbsp;</mark></h5>
+<p><mark>&nbsp;
+  Jen was evaluated by three metrics: test-set perplexity, next word prediction accuracy, and line overlap detection. Test set perplexity is a measure of
+  how "surprised" we should be to find a line in a dataset. By this metric, Jen scores a 278, slightly worse than can be found in many similar published papers.
+  By the metric of next word prediction, performs at 38.7% accuracy on the rap lyrics tuning dataset, which is also in line with expectations.
+  Finally, by tuning Jen correctly, we find that we can eliminate direct drawing from the tuning dataset, as can be seen in this plot of direct drawing versus the
+  "temperature" hyperparameter.
+  &nbsp;</mark>
+</p>
+<p><img src="resources/Untitled.png" alt="plot" width="1005" height="655"></p>
+
+<h5><mark>&nbsp;<a href="javascript:;">PAPER</a>&nbsp;</mark></h5>
+<p><mark>&nbsp;
+<u><a href="resources/Gilley_Final_Paper.pdf">You can read the full paper describing Jen in more detail here.</a></u>
+  &nbsp;</mark>
+</p>
+<br>
+<p></p>
+
 </div></div>
 
 </body>
