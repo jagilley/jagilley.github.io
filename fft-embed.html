@@ -29,7 +29,7 @@
 <h5>
     <a href="https://github.com/jagilley/fft-embeddings">Code on GitHub</a>
 </h5>
-<p class="author">Jasper Gilley<br><a href="https://github.com/jagilley">Github</a><br><a href="https://twitter.com/0xjasper">Twitter</a></p>
+<p class="author">Jasper Gilley<br><a href="https://twitter.com/0xjasper">Twitter</a><br><a href="https://github.com/jagilley">Github</a><br><a href="https://www.linkedin.com/in/jaspergilley/">Linkedin</a></p>
 
 <div class="abstract">
     <h2>Abstract</h2>
@@ -76,7 +76,7 @@
 
     $$E'_i = \text{ISTFT}(G_i)$$
 
-    where \(E'_i\) is an improved embedding vector corresponding to segment \(S_i\). The improved embedding vectors \(E'_i\) are then averaged across time to create a single improved embedding vector \(E'_T\) that can then be used for any downstream natural language processing tasks.
+    where \(E'_i\) is an improved embedding vector corresponding to segment \(S_i\). The improved embedding vectors \(E'_i\) are then averaged across the time domain to create a single improved embedding vector \(E'_T\) that can then be used for any downstream natural language processing tasks.
 </p>
 
 <h3>
@@ -87,7 +87,7 @@
 
     OpenAI's <a href="https://openai.com/blog/new-and-improved-embedding-model">text-embedding-ada-002 model</a> is used to obtain the embedding vectors \(E_i\) for each segment \(S_i\).
 
-    The following parameters are used for the proposed method: window size \(w = 100\) words, stride \(s = 50\) words, and cutoff frequency \(K = 0.5\). The lowpass filter \(H\) is applied to the magnitude spectrum of \(F_i\), while the phase spectrum is preserved. The improved embedding vectors \(E'_i\) are then averaged to obtain a single embedding vector \(E'_T\) for each article \(T\). The embedding vectors \(E'_T\) are then fed into a Multi-Layered Perceptron classifier to predict the category of each article.
+    The following parameters are used for the proposed method: window size \(w = 100\) words, stride \(s = 50\) words, and cutoff frequency \(K = 0.5\). The lowpass filter \(H\) is applied to the magnitude spectrum of \(F_i\), while the phase spectrum is preserved. The improved embedding vectors \(E'_i\) are then averaged to obtain a single embedding vector \(E'_T\) for each article \(T\). The embedding vectors \(E'_T\) are then fed into a Multi-Layer Perceptron classifier to predict the category of each article.
 
     The proposed method is compared with two baselines: (1) embeddings for the whole text \(E_T\) obtained from OpenAI; and (2) unfiltered embeddings for the segments \(E_i\) obtained from librosa and averaged to obtain \(E_T\). The accuracy of each method is measured by the percentage of correctly classified articles.
 
@@ -125,7 +125,10 @@
 
     The proposed method has several advantages over existing methods. First, it can capture both local and global semantics of the text by using overlapping segments instead of fixed-length segments. Second, it can reduce noise and irrelevant details in the text by applying a lowpass filter to the frequency-domain embeddings. Third, it can leverage existing embedding models and audio analysis tools without requiring additional training or fine-tuning.
 
-    The proposed method also has some limitations that can be addressed in future work. First, it only supports lowpass filtering as a spectral noise reduction technique, while other techniques such as adaptive filtering or spectral subtraction may also be useful. Second, it only evaluates the method on a toy classification task, while other tasks such as semantic search or summarization may also benefit from improved text embeddings. Third, it only explores the usage of OpenAI's embeddings, while other models such as word2vec, GloVe, BERT may also be compatible with the proposed method.
+    The proposed method also has some limitations that can be addressed in future work. First, it only supports lowpass filtering as a spectral noise reduction technique, while other techniques such as adaptive filtering or spectral subtraction may also be useful. Second, it only evaluates the method on a toy classification task, while other tasks such as semantic search or summarization may also benefit from improved text embeddings. Third, it only explores the usage of OpenAI's embeddings, while other models such as word2vec, GloVe, BERT should also be compatible with the proposed method.
+</p>
+<p>
+    In particular, this method can be thought of as a higher-fidelity alternative to the existing method of embedding long documents by simply getting the embeddings of subsections of the documents and then averaging them in the time domain, as demonstrated in the <a href="https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb">OpenAI Cookbook</a>. Filtering for only low-frequency content can be conceptualized as selecting for only the ideas which are most prevalent throughout the long text, incorporating higher-resolution ideas from the subsections while retaining the concepts which are most globally prevalent in the text. For the task of summarization in particular, this method has inherent advantages over naïvely encoding the entire text in one go or averaging sections of the text together.
 </p>
 
 </body>
