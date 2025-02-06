@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Jasper's Site" />
+  <title>Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Jasper Gilley" />
+  <meta property="og:description" content="" />
+  <meta property="og:site_name" content="jagilley.github.io" />
+  <meta property="og:image" content="/img" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body class="latex-dark">
+<h1>
+    Why You're Probably Doing GRPO Wrong
+</h1>
+<p class="author">Jasper Gilley<br><a href="https://twitter.com/0xjasper">Twitter</a><br><a href="https://github.com/jagilley">Github</a><br><a href="https://www.linkedin.com/in/jaspergilley/">Linkedin</a></p>
+
+<p>
+    Reinforcement Learning (RL) is hot. GRPO (Group Relative Policy Optimization) is a clever new twist on it, promising efficient fine-tuning of Large Language Models (LLMs) without the baggage of a separate value function. You've probably seen the impressive math results. But if you're thinking of GRPO as just "better PPO" for the same old supervised fine-tuning (SFT) tasks, you're missing the real revolution. You're probably doing it wrong.
+</p>
+
+<p>
+    The original GRPO paper focuses on mathematical reasoning. Get a dataset, train a reward model on correct/incorrect answers, unleash GRPO, profit. This works, <em>up to a point</em>. But it's fundamentally limited, and it doesn't unlock the true potential of what GRPO, combined with the latest generation of LLMs, can achieve.
+</p>
+
+<h3>
+    The SFT Trap
+</h3>
+
+<p>
+    Most LLM fine-tuning is stuck in the SFT trap. You feed the model a bunch of examples of what you want, and it learns to <em>imitate</em> the style and surface patterns. It's like teaching a parrot to repeat phrases – impressive, but not intelligent. This works okay-ish for tasks with clear, well-defined outputs. But try using SFT for something like "creative writing" or "insightful analysis." You'll quickly find yourself drowning in a sea of mediocrity.
+</p>
+
+<p>
+    Why? Because SFT, at its core, is about <em>mimicry</em>. It doesn't understand the <em>underlying principles</em> of good writing or insightful thinking. It just learns statistical correlations.  Feed it a dataset of mediocre creative writing, and it will learn to generate...more mediocre creative writing.  It gets lost in the middle of long responses. It can't plan. It can't <em>think</em>.
+</p>
+
+<h3>
+    The Fixed Dataset Dead End
+</h3>
+
+<p>
+    The standard RL approach on fixed datasets, even with GRPO, hits the same wall.  You're training a model to maximize its score on a <em>finite</em> set of examples.  This inevitably leads to overfitting.  The model learns to exploit quirks and biases in the dataset, rather than learning the underlying skill you're actually after.  It's like optimizing for clicks instead of real engagement – you get a lot of clicks, but nobody actually <em>likes</em> what you're producing. Your math model might be acing the GSM8K benchmark but give it a slightly different problem, and suddenly, it's flailing.
+</p>
+
+<h3>
+    The Judging LLM Breakthrough
+</h3>
+
+<p>
+    Here's where things get interesting. Recent advances in LLMs, particularly models like Anthropic's Claude 3.5 Sonnet, have produced a surprising asymmetry: <em>they're much better at judging quality than generating it.</em>
+</p>
+
+<p>
+    Think about it. To <em>write</em> a truly great novel, you need a vast amount of world knowledge, a deep understanding of human nature, mastery of language, and the ability to construct a compelling narrative arc.  That's <em>hard</em>. But to <em>recognize</em> a great novel?  That's still hard, but significantly <em>less</em> hard. You don't need to be Shakespeare to know that Shakespeare is good.
+</p>
+
+<p>
+    This asymmetry is the key.  We can leverage these powerful LLMs as <em>judges</em>, providing <em>explicit</em> feedback on the qualities we care about – creativity, coherence, insightfulness, engagement. This is a <em>fundamentally different</em> kind of training signal than SFT provides.
+</p>
+
+<h3>
+    GRPO: The Missing Piece
+</h3>
+
+<p>
+    This is where GRPO comes in.  GRPO's elegance lies in its simplicity.  By ditching the value function and using a group-relative baseline, it provides a clean, efficient way to do RL.  But the real magic happens when you combine it with a judge LLM.
+</p>
+
+<p>
+    Instead of optimizing for "correctness" on a fixed dataset, you're optimizing for <em>qualitative judgments</em> from a sophisticated LLM.  This breaks the SFT trap.  You're no longer limited by the examples in your training data.  You're teaching the model to <em>think</em>, to <em>plan</em>, to <em>create</em> in a way that satisfies a nuanced, high-level judge.
+</p>
+
+<p>
+    Here's the breakdown:
+</p>
+
+<ol>
+    <li><strong>SFT:</strong> Implicit feedback through examples. Mimicry. Limited generalization. Overfitting.</li>
+    <li><strong>RL on Fixed Datasets:</strong> Explicit feedback (correct/incorrect), but still limited by the dataset. Overfitting.</li>
+    <li><strong>GRPO + Judge LLM:</strong> Explicit, <em>qualitative</em> feedback.  Optimization for desired qualities.  Potential for <em>unbounded</em> improvement and true generalization.</li>
+</ol>
+
+<h3>
+    Prompt Engineering: The New Architecture
+</h3>
+
+<p>
+    The crucial skill here becomes <em>prompt engineering</em>. You're not just writing code anymore; you're crafting instructions for the judge LLM. You're defining, in precise terms, what constitutes "good" writing, "insightful" analysis, or "engaging" content. You're building a rubric, a constitution, for your AI.
+</p>
+
+<p>
+    This is <em>hard</em>. It requires a deep understanding of the qualities you're trying to cultivate. It requires iterative refinement.  It requires a willingness to experiment. But the payoff is potentially enormous.
+</p>
+
+<h3>
+    The Takeaway
+</h3>
+
+<p>
+    Don't use GRPO to do slightly better SFT. Use it to build something <em>fundamentally new</em>. Use it to train models that can generate truly novel, insightful, and engaging content, guided by the judgment of the best LLMs we have. Stop optimizing for clicks. Start optimizing for <em>meaning</em>. This is the real revolution, and it's just getting started. The future isn't about bigger datasets; it's about better judgment.
+</p>
+
+</body>
+</html>
