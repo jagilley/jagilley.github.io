@@ -23,26 +23,14 @@
 <h1>
     Why You're Probably Doing GRPO Wrong
 </h1>
-<p class="author">Jasper Gilley<br><a href="https://twitter.com/0xjasper">Twitter</a><br><a href="https://github.com/jagilley">Github</a><br><a href="https://www.linkedin.com/in/jaspergilley/">Linkedin</a></p>
+<p class="author">Jasper Gilley<br><a href="https://twitter.com/0xjasper">Twitter</a><br><a href="https://github.com/jagilley">Github</a><br></p>
 
 <p>
-    Reinforcement Learning (RL) is hot. GRPO (Group Relative Policy Optimization) is a clever new twist on it, promising efficient fine-tuning of Large Language Models (LLMs) without the baggage of a separate value function. You've probably seen the impressive math results. But if you're thinking of GRPO as just "better PPO" for the same old supervised fine-tuning (SFT) tasks, you're missing the real revolution. You're probably doing it wrong.
+    If you don't have your head in the sand, you're probably aware that possibly the most consequential takeaway from the R1 paper was their introduction of GRPO (Group Relative Policy Optimization) — RL for LLMs without the baggage of a separate value function. But if you're using GRPO as "better PPO for reasoning tasks", you're probably doing it wrong.
 </p>
 
 <p>
-    The original GRPO paper focuses on mathematical reasoning. Get a dataset, train a reward model on correct/incorrect answers, unleash GRPO, profit. This works, <em>up to a point</em>. But it's fundamentally limited, and it doesn't unlock the true potential of what GRPO, combined with the latest generation of LLMs, can achieve.
-</p>
-
-<h3>
-    The SFT Trap
-</h3>
-
-<p>
-    Most LLM fine-tuning is stuck in the SFT trap. You feed the model a bunch of examples of what you want, and it learns to <em>imitate</em> the style and surface patterns. It's like teaching a parrot to repeat phrases – impressive, but not intelligent. This works okay-ish for tasks with clear, well-defined outputs. But try using SFT for something like "creative writing" or "insightful analysis." You'll quickly find yourself drowning in a sea of mediocrity.
-</p>
-
-<p>
-    Why? Because SFT, at its core, is about <em>mimicry</em>. It doesn't understand the <em>underlying principles</em> of good writing or insightful thinking. It just learns statistical correlations.  Feed it a dataset of mediocre creative writing, and it will learn to generate...more mediocre creative writing.  It gets lost in the middle of long responses. It can't plan. It can't <em>think</em>.
+    The original GRPO paper focuses on mathematical reasoning. Get a dataset, train a reward model on correct/incorrect answers, unleash GRPO, profit. This works, <em>up to a point</em>. But it still relies on the ability of your dataset to encode a reward signal that is somewhat more advanced but not too much more advanced than what your model can currently handle. This is not true open-endedness.
 </p>
 
 <h3>
@@ -50,11 +38,11 @@
 </h3>
 
 <p>
-    The standard RL approach on fixed datasets, even with GRPO, hits the same wall.  You're training a model to maximize its score on a <em>finite</em> set of examples.  This inevitably leads to overfitting.  The model learns to exploit quirks and biases in the dataset, rather than learning the underlying skill you're actually after.  It's like optimizing for clicks instead of real engagement – you get a lot of clicks, but nobody actually <em>likes</em> what you're producing. Your math model might be acing the GSM8K benchmark but give it a slightly different problem, and suddenly, it's flailing.
+    The standard RL approach on fixed datasets — including that pursued by DeepSeek in training R1 — hits the same wall that SFT has for years.  You're training a model to maximize its score on a <em>finite</em> set of examples. As the model's performance saturates the input benchmark, the ability of that benchmark to provide your model with signal erodes.
 </p>
 
 <h3>
-    The Judging LLM Breakthrough
+    Open-ended Rewards
 </h3>
 
 <p>

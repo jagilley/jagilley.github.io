@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Jasper's Site" />
+  <title>Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Jasper Gilley" />
+  <meta property="og:description" content="" />
+  <meta property="og:site_name" content="jagilley.github.io" />
+  <meta property="og:image" content="/img" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #111;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li {
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<h1>
+    I quit my FAANG job because it'll be automated by the end of 2025
+</h1>
+<p class="author">Jasper Gilley<br>
+<!-- <a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+<a href="https://www.linkedin.com/in/jaspergilley/">Linkedin</a></p> -->
+
+<p>
+    Until this February, I had gainful employment at [redacted FAANG co] as a Machine Learning Engineer working on fine-tuning LLMs for language translation tasks. It was a great gig, and I enjoyed the work and my coworkers. However, taking a medium-term look at the market dynamics surrounding my employment prompted me to quit a few weeks ago. I'm now convinced that my former job there will be obsolete by the end of the year.
+</p>
+
+<h3>
+    Engineering jobs, ca. early 2025
+</h3>
+<p>
+    For context — I started my career as a backend engineer at a late-stage startup before transitioning into doing ML work for a few early-stage startups and finally for FAANGco. It's wild how much change the industry has already undergone since I started my career <5 years ago in 2021. My first job consisted of taking on atomic tasks in the form of Jira tickets that had been assigned points for difficulty and progressively knocking them out, sometimes in the form of pair programming with another engineer (gasp!) If this work model isn't obsolete yet, it certainly feels like a relic of a dying age. Frontier companies' cost per line of code must be approaching <a href="https://arstechnica.com/ai/2024/10/google-ceo-says-over-25-of-new-google-code-is-generated-by-ai/">10x cheaper</a> than it was in these days. Most of the microservices repos at my first company could now probably be built in a day by one person with the aid of an advanced coding agent like <a href="https://docs.anthropic.com/en/docs/agents-and-tools/claude-code/overview">Claude Code</a>. It's not hard to imagine why the demand for junior devs has all but gone away when most backend work at these sorts of companies now consists of debugging thorny edge cases that only a senior+ level engineer is likely to be able to tackle.
+</p>
+<p>
+    ML work is different insofar as it requires cost management w.r.t. hardware that is nontrivially expensive, from the perspective of cost, availability, and execution time — even at hyperscalers. For a while, it seemed to me like the high cost of botched experiments would be a saving grace from automation in this field. AI slop code might be fine when it comes to the frontend of your Next.js side project, but when it makes false assumptions that cause silent errors in your training runs, you've got a problem.
+</p>
+<p>
+    This might continue to be the case for the foreseeable future to some extent, but there are two catches, from the perspective of an ML engineer who would like to keep their job:
+</p>
+<ol>
+    <li>Just as the cost per line of code has fallen by an order of magnitude already, the cost per hour of debugging is currently in freefall with the aid of coding agents that comb through your code much faster than you can, and</li>
+    <li>Is a job that consists of you being the context management glue on either end of an AI system cum debugger-in-chief for all the gnarliest problems that frontier agents can't quite solve yet really one worth having?</li>
+</ol>
+<hr>
+<p>
+    A little while ago, I got the pervasive sense in the SF tech scene that as AI coding gets better, the place you want to be is in a rest-and-vest job with a publicly-traded FAANG company that will let you slowly automate your own job while you collect RSUs.
+</p>
+<p>
+    Sorry, the Efficient Market Hypothesis is more true than that.
+</p>
+<ol>
+    <li>Managerial expectations can increase faster than AI coding agents can get better</li>
+    <li>This means that engineering jobs will increasingly be rate limited not by code-writing but by infrastructure management, documentation writing/AI context management, and testing. And, most frustratingly of all, talking to non-technical people</li>
+    <li>It's easy and acceptable to tell your semi-technical manager that writing code is taking longer than you originally thought. It's less acceptable to tell them that writing a spec and testing how an AI coding agent's implementation turned out is taking longer than you originally thought</li>
+    <li>A lot more people are capable of doing at least a semi-decent job of the paste spec → plug into coding agent → test loop than the traditional loop that also included writing all the code</li>
+    <li>Tech cos aren't that greedy about money on short timescales, but they are greedy on medium timescales. They don't want to do layoffs during good times for reputational reasons but they'll definitely do them during medium-to-bad times when there's lots of money to be saved.</li>
+</ol>
+
+<h3>
+    This is the state of engineering <em>now.</em> What does engineering look like by the end of 2025 or 2026?
+</h3>
+<p>
+    Right now, most of your engineering job not spent in the IDE consists of writing/clarifying specs, disambiguating them with stakeholders, and checking if things work as intended. These tasks are mostly beyond the capabilities of current models, less because they're fundamentally outside the scope of AI models' cognitive capabilities, and more because they involve navigating internal software, referencing documents, and being able to devise and run reasonable tests on the efficacy of a project, in the context of its desired purpose.
+</p>
+<p>
+    You don't have to extrapolate the capabilities of current computer-use agents very far at all to imagine them being able to autonomously do this sort of fairly menial context-gathering. As someone with a <span class="hover-footnote">background in GUI agents<span class="footnote-text">I worked on a startup in the field and consulted for another leading startup that you've definitely heard of</span></span>, I'd be surprised if we don't have this capability by the end of 2025. At this point, it's about keeping relevant information in context, disregarding some of it when necessary, and knowing where to look to load it back. None of this seems prohibitive for a slightly more advanced version of current agent systems. This isn't even taking into account non-GUI-based tools for providing context to AI agents, like Anthropic's MCP, which could well further speed adoption and accuracy at companies that are on the frontier of these things.
+</p>
+
+<div class="sidenote">
+    <p>
+        As a sidenote, one of the key distinctions for agentic systems is whether you're telling them to use first-party or third-party software. Tasks like "order me a sandwich on the UberEats website" are fairly likely to get blocked by CAPTCHAs or other bot detection systems if you do them too much (I promise you, you can't fool profiling algorithms at scale unless you're a nation-state actor.) You yourself, however, can make sure that your bots don't get blocked from accessing internal documentation via approved channels. As a result, GUI agents might see much faster adoption for internal tasks than external ones.
+    </p>
+</div>
+
+<p>
+    All in all, I think the evidence points to a scenario where by the end of this year or next, engineering and other pure knowledge work IC jobs can be mostly done by AI agents, with some fraction of the people who formerly held those IC jobs acting as <em>de facto</em> product managers cum infrastructure janitors for agent swarms.
+</p>
+<p>
+    On one hand, this is great! We'll have essentially infinite working software at a price of ≈$0/line of code. The actual job of being an AI agent product manager cum infrastructure janitor, however, sounds awfully boring to me personally. That's why I quit my FAANG job a few weeks ago.
+</p>
+
+<h3>
+    What should humans do in the era of infinite machine intelligence?
+</h3>
+<p>
+    Contrary to what some tech people seem to think, there are factors of production other than intelligence. There may even be factors of production that are intrinsically tied to being a human, outside of the raw intelligence outputted by some people's brains. For the time being, those non-intelligence factors should retain economic value.
+</p>
+<p>
+    If you have a knowledge work IC job and are not interested in being an AI agent wrangler, where you go from here is obviously closely tied to your personal attributes and skills. To help get a clearer picture of what those are, I suggest talking to a language model. Specifically, I'd brainstorm jobs such that even if they <em>could</em> be done very well by AI systems, people wouldn't want to use AI systems to do them.
+</p>
+<p>
+    You always <em>can</em> stay on as an AI wrangler, of course. But for me, part of the appeal of getting into a profession like engineering was the intellectual challenge of using intelligence to solve problems, and it seems to be specifically the intelligence part of the job that's most directly in the line of fire for automation. Humans aren't defined by their intelligence, of course, but they're certainly not defined by their unique capacity to be infrastructure janitors for AI agents either.
+</p>
+<p>
+    Personally, I think some types of sales jobs fall under the category of "even if they could be done by AI agents, nobody would want them to be." It's broadly in the rational economic interest of both buyer and seller that there be a human in the loop at this phase of the deal lifecycle. So the next step in my career is going to be talking to people about great AI products that are being built and helping them figure out if they'd find these products useful. If you're building a great product and would like somebody to tell people about it, please don't hesitate to <span class="hover-footnote">reach out<span class="footnote-text">my email is my name, Jasper Gilley, at gmail dot com, all lowercase</span></span>!
+</p>
+<br>
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+<a href="https://www.linkedin.com/in/jaspergilley/">Linkedin</a></p>
+
+</body>
+</html>
