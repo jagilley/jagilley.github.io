@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="The end of data domains" />
+  <title>The end of data domains | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/data_domains.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="The end of data domains" />
+  <meta property="og:description" content="One aspect of the ARC-AGI saga that I think has gone underdiscussed is how big of a deal it is that o3 was able to generalize completely out of domain to solve ARC tasks." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/arc.jpg" />
+  <meta property="article:published_time" content="2025-04-01" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      color: #111;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li {
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<h1>
+    The end of data domains
+</h1>
+<p class="author">
+Jasper Gilley<br>
+San Francisco, California<br>
+April 2025<br>
+</p>
+
+<p>
+    One aspect of the <a href="https://arcprize.org/arc-agi">ARC-AGI</a> saga that I think has gone underdiscussed is how big of a deal it is that o3 was able to extrapolate completely out of domain to solve ARC tasks. We now have convincing evidence that reasoning models can adapt to any textual task not seen during training, provided with sufficient compute. This means that data domains don't really exist anymore - it's just a matter of how much compute you're comfortable spending to venture into them.
+</p>
+
+<h3>
+    Visual reasoning
+</h3>
+<p>
+    A complaint <a href="https://nonint.com/2024/12/22/beating-arc-the-hard-way/">I've heard made</a> about ARC as a benchmark for LLMs is that what ARC asks you to do is not really a language task - it's more of a visual processing task that LLMs happen to be able to bumble their way through sometimes. This <span class="hover-footnote">complaint<span class="footnote-text">roon was yapping about it too in a now-deleted tweet lol</span></span> is entirely reasonable, and some of the early marketing copy around ARC (<em>"the average 5-year-old can solve this task but LLMs can't!"</em>) didn't help.
+</p>
+<p>
+    But the weirdness of the measured task is precisely what's impressive about reasoning models being able to bumble their way through to a ~75% success rate. ARC is useful as a benchmark for language models because it's both completely out-of-domain and not amenable to reward hacking.
+</p>
+<p>
+    I'm excited about the implications of this because a lot of useful tasks involve data that is somewhat OOD for language models, but less OOD than ARC. Suppose you have object tracking data in the form of <em>(x, y, z)</em> coordinates over time, encoded in JSON. It probably wouldn't be reasonable to expect a traditional language model to be able to draw inferences about the spatial patterns in this data over time, since these models aren't natively trained to do so. But a model capable of solving ARC tasks at a decent clip could probably draw some useful inferences, provided with a few examples of what to look for.
+</p>
+<p>
+  Nor should we expect this sort of extrapolation ability to be limited to massive frontier models. People are already doing really cool projects with local RL on data domains that are a little unconventional for language models. Some cool ones I've seen include <a href="https://arxiv.org/abs/2503.24289">recommender systems</a>, <a href="https://hrishbh.com/teaching-language-models-to-invent-or-optimize-efficient-sudoku-algorithms-through-reinforcement-learning/">sudoku</a>, <a href="https://hrishbh.com/agent-2048-forging-strategic-gameplay-in-an-ai-through-data-rewards-and-rl/">2048</a>, and <a href="https://github.com/brendanhogan/DeepSeekRL-Extended/tree/llm_rewards">debating</a>.
+</p>
+<p>
+  What's especially interesting about these mini-domains to me is that they'd be pretty much unsolvable by AI without frontier reasoning models or local RL models figuring them out. You couldn't train a model <em>just</em> on the mini-domain since not much data is encoded in the domain itself. Wasteful as it may seem to burn thousands of dollars on a random ARC task, starting from a nearby capabilities point and spending compute to infiltrate the new mini-domain is probably the only way these mini-domains would ever get solved.
+</p>
+
+<h3>
+    Text eats all
+</h3>
+<p>
+    All this points to a near future in which it often makes sense to throw random textual-ish data into reasoning models and trust them to figure it out. You could imagine this working with:
+</p>
+<ol>
+    <li>Biological data</li>
+    <li>3D modeling/CAD data</li>
+    <li>Human computer use workflows</li>
+    <li>Physics data</li>
+    <li>Financial market data</li>
+    <li>Musical data/music notation???</li>
+    <li>...</li>
+</ol>
+<p>
+    As long as you have a textual representation of real-world data and a few ground truth labels to work from, text is poised to eat all.
+</p>
+<br>
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+
+</body>
+</html>
