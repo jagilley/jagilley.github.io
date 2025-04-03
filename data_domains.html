@@ -151,7 +151,9 @@ April 2025<br>
 <script>
   const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
   const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
-  const supabase = supabaseJs.createClient(supabaseUrl, supabaseAnonKey);
+  // Use the global 'supabase' object provided by the CDN script
+  const { createClient } = supabase;
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
   const form = document.getElementById('subscribe-form');
   const messageElement = document.getElementById('subscribe-message');
@@ -164,7 +166,8 @@ April 2025<br>
     messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
 
     try {
-      const { data, error } = await supabase
+      // Use the initialized client variable 'supabaseClient'
+      const { data, error } = await supabaseClient
         .from('subscribers') // Target the 'subscribers' table
         .insert([{ email: email }]); // Insert the email
 
