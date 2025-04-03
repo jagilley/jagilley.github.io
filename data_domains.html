@@ -168,7 +168,7 @@ April 2025<br>
     try {
       // Use the initialized client variable 'supabaseClient'
       const { data, error } = await supabaseClient
-        .from('subscribers') // Target the 'subscribers' table
+        .from('blog_subscribers') // Target the 'subscribers' table
         .insert([{ email: email }]); // Insert the email
 
       if (error) {
