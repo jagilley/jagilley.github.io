@@ -80,8 +80,8 @@
     #subscribe-section {
       text-align: center;
       padding: 2rem 0;
-      /* border-top: 1px solid #ccc; /* Removed the top border */
-      margin-top: 2rem;
+      /* border-top: 1px solid #ccc; */
+      /* margin-top: 0rem; */
     }
     #subscribe-form label {
       margin-right: 0.5rem;
@@ -108,7 +108,10 @@
     #subscribe-section p.description { /* Style for the description paragraph */
         margin-bottom: 1rem;
         color: #555; /* Slightly lighter text color */
-        font-size: 0.95rem;
+        font-size: 1.1rem;
+    }
+    #subscribe-section h3 { /* Style for the description paragraph */
+        font-size: 1.8rem;
     }
     #subscribe-message { /* Ensure message is also centered */
         text-align: center;
@@ -173,11 +176,11 @@ April 2025<br>
 <a href="https://github.com/jagilley">Github</a><br>
 </p>
 
-<hr style="margin-top: 2rem; margin-bottom: 2rem;"> /* Add some space around the hr */
+<hr style="margin-top: 2rem;">
 
 <div id="subscribe-section">
-  <h3>Subscribe to my newsletter</h3>
-  <p class="description">Get notified when I publish new posts. No spam, just content.</p>
+  <h3 id="subscribe-title">Subscribe to my newsletter</h3>
+  <p class="description">Get new posts delivered to your inbox. No spam, just content.</p>
   <form id="subscribe-form">
     <label for="email">Email:</label>
   <input type="email" id="email" name="email" required>
