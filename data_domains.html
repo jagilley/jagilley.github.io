@@ -135,6 +135,61 @@ April 2025<br>
 <p class="author">Jasper Gilley<br>
 <a href="https://twitter.com/0xjasper">Twitter</a><br>
 <a href="https://github.com/jagilley">Github</a><br>
+</p>
+
+<hr>
+
+<h3>Subscribe to my newsletter</h3>
+<form id="subscribe-form">
+  <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required>
+  <button type="submit">Subscribe</button>
+  <p id="subscribe-message" style="margin-top: 10px;"></p>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
+  const supabase = supabaseJs.createClient(supabaseUrl, supabaseAnonKey);
+
+  const form = document.getElementById('subscribe-form');
+  const messageElement = document.getElementById('subscribe-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value;
+    messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
+
+    try {
+      const { data, error } = await supabase
+        .from('subscribers') // Target the 'subscribers' table
+        .insert([{ email: email }]); // Insert the email
+
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for unique constraint violation (email already exists)
+        if (error.code === '23505') { // PostgreSQL unique violation code
+             messageElement.textContent = 'You are already subscribed!';
+             messageElement.style.color = 'orange';
+        } else {
+            messageElement.textContent = `Error: ${error.message}`;
+            messageElement.style.color = 'red';
+        }
+      } else {
+        messageElement.textContent = 'Successfully subscribed!';
+        messageElement.style.color = 'green';
+        emailInput.value = ''; // Clear the input field on success
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      messageElement.textContent = 'An unexpected error occurred.';
+      messageElement.style.color = 'red';
+    }
+  });
+</script>
 
 </body>
 </html>
