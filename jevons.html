@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Why Jevons' Paradox won't save your SWE job" />
+  <title>Why Jevons' Paradox won't save your SWE job | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/jevons.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Jevons' Paradox won't save your SWE job" />
+  <meta property="og:description" content="The most common counterargument I heard to my FAANG automation post: in the past, when new dev tools have been created, the resulting developer increase in productivity actually increased the overall demand for software engineers. But I don't think the analogy holds." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/harvesters.jpg" />
+  <meta property="article:published_time" content="2025-04-16" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li {
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    #subscribe-section {
+      text-align: center;
+      padding: 2rem 0;
+      /* border-top: 1px solid #ccc; */
+      /* margin-top: 0rem; */
+    }
+    #subscribe-form label {
+      margin-right: 0.5rem;
+    }
+    #subscribe-form input[type="email"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      min-width: 250px; /* Give the email input a decent width */
+    }
+    #subscribe-form button {
+      padding: 0.5rem 1rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #subscribe-form button:hover {
+      background-color: #0056b3;
+    }
+    #subscribe-section p.description { /* Style for the description paragraph */
+        margin-bottom: 1rem;
+        color: #555; /* Slightly lighter text color */
+        font-size: 1.1rem;
+    }
+    #subscribe-section h3 { /* Style for the description paragraph */
+        font-size: 1.8rem;
+    }
+    #subscribe-message { /* Ensure message is also centered */
+        text-align: center;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">← All Posts</a>
+<h1>
+    Why Jevons' Paradox won't save your SWE job
+</h1>
+<p class="author">
+Jasper Gilley<br>
+San Francisco, California<br>
+April 2025<br>
+<!-- <a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>-->
+</p>
+
+<p>
+    Several weeks ago, <a href="https://jagilley.github.io/faang-blog.html">I wrote a blog post</a> arguing that my old FAANG job was going to be obsolete by the end of 2025, as a result of rapid progress in the breadth of AI capabilities.
+</p>
+
+<p>
+    The most common <span class="hover-footnote">counterargument<span class="footnote-text">not ad hominem</span></span> I heard went something like this:
+    <div class="sidenote">
+    "In the past, when new dev tools have been created, the resulting developer increase in productivity actually increased the overall demand for software engineers, because more software could be created at a better price. AI is just another dev tool, therefore it will increase the demand for software engineers."
+  </div>
+</p>
+
+<p>
+    This is a restatement of Jevons' Paradox: if the demand for a good is constrained primarily by its price, then a decrease in the price of that good will increase overall demand for that good dramatically. This is often true of industrial inputs because of their nonlinear nature: cheaper coal during the Industrial Revolution enabled greater use of coal overall.
+</p>
+
+<p>
+    However, I don't think the analogy holds. In order for AI dev tools to be a complementary good to your labor, you must sit at least partially upstream or downstream of their capabilities - and being downstream of their capabilities today does <em>not</em> mean you'll be downstream of their capabilities tomorrow. Unless your labor is extremely differentiated, AI dev tools are more likely to be a direct substitute to it than a complement.
+</p>
+
+<h3>
+    Is demand for software engineering still elastic?
+</h3>
+<p>
+    Historically, the market for software development has behaved as though it were highly <span class="hover-footnote">price elastic<span class="footnote-text">In economics, the price elasticity of demand refers to the change in consumption with respect to the change in price. A good is <em>price elastic</em> if the price of a good halving leads to the amount consumed more than doubling.</span></span>:
+</p>
+
+<ol>
+    <li><strong>Backlogs</strong>: many orgs have backlogs of desired features and new software projects they can't pursue due to budget and talent constraints. A significant drop in the effective cost of development could unlock lots of this latent demand.</li>
+    <li><strong>New Applications</strong>: cheaper development makes it viable to create software for niches, industries, or types of problems previously uneconomical. I.E., hyper-customization, more sophisticated internal tools for smaller companies, accelerating scientific research, etc. This creates entirely new areas of demand.</li>
+    <li><strong>Increased Complexity</strong>: as anyone who has vibe coded a codebase knows, the complexity gradually grows until it sometimes becomes too complex for AI dev agents to handle, and human intervention is required.</li>
+    <li><strong>Build vs buy</strong>: cheap ad hoc software development will probably lead companies to build bespoke solutions rather than buying less flexible off-the-shelf software or engaging in manual processes.</li>
+</ol>
+
+<p>
+    I buy all of these arguments, frankly, and I'm sure that reduction in effective software development costs will expand the market for software considerably. However:
+</p>
+
+<ol>
+    <li><strong>Mature categories are near saturation</strong> (CRUD apps, brochure‑ware sites, commodity mobile apps)</li>
+    <li><strong>Baumol-Bowen cost disease</strong> means that even in an era of infinite free software, non-software bottlenecks will simply grow to consume a larger chunk of overall costs, reducing the ability of total software demand to increase further, <a href="https://marginalrevolution.com/marginalrevolution/2025/02/why-i-think-ai-take-off-is-relatively-slow.html">as Tyler Cowen has pointed out</a></li>
+    <li>There are clearly <strong>diminishing marginal returns</strong> to additional features in existing apps like e.g. Microsoft Teams or what have you. There do exist SOME fundamental limits for demand to software</li>
+    <li>It's about the <strong>rate of change</strong> anyway. AI capabilities are advancing much faster than the demand for new software engineers can expand. If one AI-assisted engineer is <span class="hover-footnote">10x more productive<span class="footnote-text">debatable now, but that multiplier is going up at a very nontrivial, consistent rate</span></span> than a 2020-era engineer, demand for new software needs to also increase by 10x in order to maintain employment levels</li>
+</ol>
+
+<p>
+    Additionally - these arguments concern whether demand for <em>overall software development capability</em> is elastic. Historically, this quantity is functionally the same as demand for software engineer employment. However, I don't think this is likely to continue to be the case.
+</p>
+
+<h3>
+    Intelligence as industrial commodity
+</h3>
+
+<!-- <p>
+    I would define the crux of the job of software engineering [or engineering more broadly, but I can't speak in as much detail about other fields] as being the intelligence glue that allows management to specify product directions and not worry about the implementation. Yes, there are orgs in which product direction can be more engineering-driven, but I would argue that those orgs are just having their engineers also take on some of the job of product managers [which is all well and good but it's a separate role.]
+</p>
+
+<p>
+    Sidebar: as a rule of thumb, the core capabilities of any job are probably approximately the skills that are tested for when you get hired. SWE interview processes filter based on rote symbolic intelligence (i.e., Leetcode) and general-purpose system design experience. Both of these things are sub-categories of being intelligence glue.
+</p> -->
+
+<p>
+    In the past, the advent of e.g., assembly → programming languages, low-level programming languages → higher-level programming languages essentially just pushed the level of abstraction up a notch. Software engineers were still needed as intelligence glue to piece everything together - they just operated at a higher level of the stack. The overall gain in productivity from working at a higher level was nowhere near enough to make a dent in demand for engineering capability; thus, Jevons' Paradox applied and still more engineers were hired.
+</p>
+
+<p>
+    Meet: <b>Intelligence Glue as a Service</b>, also known as AI in 6 months from now. Capabilities? Now:
+</p>
+
+<ul>
+    <li>It can already solve competitive programming problems better than you (a.k.a. the core symbolic intelligence loop we select for with Leetcode-style interviews)</li>
+    <li>It intuitively knows vastly more information than you</li>
+    <li><a href="https://pub.sakana.ai/ai-scientist-v2/paper/">It can probably do core AI research better than you</a> (unless you're really cracked at it)</li>
+    <li>It works for a fraction of the wages you do</li>
+</ul>
+
+<p>
+    In 6-12 months:
+</p>
+
+<ul>
+    <li>It will be able to hold more information in working memory than you</li>
+    <li>It will be able to use a computer at least as effectively as you to augment its own context when necessary</li>
+    <li>It will probably be able to architect novel systems better than you</li>
+</ul>
+
+<p>
+    I envision the "intelligence glue" part of SWE jobs as being squeezed into higher and higher corners of abstraction, until one day it becomes indistinguishable from the inputs to production upstream of engineering implementation (i.e., ideation, strategy, and marketing.)
+</p>
+
+<h3>
+  Factory farming of intelligence
+</h3>
+
+<p>
+    Instead of coal use, I'd point to a different historical parallel. As recently as 1900, as much as two-thirds of the world's population was in the business of farming. In the 1930s-1950s, the Haber-Bosch process and other industrial farming techniques improved food output per farmer by a factor of perhaps 20x. Demand for food, however, is fundamentally inelastic: every human only needs to eat so much of it. As a result, all those people who previously trudged away farming were able to get other jobs. Today, farming is extremely mechanized and represents about 2% of employment in the developed world, a number which may itself be propped up by subsidies.
+</p>
+
+<p>
+    This is a wonderful thing for the world economy, and the cost of a whole bunch of important products that rely on software as an industrial input will almost certainly go way down. But I wouldn't advise staying in the business of subsistence farming while your neighbor gets ready to put his combine harvester to use.
+</p>
+
+<h4>
+  Objection
+</h4>
+
+<div style="max-width: 600px; margin: 0 auto;">
+  <img src="resources/objection.png" style="width: 100%; height: auto; border: 5px solid #ccc; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+  <a href="https://x.com/aquariusacquah/status/1906492160880345404" style="display: block; margin-top: 8px; text-align: center;">Source: Ken Acquah on Twitter</a>
+</div>
+
+<h4>
+  Response
+</h4>
+<p>
+    The problem is that software engineering employment is correlated not with the returns to running software repeatedly at low marginal cost but with the creation, customization, and deployment of new software. The returns on <strong>running</strong> software go to equity holders; the wage premium commanded by those who write software is purely a function of the scarcity of people (or machines) capable of doing so. What you're really creating as a software engineer is git diffs, not code itself.
+</p>
+
+<h3>
+  Conclusions
+</h3>
+
+<p>
+    The fact of the matter is, humans were NOT EVOLUTIONARILY DESIGNED to do symbolic reasoning, and we happen to have invented a machine that is more or less designed to do just that.
+</p>
+
+<p>
+    There are lots of things that AI models seem poised to suck at for the foreseeable future! For every math/science/coding benchmark that gets smashed, models remain bad at creative writing and most everything else that involves qualitative emulation. RL'ing a model to death won't make it any better at exploring wide latent spaces in which the space of valid outputs is equally as broad as the space of valid inputs.
+</p>
+
+<p>
+    But yeah, you should probably graduate from seeing yourself as a gatekeeper of a critical industrial process.
+</p>
+
+<br>
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+</p>
+
+<hr style="margin-top: 2rem;">
+
+<div id="subscribe-section">
+  <h3 id="subscribe-title">Subscribe to my newsletter</h3>
+  <p class="description">Get new posts delivered to your inbox. No spam, just content.</p>
+  <form id="subscribe-form">
+    <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required>
+    <button type="submit">Subscribe</button>
+    <p id="subscribe-message" style="margin-top: 10px;"></p>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
+  // Use the global 'supabase' object provided by the CDN script
+  const { createClient } = supabase;
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+  const form = document.getElementById('subscribe-form');
+  const messageElement = document.getElementById('subscribe-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value;
+    messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
+
+    try {
+      // Use the initialized client variable 'supabaseClient'
+      const { data, error } = await supabaseClient
+        .from('blog_subscribers') // Target the 'subscribers' table
+        .insert([{ email: email }]); // Insert the email
+
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for unique constraint violation (email already exists)
+        if (error.code === '23505') { // PostgreSQL unique violation code
+             messageElement.textContent = 'You are already subscribed!';
+             messageElement.style.color = 'orange';
+        } else {
+            messageElement.textContent = `Error: ${error.message}`;
+            messageElement.style.color = 'red';
+        }
+      } else {
+        messageElement.textContent = 'Successfully subscribed!';
+        messageElement.style.color = 'green';
+        emailInput.value = ''; // Clear the input field on success
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      messageElement.textContent = 'An unexpected error occurred.';
+      messageElement.style.color = 'red';
+    }
+  });
+</script>
+
+</body>
+</html>
