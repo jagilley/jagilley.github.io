@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Why Jevons' Paradox won't save your SWE job" />
+  <title>Learning Personalized Image Aesthetics with Linear Preferences | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/jevons.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Jevons' Paradox won't save your SWE job" />
+  <meta property="og:description" content="The most common counterargument I heard to my FAANG automation post: in the past, when new dev tools have been created, the resulting developer increase in productivity actually increased the overall demand for software engineers. But I don't think the analogy holds." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/harvesters.jpg" />
+  <meta property="article:published_time" content="2025-04-16" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li {
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    #subscribe-section {
+      text-align: center;
+      padding: 2rem 0;
+      /* border-top: 1px solid #ccc; */
+      /* margin-top: 0rem; */
+    }
+    #subscribe-form label {
+      margin-right: 0.5rem;
+    }
+    #subscribe-form input[type="email"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      min-width: 250px; /* Give the email input a decent width */
+    }
+    #subscribe-form button {
+      padding: 0.5rem 1rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #subscribe-form button:hover {
+      background-color: #0056b3;
+    }
+    #subscribe-section p.description { /* Style for the description paragraph */
+        margin-bottom: 1rem;
+        color: #555; /* Slightly lighter text color */
+        font-size: 1.1rem;
+    }
+    #subscribe-section h3 { /* Style for the description paragraph */
+        font-size: 1.8rem;
+    }
+    #subscribe-message { /* Ensure message is also centered */
+        text-align: center;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">← All Posts</a>
+<h1>
+  Aesthetics are Semantically Linear: Learning Personalized Image Aesthetics with Linear Regression in Subjective Space
+</h1>
+<p class="author">
+Jasper Gilley<br>
+April 2025<br>
+<!-- <a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>-->
+</p>
+
+<h3>
+  Abstract
+</h3>
+<p>
+  I've long been fascinated by the task of learning personal image preferences: predicting subjective aesthetic ratings given to a group of images by a single user. Previous content-based approaches involve learning CLIP-derived representations of image features, or training general aesthetic preference models and adapting them to individual preferences. In this work, I show that it is possible to “discover” semantic attributes that linearly separate user preferences using VLMs. A group of 5-10 attributes, carefully selected, can predict user preferences demonstrably better than previous approaches (predictions are correlated with user ratings with a Spearman correlation coefficient 𝜌 of 0.75, prior SOTA 𝜌 is 0.66.) I contend that this suggests that single-user aesthetic preferences can generally be understood as being linear within a single data domain.
+</p>
+
+<h3>
+  Methods
+</h3>
+<p>
+  My approach was broadly motivated by recent rapid improvements in the cost and quality of available Vision Language Models (VLMs) capable of taking a combination of images and detailed instructions as input. While in principle this approach is modality-agnostic, image aesthetic preferences are a convenient starting point because:
+  <ol>
+    <li>
+      Individual images represent a self-contained "complete" aesthetic unit expressible in a few thousand tokens, whereas complete aesthetic units in the modalities of text or video can get into the hundreds of thousands of tokens.
+    </li>
+    <li>
+      VLMs are capable of making detailed subjective assessments about images, in a way that they qualitatively still struggle with in the domain of e.g. music or audio.
+    </li>
+  </ol>
+</p>
+<p>
+  I specifically chose to use the Gemini series of models as the base VLM for this experiment because they are among the cheapest available while still remaining performant.
+</p>
+<p>
+  My algorithm can be described as follows:
+</p>
+
+<p>
+While <code>true</code>:
+<ol>
+<li>Attribute proposal (using Gemini 2.5 Pro) – given ≤ 4 liked and ≤ 4 disliked examples, return one new phrase that intuitively separates the "liked" from "disliked" examples. Ensure that the new attribute is sufficiently orthogonal to earlier ones.
+</li>
+<li>
+Attribute scoring (using Gemini 2.5 Flash) – score every image ∈ train ∪ valid ∪ test on [0, 1].
+</li>
+<li>
+Model fitting – append the new column to the feature matrix and refit a linear regression.</li>
+<li> Validation check – compute Spearman 𝜌 on the validation split. If 𝜌 improves, keep the axis; otherwise discard it.</li>
+<li>Backwards elimination (optional) – if the new axis improves 𝜌 on the validation set, try pruning previously existing axes to see if the new axis makes them redundant</li>
+</ol>
+</p>
+
+<p>
+  This process can be repeated indefinitely with a guarantee of strictly increasing performance on the validation set.
+</p>
+
+<p>
+  The <a href="https://github.com/alanspike/personalizedImageAesthetics">Flickr-AES</a> dataset, introduced in <em>Personalized Image Aesthetics</em> (<a href="https://openaccess.thecvf.com/content_ICCV_2017/papers/Ren_Personalized_Image_Aesthetics_ICCV_2017_paper.pdf">Ren & Foran, 2017</a>), is ideal for testing this method, and has been used by most treatments of the subject since its release. This dataset consists of 40,000 public domain images from image sharing site Flickr. 210 Amazon Mechanical Turk workers were asked to rate their preferences for on these images, on a scale of integers 1-5.
+</p>
+
+<h3>
+  Results
+</h3>
+
+<p>
+  I and others tackling this literature have used the Spearman correlation coefficient 𝜌 between predicted user ratings and actual user ratings in a held-out test set when evaluating the efficacy of personalized aesthetic models at predicting individual user tastes. Here's how my results compare to prior treatments:
+</p>
+
+<p>
+<table class="c1"><tr class="c12"><td class="c4" colspan="1" rowspan="1"><p class="c27"><span class="c26"><b>Method</b></span></p></td><td class="c4" colspan="1" rowspan="1"><p class="c27"><span class="c26"><b>Spearman 𝜌 on Flickr-AES</b></span></p></td></tr><tr class="c12"><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c20"><a class="c17" href="https://www.google.com/url?q=https://openaccess.thecvf.com/content_ICCV_2017/papers/Ren_Personalized_Image_Aesthetics_ICCV_2017_paper.pdf&amp;sa=D&amp;source=editors&amp;ust=1745542205100462&amp;usg=AOvVaw3OXyU9Xi4PVYyU7HQ_3NeX">Ren &amp; Foran (2017)</a></span></p></td><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c8">0.516</span></p></td></tr><tr class="c12"><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c20"><a class="c17" href="https://www.google.com/url?q=https://dl.acm.org/doi/10.1145/3503161.3548244&amp;sa=D&amp;source=editors&amp;ust=1745542205101067&amp;usg=AOvVaw3DW9TB5MeCBEPDfMoOLdip">Li &amp; Yang (2022)</a></span></p></td><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c8">0.667</span></p></td></tr><tr class="c12"><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c20"><a class="c17" href="https://www.google.com/url?q=https://arxiv.org/pdf/2407.07176&amp;sa=D&amp;source=editors&amp;ust=1745542205101555&amp;usg=AOvVaw2USHIIvdAWyS6jAI4cS4WW">Yun &amp; Choo (2024)</a></span></p></td><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c8">0.668</span></p></td></tr><tr class="c12"><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c8"><b>Mine</b></span></p></td><td class="c4" colspan="1" rowspan="1"><p class="c2"><span class="c8"><b>0.75</b></span></p></td></tr></table>
+</p>
+
+<h3>
+  Discussion
+</h3>
+
+<p>
+  I'm excited by these results because they suggest that recent advancements in mixed modality language models may lead to significantly improved content-based filtering for general-purpose content recommendation.
+</p>
+<p>
+  
+</p>
+
+<hr style="margin-top: 2rem;">
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+</p>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
+  // Use the global 'supabase' object provided by the CDN script
+  const { createClient } = supabase;
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+  const form = document.getElementById('subscribe-form');
+  const messageElement = document.getElementById('subscribe-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value;
+    messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
+
+    try {
+      // Use the initialized client variable 'supabaseClient'
+      const { data, error } = await supabaseClient
+        .from('blog_subscribers') // Target the 'subscribers' table
+        .insert([{ email: email }]); // Insert the email
+
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for unique constraint violation (email already exists)
+        if (error.code === '23505') { // PostgreSQL unique violation code
+             messageElement.textContent = 'You are already subscribed!';
+             messageElement.style.color = 'orange';
+        } else {
+            messageElement.textContent = `Error: ${error.message}`;
+            messageElement.style.color = 'red';
+        }
+      } else {
+        messageElement.textContent = 'Successfully subscribed!';
+        messageElement.style.color = 'green';
+        emailInput.value = ''; // Clear the input field on success
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      messageElement.textContent = 'An unexpected error occurred.';
+      messageElement.style.color = 'red';
+    }
+  });
+</script>
+
+</body>
+</html>
