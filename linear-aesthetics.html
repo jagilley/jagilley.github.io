@@ -9,12 +9,12 @@
   <meta name="description" content="Why Jevons' Paradox won't save your SWE job" />
   <title>Learning Personalized Image Aesthetics with Linear Preferences | Jasper Gilley</title>
 
-  <meta property="og:url" content="https://jagilley.github.io/jevons.html" />
+  <meta property="og:url" content="https://jagilley.github.io/linear-aesthetics.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:title" content="Why Jevons' Paradox won't save your SWE job" />
-  <meta property="og:description" content="The most common counterargument I heard to my FAANG automation post: in the past, when new dev tools have been created, the resulting developer increase in productivity actually increased the overall demand for software engineers. But I don't think the analogy holds." />
+  <meta property="og:title" content="Linear Aesthetics" />
+  <meta property="og:description" content="" />
   <meta property="og:site_name" content="Jasper Gilley" />
-  <meta property="og:image" content="https://jagilley.github.io/resources/harvesters.jpg" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/linear-aesthetics.png" />
   <meta property="article:published_time" content="2025-04-16" />
   <meta property="article:author" content="Jasper Gilley" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -333,7 +333,7 @@ A plausible explanation for why nonlinear heads tacked onto CLIP (or other deep 
 <li><b>Semantic entanglement.</b> Because CLIP’s dense vectors intertwine multiple visual factors, nonlinear networks often need to disentangle those factors implicitly before weighting them. Our attribute-generation stage outsources that disentanglement to the VLM: the model proposes attributes in natural language, scores them over the entire corpus, and returns a <em>nearly orthogonal</em> basis that is already human-interpretable. Once the space is expressed in these semantically pure coordinates, a linear regressor is not a restriction but the <em>natural</em> aggregator of additive preferences.
 </li>
 </ol>
-Put differently, nonlinear heads shine when signal really does live in complex interactions, but for PIAA the evidence suggests that user preference is well-approximated by a low-rank, additive model in a semantically aligned space. The modest gains reported by recent nonlinear approaches (≈ 0.56 → 0.67 ρ) likely reflect representation drift and regularisation tricks rather than genuine exploitation of higher-order terms. Our 0.75 ρ therefore supports the hypothesis that, once the right semantic basis is exposed, adding depth offers diminishing—and sometimes negative—returns.
+Put differently, nonlinear heads shine when signal really does live in complex interactions, but for PIAA the evidence suggests that user preference is well-approximated by a low-rank, additive model in a semantically aligned space. The modest gains reported by recent nonlinear approaches (≈ 0.56 → 0.67 𝜌) likely reflect representation drift and regularisation tricks rather than genuine exploitation of higher-order terms. Our 0.75 𝜌 therefore supports the hypothesis that, once the right semantic basis is exposed, adding depth offers diminishing—and sometimes negative—returns.
 </p>
 <p>
   It should also be noted that the cost of my approach is likely well in excess of prior treatments. "Training" a regression model that achieves an SROCC of >0.7 on a single user's ratings requires sending something on the order of several million tokens to the VLM, at a cost of about $1 at current Gemini API pricing. However, I believe this is acceptable, as VLM API prices are constantly falling, and this project aims to serve as a proof-of-concept for "brute-forcing" user preferences.
