@@ -169,6 +169,31 @@
       font-size: 0.95rem;
       color: #444;
     }
+    .rater-info {
+      text-align: center;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 1.5rem; /* Add some space below */
+    }
+    .attribute-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .attribute-table th, .attribute-table td {
+      border: 1px solid #ccc;
+      padding: 0.4rem 0.6rem;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    .attribute-table th {
+      background-color: #e0e0e0;
+      font-weight: bold;
+    }
+    .attribute-table td:last-child {
+      text-align: center; /* Center-align the scores */
+    }
   </style>
 </head>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -193,23 +218,31 @@ April 2025<br>
 
 <div class="example-section">
   <h4>Example Image and Attribute Scores</h4>
-  <p>Trained on preferences of rater A14W0IW2KGR80K</p>
+  <p class="rater-info">Trained on preferences of rater A14W0IW2KGR80K</p>
   <div class="example-content">
     <img src="resources/farm4_3296_2456875268_b7c0601770_b.jpg" alt="Example aesthetic image: landscape with trees and sky">
     <div class="attribute-ratings">
-      <h5>VLM-Generated Scores for Discovered Attributes (0-1):</h5>
-      <ul>
-        <li>Absence of prominent people: 1.0</li>
-        <li>Primarily landscape or nature scenes: 1.0</li>
-        <li>Depicts group activities or social events: 0.0</li>
-        <li>High photographic quality: 1.0</li>
-        <li>Scenic or aesthetically pleasing subjects: 1.0</li>
-        <li>Absence of significant foreground obstruction: 1.0</li>
-        <li>Features natural elements or poignant human subjects: 1.0</li>
-        <li>Unconventional or dramatic perspective: 0.0</li>
-        <li>Amateurish or snapshot quality: 0.4</li>
-        <li>Depicts a place or atmosphere: 1.0</li>
-      </ul>
+      <h5>VLM-Generated Scores for Discovered Attributes:</h5>
+      <table class="attribute-table">
+        <thead>
+          <tr>
+            <th>Attribute</th>
+            <th>Score (0-1)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Absence of prominent people</td><td>1.0</td></tr>
+          <tr><td>Primarily landscape or nature scenes</td><td>1.0</td></tr>
+          <tr><td>Depicts group activities or social events</td><td>0.0</td></tr>
+          <tr><td>High photographic quality</td><td>1.0</td></tr>
+          <tr><td>Scenic or aesthetically pleasing subjects</td><td>1.0</td></tr>
+          <tr><td>Absence of significant foreground obstruction</td><td>1.0</td></tr>
+          <tr><td>Features natural elements or poignant human subjects</td><td>1.0</td></tr>
+          <tr><td>Unconventional or dramatic perspective</td><td>0.0</td></tr>
+          <tr><td>Amateurish or snapshot quality</td><td>0.4</td></tr>
+          <tr><td>Depicts a place or atmosphere</td><td>1.0</td></tr>
+        </tbody>
+      </table>
       <p style="margin-top: 1rem;"><strong>True User Rating (A14W0IW2KGR80K):</strong> 5</p>
       <p><strong>Predicted Rating:</strong> 4.63</p>
     </div>
