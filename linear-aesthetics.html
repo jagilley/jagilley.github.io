@@ -191,8 +191,9 @@
       background-color: #e0e0e0;
       font-weight: bold;
     }
-    .attribute-table td:last-child {
-      text-align: center; /* Center-align the scores */
+    .attribute-table td:nth-child(2), /* Center-align the Score column */
+    .attribute-table td:nth-child(3) { /* Center-align the Coefficient column */
+      text-align: center;
     }
   </style>
 </head>
@@ -228,23 +229,24 @@ April 2025<br>
           <tr>
             <th>Attribute</th>
             <th>Score (0-1)</th>
+            <th>Coefficient</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>Absence of prominent people</td><td>1.0</td></tr>
-          <tr><td>Primarily landscape or nature scenes</td><td>1.0</td></tr>
-          <tr><td>Depicts group activities or social events</td><td>0.0</td></tr>
-          <tr><td>High photographic quality</td><td>1.0</td></tr>
-          <tr><td>Scenic or aesthetically pleasing subjects</td><td>1.0</td></tr>
-          <tr><td>Absence of significant foreground obstruction</td><td>1.0</td></tr>
-          <tr><td>Features natural elements or poignant human subjects</td><td>1.0</td></tr>
-          <tr><td>Unconventional or dramatic perspective</td><td>0.0</td></tr>
-          <tr><td>Amateurish or snapshot quality</td><td>0.4</td></tr>
-          <tr><td>Depicts a place or atmosphere</td><td>1.0</td></tr>
+          <tr><td>Absence of prominent people</td><td>1.0</td><td>0.2803</td></tr>
+          <tr><td>Primarily landscape or nature scenes</td><td>1.0</td><td>0.8043</td></tr>
+          <tr><td>Depicts group activities or social events</td><td>0.0</td><td>-0.2226</td></tr>
+          <tr><td>High photographic quality</td><td>1.0</td><td>0.0298</td></tr>
+          <tr><td>Scenic or aesthetically pleasing subjects</td><td>1.0</td><td>1.6743</td></tr>
+          <tr><td>Absence of significant foreground obstruction</td><td>1.0</td><td>0.1397</td></tr>
+          <tr><td>Features natural elements or poignant human subjects</td><td>1.0</td><td>0.3020</td></tr>
+          <tr><td>Unconventional or dramatic perspective</td><td>0.0</td><td>0.0599</td></tr>
+          <tr><td>Amateurish or snapshot quality</td><td>0.4</td><td>-1.2130</td></tr>
+          <tr><td>Depicts a place or atmosphere</td><td>1.0</td><td>0.2263</td></tr>
         </tbody>
       </table>
       <p style="margin-top: 1rem;"><strong>True User Rating:</strong> 5</p>
-      <p><strong>Predicted Rating:</strong> 4.63</p>
+      <p><strong>Predicted Rating:</strong> 4.63 (Intercept: 1.6623)</p>
     </div>
   </div>
 </div>
