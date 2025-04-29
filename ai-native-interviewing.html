@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Stop interviewing senior engineers like they're junior leetcoders. How AI changes technical interviews." />
+  <title>AI-native technical interviewing | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/ai-native-interviewing.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="AI-native technical interviewing" />
+  <meta property="og:description" content="Stop interviewing senior engineers like they're junior leetcoders. How AI changes technical interviews." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/arc.jpg" />
+  <meta property="article:published_time" content="2025-04-29" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li {
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    #subscribe-section {
+      text-align: center;
+      padding: 2rem 0;
+      /* border-top: 1px solid #ccc; */
+      /* margin-top: 0rem; */
+    }
+    #subscribe-form label {
+      margin-right: 0.5rem;
+    }
+    #subscribe-form input[type="email"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      min-width: 250px; /* Give the email input a decent width */
+    }
+    #subscribe-form button {
+      padding: 0.5rem 1rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #subscribe-form button:hover {
+      background-color: #0056b3;
+    }
+    #subscribe-section p.description { /* Style for the description paragraph */
+        margin-bottom: 1rem;
+        color: #555; /* Slightly lighter text color */
+        font-size: 1.1rem;
+    }
+    #subscribe-section h3 { /* Style for the description paragraph */
+        font-size: 1.8rem;
+    }
+    #subscribe-message { /* Ensure message is also centered */
+        text-align: center;
+    }
+    .centered-image-container {
+        max-width: 600px;
+        margin: 1.5rem auto; /* Center the container and add margin */
+    }
+    .centered-image-container img {
+        width: 100%;
+        height: auto;
+        border: 5px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        display: block; /* Ensure image is block level */
+    }
+    .centered-image-container p {
+        text-align: center; /* Center the caption */
+        margin-top: 0.5rem;
+        font-style: italic;
+        color: #555;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">← All Posts</a>
+<h1>
+    AI-native technical interviewing
+</h1>
+<p class="author">
+Jasper Gilley<br>
+San Francisco, California<br>
+April 2025<br>
+</p>
+<p><em>stop interviewing senior engineers like they’re junior leetcoders</em></p>
+
+<p>
+    It’s no secret that technical interviews have always been a mediocre-to-bad proxy for actual software engineering skills:
+</p>
+
+<div class="centered-image-container">
+    <img src="resources/arc.jpg" alt="Technical Interview Sign" />
+    <p><em>*points to the sign*</em></p>
+</div>
+
+<p>
+    And it’s <a href="https://www.businessinsider.com/cheating-tech-interviews-soaring-managers-lost-gen-ai-chatgpt-coding-2025-4">no secret either</a> that whatever signal whiteboard/Leetcode-style interviews had is degrading quickly now that even small LLMs can zero-shot these problems.
+</p>
+
+<p>
+    There is a solution, if you have the resources and desire to administer it. The top echelon of startups (OpenAI, Stripe, Coinbase, etc.) <a href="https://newsletter.pragmaticengineer.com/p/the-reality-of-tech-interviews">has moved towards</a> open-ended take-home problems that more closely mirror the day-to-day of an actual engineering job. But there are a few problems with take-homes:
+</p>
+
+<ol>
+    <li>Not many candidates complete them (maybe as low as 20%) unless you’re a brand name company</li>
+    <li>They take a long time for candidates to complete</li>
+    <li>Open-ended problems are <a href="https://www.amazon.com/Why-Greatness-Cannot-Planned-Objective/dp/3319155237">difficult to grade</a> by nature</li>
+    <li>They <a href="https://www.linkedin.com/posts/yangshun_softwareengineering-react-javascript-activity-7298571236723367936-_8E3/?utm_source=share&utm_medium=member_desktop&rcm=ACoAABExRcABJ3yzKC4MRWrv8iATSQK7FCXah9Y">don’t scale well</a> with number of applicants</li>
+    <li>You can still prompt AI to do it for you, sort of</li>
+</ol>
+
+<p>
+    I think these problems were mostly intractable until the release of o3 a few weeks ago, which <em>to me</em> qualitatively feels like the first model capable of both designing and evaluating open-ended take-homes in a truly sophisticated manner.
+</p>
+
+<p>
+    Here’s what I think AI-native technical interviewing looks like:
+</p>
+
+<ol>
+    <li>Generate a customized technical challenge with o3. It can be specific to the company and its branding, specific to the role, specific to the candidate’s background, etc. Provide a little scaffolding, but leave the problem deliberately open-ended for the candidate to run with.</li>
+    <li>Encourage the candidate to use all tools at their disposal, including AI, to solve the problem</li>
+    <li>Evaluate the candidate’s solution with o3. Generate specific questions that test how deeply they know their own solution. If you <em>must</em> select for Leetcode-style data structures & algorithms knowledge, generate a specific augmentation of their solution that requires such knowledge.</li>
+    <li>Have the candidate walk through their solution on a live call. Optionally, have them implement the proposed DS&A augmentation to their solution. Candidates who truly grok their own code can pivot in real time; those who cargo-culted GPT output cannot</li>
+    <li>Present the final solution to the hiring manager. If you design the tech challenge well enough, you can nudge the candidate towards a “demo-able” solution that stands on its own.</li>
+</ol>
+
+<p>
+    I think this solution solves most of the problems affiliated with traditional take-homes:
+</p>
+
+<ul>
+    <li><strong>Problem 1: low completion rates</strong> can be alleviated by making the technical challenge genuinely exciting enough that great candidates get <a href="https://xkcd.com/356/">nerdsniped</a> by it</li>
+    <li><strong>Problem 2: long completion times</strong> becomes a non-factor for candidates who are sufficiently adept at using AI coding tools. It’s hard to imagine a technical challenge that you couldn’t make very meaningful progress on in an hour or two</li>
+    <li><strong>Problem 3: difficulty in grading</strong> is almost completely alleviated by automated AI evaluation along specific axes (e.g., maintainability, completeness, technical challenge attempted, modularity)</li>
+    <li><strong>Problem 4: scalability with number of applicants</strong> obviously goes away</li>
+    <li><strong>Problem 5: separating the candidate’s work from the AI’s</strong> can be addressed by the live walk-through/augmentation, or by clever honeypotting such that candidates who don’t read the starter code thoroughly invariably produce some artifact</li>
+</ul>
+
+<p>
+    At the end of this process, you’d have a pretty rich set of signals to work from:
+</p>
+
+<ol>
+    <li>Impressiveness of demo</li>
+    <li>How “deep” did they go on the problem - correlates strongly with interest in company</li>
+    <li>How much they understand their own code</li>
+    <li>How well did they do on the DS&A augmentation</li>
+    <li>Subjective code quality as evaluated by o3</li>
+</ol>
+
+<p>
+    You’d also actually be evaluating along the lines of skills that actually matter for engineers in this day and age. It’s probably legitimately more important to judge how effectively a potential engineering hire can utilize AI dev tools than whether they can implement an LRU cache from scratch. If a candidate is too busy or doesn’t have high enough agency to spend an hour or two working on a genuinely cool technical problem, chances are they wouldn’t be a great hire anyway.
+</p>
+
+<p>
+    The main drawback to this approach is that administering it would take a lot of ad hoc manpower, er, intelligence.
+</p>
+
+<br>
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+</p>
+
+<hr style="margin-top: 2rem;">
+
+<div id="subscribe-section">
+  <h3 id="subscribe-title">Subscribe to my newsletter</h3>
+  <p class="description">Get new posts delivered to your inbox. No spam, just content.</p>
+  <form id="subscribe-form">
+    <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required>
+    <button type="submit">Subscribe</button>
+    <p id="subscribe-message" style="margin-top: 10px;"></p>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
+  // Use the global 'supabase' object provided by the CDN script
+  const { createClient } = supabase;
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+  const form = document.getElementById('subscribe-form');
+  const messageElement = document.getElementById('subscribe-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value;
+    messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
+
+    try {
+      // Use the initialized client variable 'supabaseClient'
+      const { data, error } = await supabaseClient
+        .from('blog_subscribers') // Target the 'subscribers' table
+        .insert([{ email: email }]); // Insert the email
+
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for unique constraint violation (email already exists)
+        if (error.code === '23505') { // PostgreSQL unique violation code
+             messageElement.textContent = 'You are already subscribed!';
+             messageElement.style.color = 'orange';
+        } else {
+            messageElement.textContent = `Error: ${error.message}`;
+            messageElement.style.color = 'red';
+        }
+      } else {
+        messageElement.textContent = 'Successfully subscribed!';
+        messageElement.style.color = 'green';
+        emailInput.value = ''; // Clear the input field on success
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      messageElement.textContent = 'An unexpected error occurred.';
+      messageElement.style.color = 'red';
+    }
+  });
+</script>
+
+</body>
+</html>
