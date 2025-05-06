@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="An analysis of how AI tools are undermining Leetcode-style interviews and a look at more robust methods for assessing engineering talent." />
+  <title>Leetcode is dead, and junior devs killed him | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/leetcode.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Leetcode is dead, and junior devs killed him" />
+  <meta property="og:description" content="An analysis of how AI tools are undermining Leetcode-style interviews and a look at more robust methods for assessing engineering talent." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <!-- og:image is intentionally omitted -->
+  <meta property="article:published_time" content="2025-05-06" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px; /* Increase content width from default */
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem; /* Slightly larger body text */
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    h2 { /* Added for consistency with markdown conversion */
+      color: #111;
+    }
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    .sidenote {
+      background-color: #e6e6e6;
+      border-left: 3px solid #0366d6;
+      padding: 1rem;
+      margin: 1rem 0;
+      font-size: inherit; /* Keep the same text size as surrounding content */
+      width: auto; /* Ensure it's not floating */
+      display: block; /* Keep it in the normal flow */
+    }
+    ol li, ul li { /* Added ul li for consistency */
+      margin-bottom: 0.5rem;
+    }
+    .hover-footnote {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted #555;
+      cursor: help;
+    }
+    .hover-footnote .footnote-text {
+      visibility: hidden;
+      width: 300px;
+      background-color: #f9f9f9;
+      color: #333;
+      text-align: center;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -150px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+    }
+    .hover-footnote:hover .footnote-text {
+      visibility: visible;
+      opacity: 1;
+    }
+    #subscribe-section {
+      text-align: center;
+      padding: 2rem 0;
+      /* border-top: 1px solid #ccc; */
+      /* margin-top: 0rem; */
+    }
+    #subscribe-form label {
+      margin-right: 0.5rem;
+    }
+    #subscribe-form input[type="email"] {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-right: 0.5rem;
+      min-width: 250px; /* Give the email input a decent width */
+    }
+    #subscribe-form button {
+      padding: 0.5rem 1rem;
+      background-color: #0366d6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    #subscribe-form button:hover {
+      background-color: #0056b3;
+    }
+    #subscribe-section p.description { /* Style for the description paragraph */
+        margin-bottom: 1rem;
+        color: #555; /* Slightly lighter text color */
+        font-size: 1.1rem;
+    }
+    #subscribe-section h3 { /* Style for the description paragraph */
+        font-size: 1.8rem;
+    }
+    #subscribe-message { /* Ensure message is also centered */
+        text-align: center;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">← All Posts</a>
+<h1>
+    <strong>Leetcode is dead, and junior devs killed him</strong>
+</h1>
+<p class="author">
+Jasper Gilley<br>
+San Francisco, California<br>
+May 2025<br>
+</p>
+
+<p>We’ve all had <em>the experience</em> — and if you haven’t, you may have missed it.</p>
+<p>Early this year I was on the other side of CoderPad, interviewing candidates for a mid-level ML Engineer role. The candidate - let’s call them Sam - was still finishing their CS degree but had interned at two FAANGcos already and interviewed fluently. First question:</p>
+<p><em>“Given a stream of integers, design a data structure that… ”</em></p>
+<p>After some hemming and hawing, Sam grokked the question and churned out two dozen lines of Python. All tests passing. I would have asked the follow-up question about time and space complexity but Sam’s solution was <em>O(log n)</em> time out of the box.</p>
+<p>Naturally, this was a little suspicious, but Sam responded fluently to further interrogation, including a more difficult follow-up question. I didn’t really have a reason not to mark them as a <strong>Strong Yes</strong> other than vibes.</p>
+<p>So Sam moved on to the next technical round. A week later, my friend who conducted the next interview told me that Sam had failed it <em>and</em> been placed on an internal blacklist.</p>
+<p><em>“Yeah man, they shared their screen and messed up by sharing the entire thing rather than just the browser with CoderPad. Sure enough, open next to their browser was</em> [insert well-known AI cheating tool], <em>recording everything I said and suggesting responses.”</em></p>
+<hr>
+<p>Leetcode-style interviews have survived as long as they have because the false negatives are undetectable, even after hiring. For every true positive we catch by some odd circumstance, we have <em>no idea</em> how many more competent cheaters slip through the cracks. Let’s face it - if Sam hadn’t slipped up, they probably would have been hired, and because so much of engineering is async and remote, they might not ever have been caught. They were playing by 2025 rules while I was proctoring a 2015 test.</p>
+<h2>RIP merit-based hiring</h2>
+<p>Most hiring loops still cling to the fiction that cranking through three medium‑hard Leetcodes in forty‑five minutes is a proxy for future performance. This fiction persists because there is no <em>evidence</em> to suggest otherwise. When bigcos run analyses of how interview performance correlates with job performance, there’s a decent R^2!</p>
+<p>But when the tooling can nail those prompts faster than any human, the loop no longer measures merit—it measures:</p>
+<ol>
+    <li>Prompt hygiene (how well you cajole the LLM mid-interview), or</li>
+    <li>Deontological guilt (how much you fear cheating)</li>
+</ol>
+<p>Neither is an attribute I care about in an engineer. And yet, without a ready replacement, companies retreat to ritual: add another interviewer, add another round, add a “human‑in‑the‑loop plagiarism check.” All pain, no extra signal against sufficiently advanced cheaters.</p>
+<h2><em><strong>“Any sufficiently advanced cheater is indistinguishable from a Strong Yes.”</strong></em></h2>
+<p>I think the two metrics that AI cheating tooling ends up measuring point to the future of technical interviewing. On one hand, we are still selecting for people who can walk the walk and talk the talk - and have some social proof of those abilities. On the other, we’re creating a system in which incentivizing candidates not to cheat - because their friend referred them to the opening, for instance - becomes an essential part of the interview process. Congrats, we’ve re-invented Wall Street-style nepo baby interviews but for San Jose.</p>
+<p>It’s especially bad because the “vibes” that you can use to suss out if someone is cheating have lots of biases built into them. There are lots of great engineers who are not native English speakers, for instance. What if an interviewer mis-interprets a candidate’s communication style for cheating signals? What if an interviewer has subconscious biases that view women or non-binary candidates as more likely to need to cheat? When every stranger’s CoderPad looks equally flawless, you pick the stranger who isn’t a stranger. Meritocracy ends not with a bang, but an HR‑compliant shrug.</p>
+<p>I don’t see how the current system doesn’t eat itself alive over the next few years. As Gergely from the Pragmatic Engineer has noted, FAANGcos and comparables are unlikely to adjust their interview processes for now since they have data showing that it works. Cheaters who slip through the cracks and get hired aren’t likely to change this data on short-to-medium timescales.</p>
+<h2>A sliver of daylight</h2>
+<p>If the interview room is turning into a speakeasy for well‑connected insiders, the only counter‑move is to drag proof of competence out into the daylight—places where AI proxies and back‑channel favors can’t fake a paper trail.</p>
+<ol>
+    <li><strong>Public, timestamped artifacts</strong>: Shipping code in the open (or publishing reproducible research notebooks, design docs, RFCs—anything with a git hash) is still hard to spoof. LLM‑generated PRs leave tells: no commit history, no follow‑up fixes, no back‑and‑forth with maintainers. Sustained participation in a messy, opinionated community is a signal even Wall‑Street‑style nepotism struggles to ignore.</li>
+    <li><strong>Live pair sessions on your turf</strong>: Fifteen minutes inside a real repo, screenshare on, “let’s refactor this gnarly function together.” Copilots can whisper, but they can’t drive the conversation when the spec shifts mid‑sentence. The trick is that candidates propose the repo—they can’t claim surprise, and interviewers watch the genuine engineering muscle memory kick in (or not).</li>
+    <li><strong>Reputation graphs that aren’t resume‑gated</strong>: Think Stack Overflow badges, Discord mod logs, Indie‑hacker revenue screenshots—any network where strangers earn trust by doing visible work. These graphs are permissionless; you don’t need a Stanford roommate to get in, just receipts. They’re clunky today, but every hiring manager I know is already lurking.</li>
+    <li><strong>Small‑stakes collaborations before big offers</strong>: Contract‑to‑hire and OSS bounties feel old‑school, yet they turn the incentives upside‑down: candidates want to be seen doing the work in public because it’s the fastest path to an inside track. Practical? Not for every role. But if the alternative is “hire the friend of a friend,” a weekend spike on a real feature is cheap due diligence.</li>
+</ol>
+<p>None of this restores the tidy meritocracy we thought Leetcode guaranteed, and none of it is painless. But it scales better than referrals, and it rewards curiosity, visible execution, and the humility to work in the open, all of which will remain valuable traits for engineers to have.</p>
+<br>
+<p class="author">Jasper Gilley<br>
+<a href="https://twitter.com/0xjasper">Twitter</a><br>
+<a href="https://github.com/jagilley">Github</a><br>
+</p>
+
+<hr style="margin-top: 2rem;">
+
+<div id="subscribe-section">
+  <h3 id="subscribe-title">Subscribe to my newsletter</h3>
+  <p class="description">Get new posts delivered to your inbox. No spam, just content.</p>
+  <form id="subscribe-form">
+    <label for="email">Email:</label>
+  <input type="email" id="email" name="email" required>
+    <button type="submit">Subscribe</button>
+    <p id="subscribe-message" style="margin-top: 10px;"></p>
+  </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
+  // Use the global 'supabase' object provided by the CDN script
+  const { createClient } = supabase;
+  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+  const form = document.getElementById('subscribe-form');
+  const messageElement = document.getElementById('subscribe-message');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value;
+    messageElement.textContent = 'Subscribing...'; // Provide immediate feedback
+
+    try {
+      // Use the initialized client variable 'supabaseClient'
+      const { data, error } = await supabaseClient
+        .from('blog_subscribers') // Target the 'subscribers' table
+        .insert([{ email: email }]); // Insert the email
+
+      if (error) {
+        console.error('Supabase error:', error);
+        // Check for unique constraint violation (email already exists)
+        if (error.code === '23505') { // PostgreSQL unique violation code
+             messageElement.textContent = 'You are already subscribed!';
+             messageElement.style.color = 'orange';
+        } else {
+            messageElement.textContent = `Error: ${error.message}`;
+            messageElement.style.color = 'red';
+        }
+      } else {
+        messageElement.textContent = 'Successfully subscribed!';
+        messageElement.style.color = 'green';
+        emailInput.value = ''; // Clear the input field on success
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      messageElement.textContent = 'An unexpected error occurred.';
+      messageElement.style.color = 'red';
+    }
+  });
+</script>
+
+</body>
+</html>
