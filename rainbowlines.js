@@ -14,7 +14,7 @@ const config = {
   curviness: 0.08,
   branchProbability: 0.4,
   deathProbability: 0.15,
-  trailFade: 0.025,
+  trailFade: 0.08,
   spawnInterval: 8,
   maxSegmentLength: 25,
   minSegmentLength: 15,
@@ -71,19 +71,18 @@ class Line {
   }
 
   draw() {
-    // High saturation, vibrant colors
+    // High saturation, vibrant colors - fully opaque for clean fading
     const saturation = 90;
     const lightness = 60;
-    const alpha = 0.85;
 
-    ctx.strokeStyle = `hsla(${this.hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+    ctx.strokeStyle = `hsl(${this.hue}, ${saturation}%, ${lightness}%)`;
     ctx.lineWidth = this.width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
     // Add glow for premium look
     ctx.shadowBlur = 8;
-    ctx.shadowColor = `hsla(${this.hue}, ${saturation}%, ${lightness}%, 0.6)`;
+    ctx.shadowColor = `hsl(${this.hue}, ${saturation}%, ${lightness}%)`;
 
     ctx.beginPath();
     ctx.moveTo(this.prevX, this.prevY);
@@ -179,9 +178,9 @@ function animate() {
 
     // Draw a glow at center
     const hue = frame % 360;
-    ctx.fillStyle = `hsla(${hue}, 90%, 60%, 0.3)`;
+    ctx.fillStyle = `hsl(${hue}, 90%, 60%)`;
     ctx.shadowBlur = 20;
-    ctx.shadowColor = `hsla(${hue}, 90%, 60%, 0.5)`;
+    ctx.shadowColor = `hsl(${hue}, 90%, 60%)`;
     ctx.beginPath();
     ctx.arc(center.x, center.y, config.lineWidth * 2, 0, Math.PI * 2);
     ctx.fill();
