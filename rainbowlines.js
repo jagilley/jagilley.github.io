@@ -1,166 +1,203 @@
-var w = c.width = window.innerWidth,
-    h = c.height = window.innerHeight,
-    ctx = c.getContext( '2d' ),
-    
-    minDist = 10,
-    maxDist = 30,
-    initialWidth = 10,
-    maxLines = 100,
-    initialLines = 4,
-    speed = 5,
-    
-    lines = [],
-    frame = 0,
-    timeSinceLast = 0,
-    
-    dirs = [
-   // straight x, y velocity
-      [ 0, 1 ],
-      [ 1, 0 ],
-      [ 0, -1 ],
-    	[ -1, 0 ],
-   // diagonals, 0.7 = sin(PI/4) = cos(PI/4)
-      [ .7, .7 ],
-      [ .7, -.7 ],
-      [ -.7, .7 ],
-      [ -.7, -.7]
-    ],
-    starter = { // starting parent line, just a pseudo line
-      
-      x: w / 2,
-      y: h / 2,
-      vx: 0,
-      vy: 0,
-      width: initialWidth
-    };
+// Modern Flowing Rainbow Lines Animation
+// Dense, vibrant, smooth curves
+
+let w = c.width = window.innerWidth;
+let h = c.height = window.innerHeight;
+const ctx = c.getContext('2d');
+
+// Configuration - More lines, more density, more vibrant!
+const config = {
+  maxLines: 120,
+  initialLines: 12,
+  lineWidth: 3,
+  speed: 2.5,
+  curviness: 0.08,
+  branchProbability: 0.4,
+  deathProbability: 0.15,
+  trailFade: 0.025,
+  spawnInterval: 8,
+  maxSegmentLength: 25,
+  minSegmentLength: 15,
+  colorSpeed: 0.8
+};
+
+let lines = [];
+let frame = 0;
+let timeSinceLast = 0;
+
+// Central spawning point
+const center = {
+  x: w / 2,
+  y: h / 2
+};
+
+class Line {
+  constructor(parent) {
+    this.x = parent.x;
+    this.y = parent.y;
+    this.prevX = this.x;
+    this.prevY = this.y;
+
+    // Start with parent's angle but with some variation
+    if (parent.angle !== undefined) {
+      this.angle = parent.angle + (Math.random() - 0.5) * 1.2;
+    } else {
+      // Initial lines spread in all directions
+      this.angle = Math.random() * Math.PI * 2;
+    }
+
+    this.width = parent.width ? parent.width * 0.92 : config.lineWidth;
+    this.hue = parent.hue !== undefined ? parent.hue : Math.random() * 360;
+    this.segmentLength = config.minSegmentLength + Math.random() * (config.maxSegmentLength - config.minSegmentLength);
+    this.distanceLeft = this.segmentLength;
+    this.generation = parent.generation !== undefined ? parent.generation + 1 : 0;
+  }
+
+  update() {
+    this.prevX = this.x;
+    this.prevY = this.y;
+
+    // Smooth curve changes
+    this.angle += (Math.random() - 0.5) * config.curviness;
+
+    // Move in current direction
+    this.x += Math.cos(this.angle) * config.speed;
+    this.y += Math.sin(this.angle) * config.speed;
+
+    // Update color
+    this.hue = (this.hue + config.colorSpeed) % 360;
+
+    this.distanceLeft -= config.speed;
+  }
+
+  draw() {
+    // High saturation, vibrant colors
+    const saturation = 90;
+    const lightness = 60;
+    const alpha = 0.85;
+
+    ctx.strokeStyle = `hsla(${this.hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+    ctx.lineWidth = this.width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Add glow for premium look
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = `hsla(${this.hue}, ${saturation}%, ${lightness}%, 0.6)`;
+
+    ctx.beginPath();
+    ctx.moveTo(this.prevX, this.prevY);
+    ctx.lineTo(this.x, this.y);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+  }
+
+  shouldBranch() {
+    return this.distanceLeft <= 0 &&
+           this.width > 0.5 &&
+           this.generation < 8;
+  }
+
+  isDead() {
+    // Die if off screen or naturally
+    if (this.x < -100 || this.x > w + 100 ||
+        this.y < -100 || this.y > h + 100) {
+      return true;
+    }
+
+    if (this.distanceLeft <= 0 && Math.random() < config.deathProbability) {
+      return true;
+    }
+
+    return false;
+  }
+}
 
 function init() {
-  
-  lines.length = 0;
-  
-  for( var i = 0; i < initialLines; ++i )
-    lines.push( new Line( starter ) );
-  
-  ctx.fillStyle = '#222';
-  ctx.fillRect( 0, 0, w, h );
-  
-  // if you want a cookie ;)
-  // ctx.lineCap = 'round';
+  lines = [];
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Start with more initial lines
+  for (let i = 0; i < config.initialLines; i++) {
+    lines.push(new Line({
+      x: center.x,
+      y: center.y,
+      width: config.lineWidth,
+      generation: 0
+    }));
+  }
 }
-function getColor( x ) {
-  
-  return 'hsl( hue, 80%, 50% )'.replace(
-  	'hue', x / w * 360 + frame
-  );
-}
-function anim() {
-  
-  window.requestAnimationFrame( anim );
-  
-  ++frame;
-  
-  ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(0,0,0,.02)';
-  ctx.fillRect( 0, 0, w, h );
-  ctx.shadowBlur = .5;
-  
-  for( var i = 0; i < lines.length; ++i ) 
-    
-    if( lines[ i ].step() ) { // if true it's dead
-      
-      lines.splice( i, 1 );
-      --i;
-      
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  frame++;
+  timeSinceLast++;
+
+  // Subtle fade for trails
+  ctx.fillStyle = `rgba(0, 0, 0, ${config.trailFade})`;
+  ctx.fillRect(0, 0, w, h);
+
+  // Update and draw all lines
+  for (let i = lines.length - 1; i >= 0; i--) {
+    lines[i].update();
+    lines[i].draw();
+
+    // Check for branching
+    if (lines[i].shouldBranch()) {
+      lines[i].distanceLeft = lines[i].segmentLength;
+
+      // Create 1-2 branches
+      if (lines.length < config.maxLines) {
+        lines.push(new Line(lines[i]));
+
+        if (Math.random() < config.branchProbability && lines.length < config.maxLines) {
+          lines.push(new Line(lines[i]));
+        }
+      }
     }
-  
-  // spawn new
-  
-  ++timeSinceLast
-  
-  if( lines.length < maxLines && timeSinceLast > 10 && Math.random() < .5 ) {
-    
+
+    // Remove dead lines
+    if (lines[i].isDead()) {
+      lines.splice(i, 1);
+    }
+  }
+
+  // Spawn new lines from center
+  if (lines.length < config.maxLines &&
+      timeSinceLast > config.spawnInterval &&
+      Math.random() < 0.6) {
+    lines.push(new Line({
+      x: center.x,
+      y: center.y,
+      width: config.lineWidth,
+      generation: 0
+    }));
     timeSinceLast = 0;
-    
-    lines.push( new Line( starter ) );
-    
-    // cover the middle;
-    ctx.fillStyle = ctx.shadowColor = getColor( starter.x );
+
+    // Draw a glow at center
+    const hue = frame % 360;
+    ctx.fillStyle = `hsla(${hue}, 90%, 60%, 0.3)`;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = `hsla(${hue}, 90%, 60%, 0.5)`;
     ctx.beginPath();
-    ctx.arc( starter.x, starter.y, initialWidth, 0, Math.PI * 2 );
+    ctx.arc(center.x, center.y, config.lineWidth * 2, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0;
   }
 }
 
-function Line( parent ) {
-  
-  this.x = parent.x | 0;
-  this.y = parent.y | 0;
-  this.width = parent.width / 1.25;
-  
-  do {
-    
-    var dir = dirs[ ( Math.random() * dirs.length ) |0 ];
-    this.vx = dir[ 0 ];
-    this.vy = dir[ 1 ];
-    
-  } while ( 
-    ( this.vx === -parent.vx && this.vy === -parent.vy ) || ( this.vx === parent.vx && this.vy === parent.vy) );
-  
-  this.vx *= speed;
-  this.vy *= speed;
-  
-  this.dist = ( Math.random() * ( maxDist - minDist ) + minDist );
-  
-}
-Line.prototype.step = function() {
-  
-  var dead = false;
-  
-  var prevX = this.x,
-      prevY = this.y;
-  
-  this.x += this.vx;
-  this.y += this.vy;
-  
-  --this.dist;
-  
-  // kill if out of screen
-  if( this.x < 0 || this.x > w || this.y < 0 || this.y > h )
-    dead = true;
-  
-  // make children :D
-  if( this.dist <= 0 && this.width > 1 ) {
-    
-    // keep yo self, sometimes
-    this.dist = Math.random() * ( maxDist - minDist ) + minDist;
-    
-    // add 2 children
-    if( lines.length < maxLines ) lines.push( new Line( this ) );
-    if( lines.length < maxLines && Math.random() < .5 ) lines.push( new Line( this ) );
-    
-    // kill the poor thing
-    if( Math.random() < .2 ) dead = true;
-  }
-  
-  ctx.strokeStyle = ctx.shadowColor = getColor( this.x );
-  ctx.beginPath();
-  ctx.lineWidth = this.width;
-  ctx.moveTo( this.x, this.y );
-  ctx.lineTo( prevX, prevY );
-  ctx.stroke();
-  
-  if( dead ) return true
-}
-
-init();
-anim();
-
-window.addEventListener( 'resize', function() {
-  
+// Handle window resize
+window.addEventListener('resize', () => {
   w = c.width = window.innerWidth;
   h = c.height = window.innerHeight;
-  starter.x = w / 2;
-  starter.y = h / 2;
-  
+  center.x = w / 2;
+  center.y = h / 2;
   init();
-} )
+});
+
+// Start animation
+init();
+animate();
