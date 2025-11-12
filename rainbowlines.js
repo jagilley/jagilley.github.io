@@ -14,7 +14,7 @@ const config = {
   curviness: 0.08,
   branchProbability: 0.4,
   deathProbability: 0.15,
-  trailFade: 0.08,
+  trailFade: 0.05,
   spawnInterval: 8,
   maxSegmentLength: 25,
   minSegmentLength: 15,
@@ -24,12 +24,25 @@ const config = {
 let lines = [];
 let frame = 0;
 let timeSinceLast = 0;
+let startTime = Date.now();
 
 // Central spawning point
 const center = {
   x: w / 2,
   y: h / 2
 };
+
+// Big bang effect - subtle initial burst
+function getBigBangMultiplier() {
+  const elapsed = (Date.now() - startTime) / 1000; // seconds since start
+  const decayDuration = 0.5; // 0.5 seconds to settle
+
+  if (elapsed >= decayDuration) return 1.0;
+
+  // Smooth decay from 2x to 1x
+  const progress = elapsed / decayDuration;
+  return 2.0 - (1.0 * Math.pow(progress, 1.5));
+}
 
 class Line {
   constructor(parent) {
@@ -60,14 +73,16 @@ class Line {
     // Smooth curve changes
     this.angle += (Math.random() - 0.5) * config.curviness;
 
-    // Move in current direction
-    this.x += Math.cos(this.angle) * config.speed;
-    this.y += Math.sin(this.angle) * config.speed;
+    // Move in current direction with big bang multiplier
+    const speedMultiplier = getBigBangMultiplier();
+    const currentSpeed = config.speed * speedMultiplier;
+    this.x += Math.cos(this.angle) * currentSpeed;
+    this.y += Math.sin(this.angle) * currentSpeed;
 
-    // Update color
-    this.hue = (this.hue + config.colorSpeed) % 360;
+    // Update color - faster during big bang
+    this.hue = (this.hue + config.colorSpeed * speedMultiplier) % 360;
 
-    this.distanceLeft -= config.speed;
+    this.distanceLeft -= currentSpeed;
   }
 
   draw() {
@@ -80,16 +95,10 @@ class Line {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Add glow for premium look
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = `hsl(${this.hue}, ${saturation}%, ${lightness}%)`;
-
     ctx.beginPath();
     ctx.moveTo(this.prevX, this.prevY);
     ctx.lineTo(this.x, this.y);
     ctx.stroke();
-
-    ctx.shadowBlur = 0;
   }
 
   shouldBranch() {
@@ -115,10 +124,11 @@ class Line {
 
 function init() {
   lines = [];
+  startTime = Date.now(); // Reset big bang timer
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, w, h);
 
-  // Start with more initial lines
+  // Start with more initial lines for big bang
   for (let i = 0; i < config.initialLines; i++) {
     lines.push(new Line({
       x: center.x,
@@ -135,7 +145,7 @@ function animate() {
   frame++;
   timeSinceLast++;
 
-  // Subtle fade for trails
+  // Fade for trails - tuned to prevent ghost accumulation
   ctx.fillStyle = `rgba(0, 0, 0, ${config.trailFade})`;
   ctx.fillRect(0, 0, w, h);
 
@@ -164,9 +174,12 @@ function animate() {
     }
   }
 
-  // Spawn new lines from center
+  // Spawn new lines from center - faster during big bang
+  const spawnMultiplier = getBigBangMultiplier();
+  const spawnThreshold = config.spawnInterval / spawnMultiplier;
+
   if (lines.length < config.maxLines &&
-      timeSinceLast > config.spawnInterval &&
+      timeSinceLast > spawnThreshold &&
       Math.random() < 0.6) {
     lines.push(new Line({
       x: center.x,
@@ -176,15 +189,12 @@ function animate() {
     }));
     timeSinceLast = 0;
 
-    // Draw a glow at center
+    // Draw a dot at center
     const hue = frame % 360;
     ctx.fillStyle = `hsl(${hue}, 90%, 60%)`;
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = `hsl(${hue}, 90%, 60%)`;
     ctx.beginPath();
     ctx.arc(center.x, center.y, config.lineWidth * 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
   }
 }
 
