@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="utf-8" />
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Jasper's Site" />
-  <title>Jasper Gilley</title>
+  <title>Jasper Gilley - About</title>
 
   <meta property="og:url" content="https://jagilley.github.io" />
   <meta property="og:type" content="website" />
@@ -17,43 +16,48 @@
   <link rel="canonical" href="https://jagilley.github.io/about.html" />
   <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
 
-  <!-- Bootstrap core CSS -->
-  <!---link href="/css/bootstrap.min.css" rel="stylesheet" />-->
-  <!-- Custom styles for this template -->
-  <link href="css/about.css" rel="stylesheet"/>
-  <link href="css/actualheader.css" rel="stylesheet"/>
+  <link href="css/modern.css" rel="stylesheet"/>
   <link href="css/rainbowlines.css" rel="stylesheet"/>
-  <!--
-  <link href="/css/syntax.css" rel="stylesheet" />
-  <link href="/css/hint.min.css" rel="stylesheet" />
-  <link href="/css/blogicons.css" rel="stylesheet" />-->
 </head>
 
-<body class="bodydark">
+<body>
+  <canvas id="c"></canvas>
+  <script src="rainbowlines.js"></script>
 
-<canvas id=c></canvas>
-<script  src="rainbowlines.js"></script>
+  <div class="page-wrapper">
+    <header class="site-header">
+      <nav class="nav-container">
+        <a href="/" class="site-title">Jasper Gilley</a>
+      </nav>
+    </header>
 
-<div class="header" id="myHeader">
-    <link href="css/headerclass.css" rel="stylesheet"/>
-  <h2>&nbsp;&nbsp;<a href="/">Jasper Gilley</a></h2>
-</div>
+    <main class="main-content">
+      <div class="content-card">
+        <h1 class="page-title">About</h1>
 
-<div class="container">
+        <div class="about-content">
+          <p>I'm a programmer/musician/writer guy.</p>
 
-    <div class="article-content">
-      <link href="css/a-content.css" rel="stylesheet"/>
+          <p>If you want to know my thoughts on highway rest stops or the Holodeck, feel free to visit <a href="https://cruxcapacitor.com" target="_blank" rel="noopener">my blog</a>.</p>
 
-<p><mark>&nbsp;I'm a programmer/musician/writer guy.&nbsp;</mark></p>
-<br>
-<p><mark>&nbsp;If you want to know my thoughts on highway rest stops or the Holodeck, feel free to visit <a href="https://cruxcapacitor.com", style="text-decoration: underline">my blog</a>.&nbsp;</mark></p>
-<br>
-<p><mark>&nbsp;
-    Also an enthusiast of Windows 98. Hence, the site's favicon.</a>&nbsp;</mark>
-</p>
-</div></div>
+          <p>Also an enthusiast of Windows 98. Hence, the site's favicon.</p>
+        </div>
 
+        <div class="back-link-container">
+          <a href="/" class="back-link">← Back to Home</a>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-links">
+        <a href="https://github.com/jagilley" target="_blank" rel="noopener">GitHub</a>
+        <span class="footer-separator">•</span>
+        <a href="https://soundcloud.com/amadeuxofficial" target="_blank" rel="noopener">SoundCloud</a>
+        <span class="footer-separator">•</span>
+        <a href="https://twitter.com/0xjasper" target="_blank" rel="noopener">Twitter</a>
+      </div>
+    </footer>
+  </div>
 </body>
-
-<script type="text/javascript" src="header.js"></script>
 </html>
