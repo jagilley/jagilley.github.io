@@ -207,6 +207,37 @@ window.addEventListener('resize', () => {
   init();
 });
 
+// Click to spawn new origin points
+document.addEventListener('click', (e) => {
+  // Don't spawn on link/button clicks
+  if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+    return;
+  }
+
+  const clickX = e.clientX;
+  const clickY = e.clientY;
+
+  // Spawn 4-6 lines from click point (fewer than center origin)
+  // Allow clicks to temporarily exceed maxLines - they'll die off naturally
+  const numLines = 4 + Math.floor(Math.random() * 3);
+
+  for (let i = 0; i < numLines; i++) {
+    lines.push(new Line({
+      x: clickX,
+      y: clickY,
+      width: config.lineWidth * 0.7, // Smaller than center origin
+      generation: 0
+    }));
+  }
+
+  // Draw a small dot at click point
+  const hue = frame % 360;
+  ctx.fillStyle = `hsl(${hue}, 90%, 60%)`;
+  ctx.beginPath();
+  ctx.arc(clickX, clickY, config.lineWidth * 1.5, 0, Math.PI * 2);
+  ctx.fill();
+});
+
 // Start animation
 init();
 animate();
