@@ -37,8 +37,10 @@
       color: #111;
       text-align: center;
     }
-    h2, h3 {
-      color: #111;
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 2rem 0;
     }
     .archive-link {
       margin-bottom: 1.5rem;
@@ -75,42 +77,23 @@
       margin-top: -1rem;
       margin-bottom: 1.5rem;
     }
-    #subscribe-section {
-      text-align: center;
-      padding: 2rem 0;
-    }
-    #subscribe-form label {
-      margin-right: 0.5rem;
-    }
-    #subscribe-form input[type="email"] {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      margin-right: 0.5rem;
-      min-width: 250px;
-    }
-    #subscribe-form button {
-      padding: 0.5rem 1rem;
-      background-color: #0366d6;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-    #subscribe-form button:hover {
-      background-color: #0056b3;
-    }
-    #subscribe-section p.description {
-      margin-bottom: 1rem;
+    .footnotes {
+      font-size: 0.9rem;
       color: #555;
-      font-size: 1.1rem;
     }
-    #subscribe-section h3 {
-      font-size: 1.8rem;
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 0.5rem;
     }
-    #subscribe-message {
-      text-align: center;
+    .post-footer .author {
+      text-align: right;
+      margin: 0;
+    }
+    .post-footer .author a {
+      margin-left: 0.75rem;
     }
   </style>
 </head>
@@ -124,14 +107,10 @@
 Jasper Gilley<br>
 </p>
 
-<hr style="border: none; border-top: 1px solid #ccc; margin: 2rem 0;">
+<hr class="divider">
 
 <p>
-One of the reasons for the successes of the scaling era of AI has been the success of passive regularization methods. It just so turned out, for example, that hand-designing model features simply didn't work as well as throwing massively complicated datasets at hopelessly underparameterized models and letting the model itself decide what features to encode.
-</p>
-
-<p>
-Yet the passive nature of such regularization also makes it difficult to test whether the abstractions it creates fall into memorization versus generalization. Indeed, we have reason to suspect<sup><a href="#fn1">1</a></sup> that much of what we think of as generalization contains elements of memorization under the hood.
+One of the reasons for the successes of the scaling era of AI has been passive regularization: throwing massively complicated datasets at underparameterized models and letting the model decide what features to encode simply works better than trying to hand-design features. Yet the passive nature of such regularization makes it difficult to test whether the abstractions it creates reflect genuine generalization or memorization. Indeed, we have reason to suspect<sup><a href="#fn1">1</a></sup> that much of what we think of as generalization contains elements of memorization under the hood.
 </p>
 
 <p>
@@ -194,7 +173,7 @@ Crucially, Zipfian weighting does <em>not</em> change what the optimal solution 
 What changes is the geometry of the loss landscape. Under uniform weighting, averaging gradients over 2,822 samples means the only efficient way to reduce loss on all of them is to discover the Fourier structure. Under Zipfian weighting, 50% of the gradient says &ldquo;fit THESE TWO perfectly&rdquo; &mdash; and fitting two samples perfectly can be done without learning any structure at all.
 </p>
 
-<h2>What happens: the Sisyphean dynamics</h2>
+<h2>What happens: Sisyphean dynamics</h2>
 
 <p>
 We train a 2-layer MLP (hidden dims [128, 128], ~54k parameters) on \((a + b) \bmod 97\) with 30% train / 70% test split, using AdamW (lr = \(10^{-3}\), weight decay = 1.0) and full-batch gradient descent. As we increase the Zipf exponent, grokking becomes dramatically harder:
@@ -243,22 +222,6 @@ The asymmetry is striking: collapses take ~50 epochs, while recovery takes ~20,0
 
 <h2>Why does this happen?</h2>
 
-<p>
-The limit cycle is driven by a tension between two optimization forces:
-</p>
-
-<p>
-Weight decay (\(\lambda = 1.0\)) adds a term \(-\lambda\theta\) to each parameter update, creating pressure toward smaller weights. The Fourier solution is achievable with lower weight norm than memorization, so weight decay favors generalization.
-</p>
-
-<p>
-The Zipfian gradient concentrates on very few samples. At \(s = 1.5\), roughly 50% of the gradient comes from just 2 training pairs. The gradient says &ldquo;fit these two perfectly&rdquo; &mdash; and fitting two samples can be done via memorization shortcuts that don't require learning the general structure.
-</p>
-
-<p>
-What actually happens is that the model learns a hybrid: mostly Fourier plus small memorization corrections for the high-weight samples. This hybrid is unstable. Weight decay wants to remove the corrections (they increase weight norm), while the Zipfian gradient wants to maintain them (they reduce weighted loss). Periodically, the corrections grow too large, corrupt the Fourier structure, and both losses spike.
-</p>
-
 <h3>The Fourier solution is a saddle point</h3>
 
 <p>
@@ -290,15 +253,7 @@ This is the structure of a <strong>relaxation oscillator</strong> &mdash; slow r
 <h2>Testing the saddle point prediction</h2>
 
 <p>
-The saddle point analysis makes a strong claim: the instability is a property of the loss landscape <em>at</em> the Fourier solution, not an artifact of how the optimizer gets there.
-</p>
-
-<p>
-The natural objection is: maybe the model never fully converges to the true Fourier solution during Zipfian training. Maybe the oscillations happen because the model is still in some transition region, carrying residual memorization from earlier in training. If so, a model that had <em>cleanly</em> converged to the Fourier solution &mdash; via a path that never involved Zipfian gradients &mdash; should be stable.
-</p>
-
-<p>
-The saddle point theory predicts the opposite: even a model sitting squarely at the converged Fourier solution should collapse once Zipfian gradients are turned on, because the instability is baked into the curvature of the loss landscape at that point. Moreover, the severity of collapse should scale monotonically with Zipf exponent, since higher concentration means a stronger memorization gradient relative to weight decay's vanishing restoring force.
+The saddle point analysis makes a strong claim: the instability is a property of the loss landscape <em>at</em> the Fourier solution, not an artifact of how the optimizer gets there. A model that cleanly converged to the Fourier solution under uniform weighting &mdash; with no Zipfian pressure in its history &mdash; should still collapse once Zipfian gradients are turned on, with severity scaling monotonically with Zipf exponent.
 </p>
 
 <p>
@@ -337,15 +292,11 @@ Zipfian grokking demonstrates a concrete case where &ldquo;wide&rdquo; abstracti
 </p>
 
 <p>
-A model has finite representational capacity. This might take the form of a norm budget under weight decay, parameter count limits, or otherwise, but the effect is the same: features compete for weight magnitude based on their gradient signal, which is roughly proportional to how many data points they help with (width), how much they reduce per-point loss (depth), and how cheaply they can be encoded (norm efficiency). Wide abstractions &mdash; those that cover many data points at a shallow level &mdash; have an inherent advantage on the first factor for most datasets collected in an unsupervised fashion (as pretraining datasets are).
+In Zipfian grokking, the &ldquo;wide&rdquo; abstraction is memorization of the top few samples &mdash; it covers 50% of the gradient cheaply. The &ldquo;deep&rdquo; abstraction is the Fourier solution &mdash; it covers everything but requires structured representations. Memorization corrections don't just consume capacity; because they modify the same weights that encode the Fourier structure, they actively destabilize it.
 </p>
 
 <p>
-In Zipfian grokking, the &ldquo;wide&rdquo; abstraction is memorization of the top few samples &mdash; it covers 50% of the gradient cheaply. The &ldquo;deep&rdquo; abstraction is the Fourier solution &mdash; it covers everything but requires structured representations. We can see the interference directly: memorization corrections don't just consume capacity, they actively destabilize the Fourier structure. The model can't maintain the deep abstraction because the wide one keeps getting reinforced.
-</p>
-
-<p>
-The same dynamic plausibly extends to large-scale pretraining. A model trained with passive regularization on a large corpus must encode shallow, middling, and deep abstractions in superposition by default, because passive regularization treats all low-frequency structure as equally worthy of encoding. While high-dimensional networks have been shown to encode wide and deep features simultaneously in orthogonal subspaces, there is a hard upper bound on how many orthogonal features can be packed into a finite number of parameters.<sup><a href="#fn4">4</a></sup> Further, we have strong reason to believe that even the biggest real-world models are still dramatically underparameterized relative to the complexity of the data they're trained on<sup><a href="#fn5">5</a></sup> &mdash; so they are likely to be limited in the depth of their abstractions by capacity competition between the abstractions themselves, and by the extent to which the dataset optimally encodes the causal mechanisms of the data generating process.
+The same dynamic plausibly extends to large-scale pretraining, where models must encode shallow and deep abstractions in superposition. While high-dimensional networks can pack features into orthogonal subspaces, there is a hard upper bound on how many fit in finite parameters<sup><a href="#fn4">4</a></sup>, and real-world models are still dramatically underparameterized relative to their training data<sup><a href="#fn5">5</a></sup>. Abstraction depth is likely limited by capacity competition between abstractions themselves.
 </p>
 
 <p>
@@ -361,93 +312,38 @@ Currently, we elicit the deepest abstractions using post-training (RLVR, RLHF, a
 </p>
 
 <p>
-Ideally, we should like a model that is capable of &ldquo;seeing through&rdquo; the statistical properties of its dataset based on its own conceptions about what is causally relevant about its environment. This would be a form of abstraction supervision that is fully autonomous and scalable in the same way that pretraining is autonomous and scalable. Some candidates for such processes might be: direct causality modeling, measuring the degree of predictivity that hypotheses have, evolutionary processes that penalize spurious representations,<sup><a href="#fn9">9</a>,<a href="#fn10">10</a></sup> autonomous self-critique, and robustly aligned value functions.<sup><a href="#fn11">11</a></sup>
+Ideally, we should like a model that is capable of &ldquo;seeing through&rdquo; the statistical properties of its dataset based on its own conceptions about what is causally relevant about its environment. This would be a form of abstraction supervision that is fully autonomous and scalable in the same way that pretraining is autonomous and scalable. Some candidates for such processes might be: direct causality modeling, measuring the degree of predictivity that hypotheses have, evolutionary processes that penalize spurious representations,<sup><a href="#fn9">9</a>,<a href="#fn10">10</a></sup> autonomous self-critique, and supervision from robustly aligned value functions.<sup><a href="#fn11">11</a></sup>
 </p>
 
 <p>
 The Zipfian grokking task provides a test bed where the divergence between the shortest description of a dataset and the shortest description of its generating process can be tuned precisely. If future models can learn to probe their environment for causal structure rather than passively absorbing statistical regularity, this task ought to reveal it.
 </p>
 
-<hr style="border: none; border-top: 1px solid #ccc; margin: 2rem 0;">
+<hr class="divider">
 
 <h3>Notes</h3>
 
-<ol style="font-size:0.9rem; color:#555;">
-  <li id="fn1"><a href="https://arxiv.org/abs/2505.11581">Questioning Representational Optimism in Deep Learning: The Fractured Entangled Representation Hypothesis</a></li>
-  <li id="fn2">Various results (the KAIST symmetry paper and edge of stability) have shown that weight decay is not strictly necessary to induce grokking. While the effect is small, to be complete we could say that weight decay plus a bit of SGD's bias towards flat solutions induces grokking on uniformly weighted modular arithmetic.</li>
-  <li id="fn3">Nanda et al., <em>Progress measures for grokking via mechanistic interpretability</em>.</li>
-  <li id="fn4"><a href="https://arxiv.org/abs/2505.10465">Superposition Yields Robust Neural Scaling</a></li>
-  <li id="fn5">See the analysis of no-saturation signs in token embedding overlaps in <a href="https://arxiv.org/abs/2505.10465">Superposition Yields Robust Neural Scaling</a>.</li>
-  <li id="fn6"><a href="https://arxiv.org/abs/2510.07364">Base Models Know How to Reason, Thinking Models Learn When</a></li>
-  <li id="fn7"><a href="https://arxiv.org/abs/2602.15829">Operationalising the Superficial Alignment Hypothesis via Task Complexity</a></li>
-  <li id="fn8"><a href="https://arxiv.org/abs/2602.07488">Deriving Neural Scaling Laws from the statistics of natural language</a></li>
-  <li id="fn9"><a href="https://arxiv.org/abs/2601.03335">Digital Red Queen: Adversarial Program Evolution in Core War with LLMs</a></li>
-  <li id="fn10"><a href="https://arxiv.org/abs/2601.15876">EvoCUA: Evolving Computer Use Agents via Learning from Scalable Synthetic Experience</a></li>
-  <li id="fn11"><a href="https://www.youtube.com/watch?v=aR20FWCCjAs">Ilya Sutskever &ndash; We're moving from the age of scaling to the age of research</a></li>
+<ol class="footnotes">
+  <li id="fn1">Kumar, Clune, Lehman, and Stanley, <a href="https://arxiv.org/abs/2505.11581"><em>Questioning Representational Optimism in Deep Learning: The Fractured Entangled Representation Hypothesis</em></a>.</li>
+  <li id="fn2">Various results have shown that weight decay is not strictly necessary to induce grokking: Hwang and Park, <a href="https://arxiv.org/abs/2603.01968"><em>Intrinsic Task Symmetry Drives Generalization in Algorithmic Tasks</em></a>; Prieto, Barsbey, Mediano, and Birdal, <a href="https://arxiv.org/abs/2501.04697"><em>Grokking at the Edge of Numerical Stability</em></a>. While the effect is small, to be complete we could say that weight decay plus a bit of SGD's bias towards flat solutions induces grokking on uniformly weighted modular arithmetic.</li>
+  <li id="fn3">Nanda, Chan, Lieberum, Smith, and Steinhardt, <a href="https://arxiv.org/abs/2301.05217"><em>Progress measures for grokking via mechanistic interpretability</em></a>.</li>
+  <li id="fn4">Y. Liu, Z. Liu, and Gore, <a href="https://arxiv.org/abs/2505.10465"><em>Superposition Yields Robust Neural Scaling</em></a>.</li>
+  <li id="fn5">See the analysis of no-saturation signs in token embedding overlaps in Y. Liu, Z. Liu, and Gore, <a href="https://arxiv.org/abs/2505.10465"><em>Superposition Yields Robust Neural Scaling</em></a>.</li>
+  <li id="fn6">Venhoff, Arcuschin, Torr, Conmy, and Nanda, <a href="https://arxiv.org/abs/2510.07364"><em>Base Models Know How to Reason, Thinking Models Learn When</em></a>.</li>
+  <li id="fn7">Vergara-Browne, Patil, Titov, Reddy, Pimentel, and Mosbach, <a href="https://arxiv.org/abs/2602.15829"><em>Operationalising the Superficial Alignment Hypothesis via Task Complexity</em></a>.</li>
+  <li id="fn8">Cagnetta, Raventós, Ganguli, and Wyart, <a href="https://arxiv.org/abs/2602.07488"><em>Deriving Neural Scaling Laws from the statistics of natural language</em></a>.</li>
+  <li id="fn9">Kumar, Bahlous-Boldi, Sharma, Isola, Risi, Tang, and Ha, <a href="https://arxiv.org/abs/2601.03335"><em>Digital Red Queen: Adversarial Program Evolution in Core War with LLMs</em></a>.</li>
+  <li id="fn10">Xue, Peng, Huang, Guo, Han, H. Wang, J. Wang, Zhang, Yang, Zhao, Ding, Ma, Xie, Pei, Cai, and Qiu, <a href="https://arxiv.org/abs/2601.15876"><em>EvoCUA: Evolving Computer Use Agents via Learning from Scalable Synthetic Experience</em></a>.</li>
+  <li id="fn11">Ilya Sutskever, <a href="https://www.youtube.com/watch?v=aR20FWCCjAs"><em>We're moving from the age of scaling to the age of research</em></a>.</li>
 </ol>
 
-<br>
-<p class="author">Jasper Gilley<br>
-<a href="https://twitter.com/0xjasper">Twitter</a><br>
-<a href="https://github.com/jagilley">Github</a><br>
-</p>
-
-<hr style="margin-top: 2rem;">
-
-<div id="subscribe-section">
-  <h3 id="subscribe-title">Subscribe to my newsletter</h3>
-  <p class="description">Get new posts delivered to your inbox. No spam, just content.</p>
-  <form id="subscribe-form">
-    <label for="email">Email:</label>
-    <input type="email" id="email" name="email" required>
-    <button type="submit">Subscribe</button>
-    <p id="subscribe-message" style="margin-top: 10px;"></p>
-  </form>
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  const supabaseUrl = 'https://ntckyugnpzaniyqqwsag.supabase.co';
-  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im50Y2t5dWducHphbml5cXF3c2FnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODkzNjQzMTMsImV4cCI6MjAwNDk0MDMxM30.rjR6NdSau70OmOodLQY7fTxedawEynxsd_OUQVzDbYc';
-  const { createClient } = supabase;
-  const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-
-  const form = document.getElementById('subscribe-form');
-  const messageElement = document.getElementById('subscribe-message');
-
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const emailInput = document.getElementById('email');
-    const email = emailInput.value;
-    messageElement.textContent = 'Subscribing...';
-
-    try {
-      const { data, error } = await supabaseClient
-        .from('blog_subscribers')
-        .insert([{ email: email }]);
-
-      if (error) {
-        console.error('Supabase error:', error);
-        if (error.code === '23505') {
-          messageElement.textContent = 'You are already subscribed!';
-          messageElement.style.color = 'orange';
-        } else {
-          messageElement.textContent = `Error: ${error.message}`;
-          messageElement.style.color = 'red';
-        }
-      } else {
-        messageElement.textContent = 'Successfully subscribed!';
-        messageElement.style.color = 'green';
-        emailInput.value = '';
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      messageElement.textContent = 'An unexpected error occurred.';
-      messageElement.style.color = 'red';
-    }
-  });
-</script>
 
 </body>
 </html>
