@@ -95,6 +95,15 @@
     .post-footer .author a {
       margin-left: 0.75rem;
     }
+    .abstract {
+      background-color: #e8e8e8;
+      border-left: 4px solid #888;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #444;
+    }
   </style>
 </head>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -109,6 +118,10 @@ Jasper Gilley<br>
 
 <hr class="divider">
 
+<p class="abstract">
+  <strong>TLDR:</strong> we modify the data distribution of a typical modular addition grokking setup to follow Zipf's Law, and show that it leads to persistent, predictable instability in grokked models' behavior. The imbalanced distribution causes the model to oscillate between a more generalizing and a more memorizing solution. We believe that this is a promising toy problem for testing new methods of eliciting generalization.
+</p>
+
 <p>
 One of the reasons for the successes of the scaling era of AI has been passive regularization: throwing massively complicated datasets at underparameterized models and letting the model decide what features to encode simply works better than trying to hand-design features. Yet the passive nature of such regularization makes it difficult to test whether the abstractions it creates reflect genuine generalization or memorization. Indeed, we have reason to suspect<sup><a href="#fn1">1</a></sup> that much of what we think of as generalization contains elements of memorization under the hood.
 </p>
@@ -122,25 +135,21 @@ One of the best such starting points in ML is the phenomenon of <em>grokking</em
 </p>
 
 <p>
-In the standard grokking task, there's a sense in which the dataset optimally &ldquo;points to&rdquo; the correct solution. Each training example can be satisfied equally well by both the memorizing and the generalizing solution, so once the model has memorized the training set, the task loss gradient drops to approximately zero. At that point, weight decay is the only remaining optimization signal. And because the Fourier solution has lower weight norm than the memorizing solution, weight decay pushes the model toward generalization. The grokking transition is driven by weight decay alone, operating in a near-zero-task-gradient regime.
+In the standard grokking task, there's a sense in which the dataset optimally &ldquo;points to&rdquo; the correct solution. Each training example can be satisfied equally well by both the memorizing and the generalizing solution, so once the model has memorized the training set, the task loss gradient drops to approximately zero. At that point, weight decay is the only remaining optimization signal, and because the Fourier solution has lower weight norm than the memorizing solution, weight decay pushes the model toward generalization. Grokking differs from real-world tasks in that the models learn regularity from the inductive bias of weight decay<sup><a href="#fn2">2</a></sup> rather than as a byproduct of solving hard tasks.
 </p>
 
 <p>
-Of course, real-world tasks are much more difficult than memorizing a short list of modular addition data points, so we would ideally like a toy problem that meets two criteria:
+So, to test new methods of regularization, we would ideally like a toy problem that meets two criteria:
 </p>
 <ol>
   <li>We understand the underlying structure of the data generating process very well.</li>
-  <li>There is persistent room for task contributions to the gradient, as is the case for all real-world AI problems.</li>
+  <li>There is persistent room for task contributions to the gradient.</li>
 </ol>
-
-<p>
-Standard grokking on modular arithmetic satisfies (1) but fails (2): after memorization, the task has nothing left to say. The model drifts toward the Fourier solution on weight decay alone,<sup><a href="#fn2">2</a></sup> and this drift is slow (thousands of epochs) but monotonic and stable.<sup><a href="#fn3">3</a></sup>
-</p>
 
 <h2>Zipfian weighting</h2>
 
 <p>
-One way to inject persistent task gradients into grokking is to weight the loss of each training example according to a non-uniform distribution. Language, user behavior, and many natural phenomena roughly follow Zipf's law:
+One way to inject persistent task gradients into grokking is to weight the loss of each training example according to a non-uniform distribution. We choose Zipf's Law, which many natural phenomena, including language, roughly follow:
 </p>
 
 <p style="text-align:center;">\[P(k) \propto \frac{1}{k^s}\]</p>
