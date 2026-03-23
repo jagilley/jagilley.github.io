@@ -19,12 +19,6 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://jagilley.github.io/projects.html</loc>
-    <lastmod>2025-04-01</lastmod>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
     <loc>https://jagilley.github.io/zipfian-grokking.html</loc>
     <lastmod>2026-03-09</lastmod>
     <priority>0.9</priority>
