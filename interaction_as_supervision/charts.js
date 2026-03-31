@@ -439,6 +439,203 @@
       });
   }
 
+  /* ===== DYNAMICS GRID (4 conditions x 2 rows) ===== */
+
+  function buildDynamicsGrid(allData, el) {
+    var conds = ['baseline', 'inverse_only', 'forward_only', 'full_icm'];
+    var labels = ['Baseline', 'Inverse only', 'Forward only', 'Full ICM'];
+    var cc = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'];
+
+    var VW = 960, VH = 500;
+    var rlW = 18, padR = 12; // row label width, right padding
+    var hdrH = 24, gX = 12, gY = 24;
+    var aL = 38, aB = 24; // per-cell axis padding
+
+    var cw = (VW - rlW - padR - (conds.length - 1) * gX) / conds.length;
+    var ch = (VH - hdrH - gY) / 2;
+    var pw = cw - aL, ph = ch - aB;
+
+    var svg = d3.select(el).append('svg')
+      .attr('viewBox', '0 0 ' + VW + ' ' + VH)
+      .attr('width', '100%');
+
+    var x = d3.scaleLinear()
+      .domain([0, d3.max(allData.baseline, function (d) { return d.e; })])
+      .range([0, pw]);
+
+    var yAcc = d3.scaleLinear().domain([0, 1]).range([ph, 0]);
+
+    var columns = [];
+
+    conds.forEach(function (cond, ci) {
+      var cx = rlW + ci * (cw + gX);
+      var data = allData[cond];
+
+      // Column header
+      svg.append('text')
+        .attr('x', cx + aL + pw / 2)
+        .attr('y', hdrH - 6)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '11.5px').attr('font-weight', 'bold')
+        .attr('fill', '#333')
+        .text(labels[ci]);
+
+      // ---- Row 0: Accuracy ----
+      var g0 = svg.append('g')
+        .attr('transform', 'translate(' + (cx + aL) + ',' + hdrH + ')');
+
+      g0.append('rect').attr('width', pw).attr('height', ph)
+        .attr('fill', 'none').attr('stroke', '#eee');
+
+      // Axes (drawn first so data lines paint on top)
+      var yAx0 = g0.append('g')
+        .call(d3.axisLeft(yAcc).ticks(3).tickFormat(d3.format('.0%')).tickSize(-pw));
+      yAx0.selectAll('.tick line').attr('stroke', '#f0f0f0');
+      yAx0.select('.domain').attr('stroke', '#ddd');
+      g0.append('g').attr('transform', 'translate(0,' + ph + ')')
+        .call(d3.axisBottom(x).ticks(3).tickFormat('').tickSize(3))
+        .select('.domain').attr('stroke', '#ddd');
+
+      // Train acc (blue)
+      g0.append('path').datum(data).attr('fill', 'none')
+        .attr('stroke', '#1f77b4').attr('stroke-width', 1.0).attr('opacity', 0.7)
+        .attr('d', d3.line()
+          .x(function (d) { return x(d.e); })
+          .y(function (d) { return yAcc(d.tra); }));
+
+      // Test acc (orange)
+      g0.append('path').datum(data).attr('fill', 'none')
+        .attr('stroke', '#ff7f0e').attr('stroke-width', 1.5)
+        .attr('d', d3.line()
+          .x(function (d) { return x(d.e); })
+          .y(function (d) { return yAcc(d.ta); }));
+
+      var ch0 = g0.append('line')
+        .attr('stroke', '#888').attr('stroke-dasharray', '2,2')
+        .attr('y1', 0).attr('y2', ph).style('visibility', 'hidden');
+
+      // ---- Row 1: ICM losses ----
+      var r1y = hdrH + ch + gY;
+      var g1 = svg.append('g')
+        .attr('transform', 'translate(' + (cx + aL) + ',' + r1y + ')');
+
+      g1.append('rect').attr('width', pw).attr('height', ph)
+        .attr('fill', 'none').attr('stroke', '#eee');
+
+      // Per-panel log scale
+      var fMin = d3.min(data, function (d) { return d.fl; });
+      var fMax = d3.max(data, function (d) { return d.fl; });
+      var iMin = d3.min(data, function (d) { return d.il; });
+      var iMax = d3.max(data, function (d) { return d.il; });
+      var loY = Math.max(0.001, Math.min(fMin, iMin) * 0.4);
+      var hiY = Math.max(fMax, iMax) * 2.5;
+      var yLog = d3.scaleLog().domain([loY, hiY]).range([ph, 0]).clamp(true);
+
+      // Axes (drawn first so data lines paint on top)
+      g1.append('g')
+        .call(d3.axisLeft(yLog).ticks(4, '.0s'))
+        .select('.domain').attr('stroke', '#ddd');
+      g1.append('g').attr('transform', 'translate(0,' + ph + ')')
+        .call(d3.axisBottom(x).ticks(3).tickFormat(function (d) { return fmt(d); }).tickSize(3))
+        .select('.domain').attr('stroke', '#ddd');
+
+      // Forward loss (green)
+      g1.append('path').datum(data).attr('fill', 'none')
+        .attr('stroke', '#2ca02c').attr('stroke-width', 1.3).attr('opacity', 0.85)
+        .attr('d', d3.line()
+          .x(function (d) { return x(d.e); })
+          .y(function (d) { return yLog(Math.max(loY, d.fl)); }));
+
+      // Inverse loss (yellow)
+      g1.append('path').datum(data).attr('fill', 'none')
+        .attr('stroke', '#c9a800').attr('stroke-width', 1.3).attr('opacity', 0.85)
+        .attr('d', d3.line()
+          .x(function (d) { return x(d.e); })
+          .y(function (d) { return yLog(Math.max(loY, d.il)); }));
+
+      var ch1 = g1.append('line')
+        .attr('stroke', '#888').attr('stroke-dasharray', '2,2')
+        .attr('y1', 0).attr('y2', ph).style('visibility', 'hidden');
+
+      columns.push({
+        ci: ci, cx: cx, data: data, color: cc[ci], label: labels[ci],
+        ch0: ch0, ch1: ch1
+      });
+    });
+
+    // Row labels
+    svg.append('text').attr('transform', 'rotate(-90)')
+      .attr('x', -(hdrH + ph / 2)).attr('y', 12)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px').attr('fill', '#888')
+      .text('Accuracy');
+
+    svg.append('text').attr('transform', 'rotate(-90)')
+      .attr('x', -(hdrH + ch + gY + ph / 2)).attr('y', 12)
+      .attr('text-anchor', 'middle')
+      .attr('font-size', '10px').attr('fill', '#888')
+      .text('ICM loss');
+
+    // ---- Per-column tooltip + crosshair ----
+    var tip = d3.select(el).append('div').attr('class', 'chart-tooltip');
+    var bisect = d3.bisector(function (d) { return d.e; }).left;
+
+    columns.forEach(function (col) {
+      svg.append('rect')
+        .attr('x', col.cx).attr('y', hdrH)
+        .attr('width', cw).attr('height', VH - hdrH)
+        .attr('fill', 'transparent').style('cursor', 'crosshair')
+        .on('mousemove', function (event) {
+          // Hide all columns first
+          columns.forEach(function (c) {
+            c.ch0.style('visibility', 'hidden');
+            c.ch1.style('visibility', 'hidden');
+          });
+
+          var localX = d3.pointer(event)[0] - col.cx - aL;
+          localX = Math.max(0, Math.min(pw, localX));
+          var epoch = x.invert(localX);
+          var pxX = x(epoch);
+          var idx = Math.max(0, Math.min(bisect(col.data, epoch), col.data.length - 1));
+          var v = col.data[idx];
+
+          col.ch0.attr('x1', pxX).attr('x2', pxX).style('visibility', 'visible');
+          col.ch1.attr('x1', pxX).attr('x2', pxX).style('visibility', 'visible');
+
+          var h = '<strong>' + col.label + '</strong>';
+          h += '<div style="color:#999;font-size:0.72rem">Epoch ' + fmt(v.e) + '</div>';
+          h += '<div style="margin-top:3px"><span style="color:#ff7f0e">Test: ' + (v.ta * 100).toFixed(1) + '%</span>';
+          h += ' &nbsp; <span style="color:#1f77b4">Train: ' + (v.tra * 100).toFixed(1) + '%</span></div>';
+          h += '<div><span style="color:#2ca02c">Fwd: ' + fmtLoss(v.fl) + '</span>';
+          h += ' &nbsp; <span style="color:#c9a800">Inv: ' + fmtLoss(v.il) + '</span></div>';
+
+          tip.html(h).style('visibility', 'visible');
+
+          var svgW = el.getBoundingClientRect().width;
+          var sc = svgW / VW;
+          var tipLeft = (col.cx + aL + pxX) * sc + 15;
+          var tn = tip.node();
+          if (tipLeft + tn.offsetWidth > svgW - 10) tipLeft = (col.cx + aL + pxX) * sc - tn.offsetWidth - 15;
+          var tipTop = d3.pointer(event)[1] * sc - tn.offsetHeight / 2;
+          tipTop = Math.max(0, Math.min(tipTop, el.getBoundingClientRect().height - tn.offsetHeight));
+          tip.style('left', tipLeft + 'px').style('top', tipTop + 'px');
+        })
+        .on('mouseleave', function () {
+          tip.style('visibility', 'hidden');
+          col.ch0.style('visibility', 'hidden');
+          col.ch1.style('visibility', 'hidden');
+        });
+    });
+  }
+
+  function fmtLoss(v) {
+    if (v >= 10000) return d3.format('.2s')(v);
+    if (v >= 10) return v.toFixed(1);
+    if (v >= 1) return v.toFixed(2);
+    if (v >= 0.01) return v.toFixed(3);
+    return v.toExponential(1);
+  }
+
   /* ===== INIT ===== */
 
   async function init() {
@@ -446,12 +643,15 @@
     try {
       var results = await Promise.all([
         fetch(base + 'policy_evolution_data.json').then(function (r) { return r.json(); }),
-        fetch(base + 'test_accuracy_data.json').then(function (r) { return r.json(); })
+        fetch(base + 'test_accuracy_data.json').then(function (r) { return r.json(); }),
+        fetch(base + 'dynamics_data.json').then(function (r) { return r.json(); })
       ]);
       var pe = document.getElementById('policy-chart');
       var ac = document.getElementById('accuracy-chart');
+      var dg = document.getElementById('dynamics-grid');
       if (pe) buildPolicyChart(results[0], pe);
       if (ac) buildAccuracyChart(results[1], ac);
+      if (dg) buildDynamicsGrid(results[2], dg);
     } catch (err) {
       console.error('Chart data load failed:', err);
     }

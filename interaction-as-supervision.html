@@ -230,8 +230,16 @@ Surprisingly, the forward-only condition makes training dramatically more stable
 </p>
 
 <figure>
-  <img src="interaction_as_supervision/all_dynamics_cropped.png" alt="Training dynamics of all four conditions over 2M epochs">
-  <figcaption>Training dynamics across all four conditions. Left column: task accuracy. Middle column: forward (green) and inverse (orange) prediction losses on the encoder&rsquo;s representations. Right column: inverse model accuracy. The key comparison is the middle column of rows 2 and 3: in inverse_only, both losses decline; in forward_only, only the forward loss declines while inverse loss flatlines at chance.</figcaption>
+  <div id="dynamics-grid" class="interactive-chart">
+    <noscript><img src="interaction_as_supervision/all_dynamics_cropped.png" alt="Training dynamics of all four conditions over 2M epochs"></noscript>
+  </div>
+  <div class="chart-legend">
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#1f77b4"></span> train accuracy</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#ff7f0e"></span> test accuracy</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#2ca02c"></span> forward loss</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#c9a800"></span> inverse loss</span>
+  </div>
+  <figcaption>Training dynamics across all four conditions. Top row: task accuracy (blue = train, orange = test). Bottom row: forward (green) and inverse (yellow) prediction losses. The key comparison is the bottom row: in inverse_only, both losses decline together; in forward_only, only the forward loss declines while inverse loss flatlines at chance. <em>Hover to compare across conditions.</em></figcaption>
 </figure>
 
 <p>
