@@ -106,9 +106,62 @@
       line-height: 1.6;
       color: #444;
     }
+    .interactive-chart {
+      position: relative;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      margin: 1.5rem auto;
+      overflow: hidden;
+    }
+    .interactive-chart svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .chart-tooltip {
+      position: absolute;
+      visibility: hidden;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      z-index: 10;
+      line-height: 1.6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      white-space: nowrap;
+    }
+    .chart-tooltip strong {
+      display: block;
+      margin-bottom: 1px;
+      font-size: 0.85rem;
+    }
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .chart-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .chart-legend-swatch {
+      width: 12px;
+      height: 3px;
+      border-radius: 1px;
+      display: inline-block;
+    }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <body>
 <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
 <h1>
@@ -241,8 +294,14 @@ We started by evaluating translations versus random permutations. Predictably, t
 </p>
 
 <figure>
-  <img src="interaction_as_supervision/policy_evolution.png" alt="Policy evolution in the translation vs random match">
-  <figcaption>A single match: translation vs random. The policy diverges from 50/50 to 99% translation within the first 200k epochs. Each of the six round-robin matches produces a similarly decisive winner.</figcaption>
+  <div id="policy-chart" class="interactive-chart">
+    <noscript><img src="interaction_as_supervision/policy_evolution.png" alt="Policy evolution in the translation vs random match"></noscript>
+  </div>
+  <div class="chart-legend">
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#2ca02c"></span> translation</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#d62728"></span> random</span>
+  </div>
+  <figcaption>A single match: translation vs random. The policy diverges from 50/50 to 99% translation within the first 200k epochs. The lower panel shows counterfactual inverse losses &mdash; translation loss declines while random loss rises, driving the policy shift. <em>Hover to explore.</em></figcaption>
 </figure>
 
 <p>
@@ -291,8 +350,14 @@ The fix: use instantaneous inverse loss, not its derivative. Low loss means the 
 </p>
 
 <figure>
-  <img src="interaction_as_supervision/test_accuracy_comparison.png" alt="Cocktail vs translation-only">
-  <figcaption>Test accuracy over 2M epochs. Blue: inverse-only training with pure translations. Orange: inverse-only training with the tournament-derived 4-way mixture.</figcaption>
+  <div id="accuracy-chart" class="interactive-chart">
+    <noscript><img src="interaction_as_supervision/test_accuracy_comparison.png" alt="Cocktail vs translation-only"></noscript>
+  </div>
+  <div class="chart-legend">
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#1f77b4"></span> translation-only</span>
+    <span class="chart-legend-item"><span class="chart-legend-swatch" style="background:#ff7f0e"></span> cocktail</span>
+  </div>
+  <figcaption>Test accuracy over 2M epochs. Thin lines show raw values; thick lines show the smoothed trend. Diamond markers indicate peak accuracy for each condition. <em>Hover to explore.</em></figcaption>
 </figure>
 
 <h2>Takeaways</h2>
@@ -355,5 +420,6 @@ All code for these experiments can be found <a href="https://github.com/jagilley
   </p>
 </div>
 
+<script src="interaction_as_supervision/charts.js"></script>
 </body>
 </html>
