@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Inverse dynamics modeling improves generalization on the Zipfian grokking task by pushing representations toward Fourier structure, and a curiosity-driven policy can autonomously discover which transformations are helpful." />
+  <title>Interaction as supervision | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/interaction-as-supervision.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Interaction as supervision" />
+  <meta property="og:description" content="Inverse dynamics modeling improves generalization on the Zipfian grokking task by pushing representations toward Fourier structure, and a curiosity-driven policy can autonomously discover which transformations are helpful." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:published_time" content="2026-03-30" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/interaction_as_supervision/all_dynamics_cropped.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://jagilley.github.io/interaction_as_supervision/all_dynamics_cropped.png" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="canonical" href="https://jagilley.github.io/interaction-as-supervision.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem;
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 2rem 0;
+    }
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem auto;
+      border: 1px solid #ccc;
+    }
+    figcaption {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: -1rem;
+      margin-bottom: 1.5rem;
+    }
+    .footnotes {
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 0.5rem;
+    }
+    .post-footer .author {
+      text-align: right;
+      margin: 0;
+    }
+    .post-footer .author a {
+      margin-left: 0.75rem;
+    }
+    .abstract {
+      background-color: #e8e8e8;
+      border-left: 4px solid #888;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #444;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+<h1>
+    Interaction as supervision
+</h1>
+<p class="author">
+Jasper Gilley<br>
+</p>
+
+<hr class="divider">
+
+<!-- <p class="abstract">
+  <strong>TLDR:</strong> We apply inverse dynamics modeling &mdash; training a model to predict what transformation was applied between two states &mdash; to the Zipfian grokking task, and show that it improves peak generalization by pushing representations toward Fourier structure. Additionally, we show that a curiosity-driven policy can autonomously discover which transformations are helpful, without domain knowledge, by treating inverse model learnability as a proxy for genuine symmetry. These results demonstrate a concrete way that interaction with data can provide supervision that passive observation cannot.
+</p> -->
+
+<p>
+In the <a href="https://jagilley.github.io/zipfian-grokking.html">previous essay in this series</a>, we introduced the toy problem of Zipfian grokking:<sup><a href="#fn1">1</a></sup> modify the data distribution of a modular arithmetic grokking run to follow Zipf&rsquo;s Law, and you get perpetual un-grokking and re-grokking cycles driven by the interaction between memorization pressure and weight decay.
+</p>
+
+<p>
+Here, we show that giving models the ability to interact with their data, and biasing them towards causally understanding it, can lead them to see the underlying structure of the data-generating process more clearly.
+</p>
+
+<h2>The inverse dynamics idea</h2>
+
+<p>
+Specifically, we draw on the idea of intrinsic curiosity modules (ICM).<sup><a href="#fn2">2</a></sup> An inverse model takes two states and predicts what action occurred between the first and the second. This imposes a soft constraint on representations: the model&rsquo;s internal encodings must be organized so that transformations are readable from pairs of states.
+</p>
+
+<p>
+For modular arithmetic of the form \((a, b) \bmod p\), a natural transformation group is translation: \((a, b) \to (a{+}k,\, b{+}k) \bmod p\). Given the internal representations \(z\) and \(z'\) of an original and translated input pair, the inverse model must predict the translation \(k\) from the pair \((z, z')\).
+</p>
+
+<p>
+If the representations encode Fourier structure,<sup><a href="#fn3">3</a></sup> this is straightforward. Translations correspond to phase rotations in the Fourier basis &mdash; a systematic, linear operation where one rule covers all input pairs. If the representations are memorized, this is hard. Each \((a, b)\) pair has its own arbitrary encoding, so the \(z \to z'\) relationship differs for every pair, and predicting \(k\) requires memorizing \(p\) separate mappings per sample.
+</p>
+
+<p>
+The inverse model thus creates a selection pressure for Fourier features without ever being told what Fourier features are. It doesn&rsquo;t say &ldquo;use this basis.&rdquo; It says: <em>make transformations predictable from your representations</em>. The Fourier basis is the simplest way to satisfy this demand.
+</p>
+
+<h2>A surprising asymmetry</h2>
+
+<p>
+We train four conditions on the Zipfian grokking task (\(p = 97\), Zipf exponent 1.5, where two training pairs account for ~50% of the gradient).<sup><a href="#fn4">4</a></sup> Each condition uses the same encoder architecture. All losses &mdash; including the auxiliary ICM losses &mdash; use Zipfian weighting.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Condition</th><th>Peak Test Accuracy</th><th>Training Stability</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Baseline (task only)</td><td>90.1%</td><td>Severe oscillations</td></tr>
+    <tr><td><strong>Inverse only</strong></td><td><strong>96.8%</strong></td><td>Moderate instability</td></tr>
+    <tr><td>Forward only</td><td>82.0%</td><td>Stable</td></tr>
+    <tr><td>Full ICM (both)</td><td>88.8%</td><td>Mild instability</td></tr>
+  </tbody>
+</table>
+
+<p>
+In the inverse model-only condition, compared to the baseline task-only run, the model is both more stable and achieves a higher peak test accuracy (90% \(\to\) 97%), approaching the level of clean grokking without any Zipfian weighting. The inverse dynamics objective pushes representations toward Fourier structure even under heavily biased gradients.
+</p>
+
+<p>
+Surprisingly, the forward-only condition makes training dramatically more stable while hurting peak test accuracy. Its objective is to predict \(z'\) from \((z, k)\): <em>given the current representation and a transformation, what will the resulting representation be?</em> It compresses the range of loss oscillations by a factor of 43,000 compared to baseline while achieving worse peak generalization than having no auxiliary task at all (82% vs 90%).
+</p>
+
+<figure>
+  <img src="interaction_as_supervision/all_dynamics_cropped.png" alt="Training dynamics of all four conditions over 2M epochs">
+  <figcaption>Training dynamics across all four conditions. Left column: task accuracy. Middle column: forward (green) and inverse (orange) prediction losses on the encoder&rsquo;s representations. Right column: inverse model accuracy. The key comparison is the middle column of rows 2 and 3: in inverse_only, both losses decline; in forward_only, only the forward loss declines while inverse loss flatlines at chance.</figcaption>
+</figure>
+
+<p>
+In each condition, forward and inverse model heads are trained as diagnostics on the encoder&rsquo;s representations, but only the active objectives (inverse only, forward only, full ICM, etc.) backpropagate through the encoder itself. This lets us ask: what does each training signal do to the encoder&rsquo;s representations, as judged by <em>the other</em> task?
+</p>
+
+<p>
+In inverse_only (row 2, middle panel), both losses decline together &mdash; the forward loss drops by three orders of magnitude even though no forward objective shapes the encoder. In forward_only (row 3), only the forward loss declines; the inverse loss remains at chance level for the full 2 million epochs.
+</p>
+
+<p>
+Mechanistically, this strongly hints at the relative strength of the inductive biases that each objective introduces. When the inverse objective pushes the encoder toward Fourier features, translations become systematic phase rotations in representation space. This makes <em>both</em> prediction tasks easy: given \(z\) and \(k\), computing \(z'\) is a phase rotation (forward); given \(z\) and \(z'\), reading off \(k\) is the same operation in reverse (inverse). Fourier structure gives you both for free.
+</p>
+
+<p>
+When the forward objective stabilizes the encoder, it imposes no such structural constraint. The forward model can solve its task by memorizing the \((z, k) \to z'\) mapping for each specific input &mdash; the encoder need only be a <em>consistent</em> encoding, not a <em>systematic</em> one. But a consistent-yet-arbitrary encoding gives the inverse model nothing to work with: the \(z \to z'\) relationship differs for every input pair, so predicting \(k\) from \((z, z')\) remains combinatorially hard.
+</p>
+
+<p>
+The asymmetry reduces to a clean table:
+</p>
+
+<table>
+  <thead>
+    <tr><th></th><th>Fourier representations</th><th>Memorized representations</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Forward</strong> (predict \(z'\) from \(z, k\))</td><td>Easy &mdash; linear</td><td>Solvable &mdash; memorize lookup</td></tr>
+    <tr><td><strong>Inverse</strong> (predict \(k\) from \(z, z'\))</td><td>Easy &mdash; linear</td><td>Combinatorially hard</td></tr>
+  </tbody>
+</table>
+
+<p>
+Forward prediction may be satisfiable with or without structure. Inverse prediction requires it. The inverse objective is therefore the strictly stronger constraint: it forces the encoder into a regime where forward predictability emerges as a free consequence, while the forward objective accepts representations that leave the inverse problem unsolvable. This is why the full ICM model (88.8%) lands between the two extremes &mdash; the forward objective&rsquo;s tolerance for unstructured encodings partially counteracts the inverse objective&rsquo;s demand for structured ones.
+</p>
+
+<h2>Autonomous symmetry discovery</h2>
+
+<p>
+Translations, admittedly, are a specifically-chosen symmetry group in the Fourier basis. Can a system discover which transformations are helpful without being told?
+</p>
+
+<p>
+We offer the model four transformation families:
+</p>
+
+<ul>
+  <li><strong>Translations</strong>: \((a,b) \to (a{+}k, b{+}k) \bmod p\) &mdash; additive shifts, Fourier-aligned</li>
+  <li><strong>Scaling</strong>: \((a,b) \to (\alpha a, \alpha b) \bmod p\) &mdash; multiplicative structure</li>
+  <li><strong>Quadratic</strong>: \((a,b) \to (ka^2, kb^2) \bmod p\) &mdash; nonlinear but algebraic</li>
+  <li><strong>Random permutations</strong>: \((a,b) \to (\pi(a), \pi(b))\) for fixed random \(\pi\) &mdash; unstructured</li>
+</ul>
+
+<p>
+Rather than throwing all four into a single run, we structure discovery as a <strong>pairwise round-robin tournament</strong>: six matches, one for each pair of families. In each match, a policy network starts at 50/50 and the policy across the two transformations is updated according to the heuristic of <em>&ldquo;which transformation produces lower inverse model loss?&rdquo;</em>
+</p>
+
+<p>
+We started by evaluating translations versus random permutations. Predictably, translation leads to much stronger inverse model learnability, and thus dominates in short order:
+</p>
+
+<figure>
+  <img src="interaction_as_supervision/policy_evolution.png" alt="Policy evolution in the translation vs random match">
+  <figcaption>A single match: translation vs random. The policy diverges from 50/50 to 99% translation within the first 200k epochs. Each of the six round-robin matches produces a similarly decisive winner.</figcaption>
+</figure>
+
+<p>
+When we run the head-to-head conditions for each combination of action types, the results are similarly decisive across the board:
+</p>
+
+<figure>
+  <img src="interaction_as_supervision/crosstable_elo.png" alt="Round-robin crosstable and Elo ratings">
+  <figcaption>Chess-style crosstable of the round-robin tournament. Each cell shows the row player&rsquo;s final policy mass against the column player. Green = win, red = loss. The perfect upper-triangle/lower-triangle split reflects a fully transitive ordering &mdash; no rock-paper-scissors cycles. Elo ratings computed with K=64 from the six pairwise results.</figcaption>
+</figure>
+
+<table>
+  <thead>
+    <tr><th>Rank</th><th>Transform</th><th>Pairwise Wins</th><th>Pairwise Losses</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td><strong>translation</strong></td><td><strong>3</strong></td><td><strong>0</strong></td></tr>
+    <tr><td>2</td><td>quadratic</td><td>2</td><td>1</td></tr>
+    <tr><td>3</td><td>random</td><td>1</td><td>2</td></tr>
+    <tr><td>4</td><td>scaling</td><td>0</td><td>3</td></tr>
+  </tbody>
+</table>
+
+<p>
+Translation wins every match in which it&rsquo;s evaluated. Quadratic transforms, which have genuine algebraic structure, emerge as a legitimate runner-up, beating both random permutations and scaling. The system produces a graded ranking across multiple structured candidates, ordered by how compressible each family&rsquo;s structure is under the inverse learnability objective.
+</p>
+
+<p>
+Scaling&rsquo;s poor showing likely reflects that multiplicative structure, while real, is harder for this encoder and inverse model to exploit at the action-parameter level &mdash; the inverse loss stays near the chance floor, suggesting the model can tell &ldquo;this was a scaling transform&rdquo; but cannot decode which scale factor was applied.
+</p>
+
+<p>
+A <strong>championship match</strong> between the top two &mdash; translation vs quadratic, run for twice as long &mdash; confirms the ordering: the policy converges to 99.8% translation.
+</p>
+
+<p>
+<strong>A trap we fell into.</strong> Our first curiosity signal was <em>learning progress</em>: prioritize whichever family the inverse model is improving on fastest.<sup><a href="#fn5">5</a></sup> This failed, for an illuminating reason. Translations, once learned, plateau &mdash; they look &ldquo;boring&rdquo; to a learning-progress signal. Random permutations, being fundamentally unlearnable, never fully plateau &mdash; there&rsquo;s always a small residual gradient, which looks &ldquo;interesting.&rdquo; The policy converges toward random permutations: exactly backwards.
+</p>
+
+<p>
+The fix: use instantaneous inverse loss, not its derivative. Low loss means the transformation has been learned; high loss means it hasn&rsquo;t. This reframes curiosity from &ldquo;where am I improving?&rdquo; to &ldquo;where have I already succeeded?&rdquo; &mdash; a subtle but consequential distinction for any system that must tell genuine structure apart from noise.
+</p>
+
+<p>
+<strong>A cocktail experiment.</strong> For funzies, we tried baking the tournament&rsquo;s output into a fixed training recipe: normalize the round-robin policy masses into a 4-way mixture (~50% translation, 33% quadratic, 17% random, 0.5% scaling) and train with it &mdash; same inverse-only objective, same architecture, no policy. Somewhat as expected, translation seems to be the primary load-bearing ingredient, as the cocktail model underperforms translation-only. So the inverse learnability work in this context is good for evaluating candidate symmetries, but probably doesn&rsquo;t craft better global curricula in and of itself.
+</p>
+
+<figure>
+  <img src="interaction_as_supervision/test_accuracy_comparison.png" alt="Cocktail vs translation-only">
+  <figcaption>Test accuracy over 2M epochs. Blue: inverse-only training with pure translations. Orange: inverse-only training with the tournament-derived 4-way mixture.</figcaption>
+</figure>
+
+<h2>Takeaways</h2>
+
+<p>
+On tasks where the structure of the data-generating process is difficult-to-learn, adding additional inductive biases that incentivize reconstruction of a process that is <em>similar</em> to the data-generating process can make the true data-generating process more legible to learners. In some cases, it&rsquo;s necessary to bake in domain knowledge as to what the relevant proxy tasks may be &mdash; but the action-type tournament shows that it&rsquo;s also possible to autonomously discover which proxy tasks are helpful for interrogating the rules of the data-generating process.
+</p>
+
+<p>
+The inverse model treats each candidate transformation as a hypothesis about the domain&rsquo;s symmetries. Families that respect the domain&rsquo;s structure yield compressible representations &mdash; the inverse model learns to predict them efficiently. Families that don&rsquo;t require memorization &mdash; the inverse model fails. The curiosity policy steers toward whichever hypothesis is better supported.
+</p>
+
+<p>
+This is something like the empirical scientific method applied to representation learning: intervene on the data, observe whether the result is predictable, update beliefs about what structure exists. The Fourier representation emerges not because the model was told about Fourier structure, but because Fourier structure is what makes translations predictable. The model discovers the symmetry by testing for it.
+</p>
+
+<p>
+The deeper question is whether we can modify the space of testable hypotheses from discrete transformations in a lower-dimensional toy problem to continuous latent representations in higher-dimensional domains like language or vision. These domains have deep symmetries of their own, but they&rsquo;re harder to enumerate and harder to test than discrete modular translations. To make this sort of latent supervision possible, we must first delegate away the job of injecting domain knowledge to the model itself.
+</p>
+
+<br>
+
+<p><em>Thanks to Dhruv Batra, Andrew Kindseth, and Tong Xiao for their feedback on this work.</em></p>
+
+<hr class="divider">
+
+<h3>Code</h3>
+
+All code for these experiments can be found <a href="https://github.com/jagilley/zipfian-grokking">here</a>.
+
+<hr class="divider">
+
+<h3>Citation</h3>
+
+<pre><code>@article{gilley2026interactionsupervision,
+  title   = {Interaction as supervision},
+  author  = {Gilley, Jasper},
+  year    = {2026},
+  month   = {March},
+  url     = {https://jagilley.github.io/interaction-as-supervision.html}
+}</code></pre>
+
+<hr class="divider">
+
+<h3>Notes</h3>
+
+<ol class="footnotes">
+  <li id="fn1">Power, Burda, Edwards, Babuschkin, and Misra, <a href="https://arxiv.org/abs/2201.02177"><em>Grokking: Generalization Beyond Overfitting on Small Algorithmic Datasets</em></a> (2022).</li>
+  <li id="fn2">Pathak, Agrawal, Efros, and Darshan, <a href="https://arxiv.org/abs/1705.05363"><em>Curiosity-driven Exploration by Self-Supervised Prediction</em></a> (2017).</li>
+  <li id="fn3">Nanda, Chan, Lieberum, Smith, and Steinhardt, <a href="https://arxiv.org/abs/2301.05217"><em>Progress measures for grokking via mechanistic interpretability</em></a> (2023).</li>
+  <li id="fn4">The encoder is a 2-layer MLP with 128-dimensional hidden layers, trained with AdamW (lr = \(10^{-3}\), weight decay = 1.0). The inverse and forward models are lightweight heads on the encoder&rsquo;s representations.</li>
+  <li id="fn5">Learning progress as a curiosity signal originates with Schmidhuber, <a href="https://people.idsia.ch/~juergen/curiosity1991.html"><em>A possibility for implementing curiosity and boredom in model-building neural controllers</em></a> (1991). The failure mode we encountered &mdash; preferring unlearnable tasks because they provide persistent signal &mdash; probably needs to be addressed at a different level of supervision.</li>
+</ol>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
+</div>
+
+</body>
+</html>
