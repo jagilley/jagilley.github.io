@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A single direction in activation space drives Zipfian grokking collapse. Two independent methods converge on the same 1-D memorization subspace, and projecting it out eliminates the pathology entirely." />
+  <title>Representation as supervision | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/representation-as-supervision.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Representation as supervision" />
+  <meta property="og:description" content="A single direction in activation space drives Zipfian grokking collapse. Two independent methods converge on the same 1-D memorization subspace, and projecting it out eliminates the pathology entirely." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:published_time" content="2026-05-05" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/memorization_direction/score_vs_epoch.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://jagilley.github.io/memorization_direction/score_vs_epoch.png" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="canonical" href="https://jagilley.github.io/representation-as-supervision.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem;
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 2rem 0;
+    }
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem auto;
+      border: 1px solid #ccc;
+    }
+    figcaption {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: -1rem;
+      margin-bottom: 1.5rem;
+    }
+    .footnotes {
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 0.5rem;
+    }
+    .post-footer .author {
+      text-align: right;
+      margin: 0;
+    }
+    .post-footer .author a {
+      margin-left: 0.75rem;
+    }
+    .abstract {
+      background-color: #e8e8e8;
+      border-left: 4px solid #888;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #444;
+    }
+  </style>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+<h1>
+    Representation as supervision
+</h1>
+<p class="author">
+Jasper Gilley<br>
+</p>
+
+<hr class="divider">
+
+<p class="abstract">
+  <strong>TLDR:</strong> We look directly at the activation space of Zipfian grokking models using a Generative Latent Prior (GLP) &mdash; a diffusion model trained on the task model&rsquo;s own activations. We discover that the Sisyphean collapse cycle is driven by a single direction in the model&rsquo;s penultimate-layer representations. Two independent methods &mdash; GLP residual analysis and Zipf-weighted gradient decomposition &mdash; converge on the same 1-D memorization subspace. Projecting this direction out of the backward pass via a custom gradient rule completely eliminates the collapse pathology, and a replay-consuming meta-model can rediscover the direction autonomously.
+</p>
+
+<p>
+In the <a href="https://jagilley.github.io/zipfian-grokking.html">first essay</a> in this series, we introduced Zipfian grokking: modify the loss weighting in a modular arithmetic grokking setup to follow Zipf&rsquo;s Law, and the model enters a perpetual cycle of grokking and un-grokking &mdash; what we called the Sisyphean dynamics. In the <a href="https://jagilley.github.io/interaction-as-supervision.html">second essay</a>, we showed that adding an inverse dynamics auxiliary objective can partially stabilize training by biasing representations toward Fourier structure. But that approach required domain knowledge: someone had to choose the right transformation family.
+</p>
+
+<p>
+Here, we take a different approach. Instead of designing auxiliary objectives, we look directly at the model&rsquo;s own internal representations and ask: what, geometrically, is going wrong?
+</p>
+
+<h2>Modeling activations with a diffusion model</h2>
+
+<p>
+We train a Generative Latent Prior (GLP)<sup><a href="#fn1">1</a></sup> &mdash; a small flow-matching diffusion model &mdash; on the penultimate-layer activations of the task model during training. The GLP learns the empirical distribution of the model&rsquo;s internal representations: what &ldquo;normal&rdquo; activations look like at any given point in training.
+</p>
+
+<p>
+The key quantity is the <strong>residual</strong>: for each training sample, we compute the difference between the model&rsquo;s actual penultimate-layer activation \(h_1\) and its GLP-denoised manifold projection \(h_1^{\text{manifold}}\):
+</p>
+
+<p>
+$$r = h_1 - h_1^{\text{manifold}}$$
+</p>
+
+<p>
+The scalar norm \(\|r\|\) tells us how far a sample&rsquo;s representation is from the learned manifold &mdash; a measure of representational novelty. But the full 128-dimensional residual vector tells us something richer: <em>in what direction</em> each sample deviates from normal.
+</p>
+
+<h2>A 1-dimensional memorization subspace</h2>
+
+<p>
+We save full residual vectors at 41 dense snapshot epochs across 100k training epochs of the standard Zipfian grokking setup (\(s = 1.5\), where two training pairs carry ~50% of the gradient).<sup><a href="#fn2">2</a></sup> The directional structure of the residuals reveals a striking pattern.
+</p>
+
+<p>
+At and just before each collapse, the two highest-weight training samples have residuals pointing in nearly the same direction &mdash; and that direction <em>is</em> the dominant mode of representational variation:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Epoch</th><th>Test acc</th><th>Top-2 cosine</th><th>cos(top-2, PC1)</th><th>PC1 var%</th><th>Phase</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>24,000</td><td>98.5%</td><td>+0.16</td><td>0.16</td><td>3.6%</td><td>Approaching peak</td></tr>
+    <tr><td><strong>25,000</strong></td><td><strong>99.0%</strong></td><td><strong>+0.68</strong></td><td><strong>0.90</strong></td><td><strong>4.2%</strong></td><td><strong>Fourier peak</strong></td></tr>
+    <tr><td><strong>26,000</strong></td><td><strong>99.2%</strong></td><td><strong>+0.92</strong></td><td><strong>0.98</strong></td><td><strong>10.1%</strong></td><td><strong>Pre-collapse</strong></td></tr>
+    <tr><td><strong>27,000</strong></td><td><strong>99.2%</strong></td><td><strong>+0.75</strong></td><td><strong>0.98</strong></td><td><strong>16.2%</strong></td><td><strong>Collapse onset</strong></td></tr>
+    <tr><td>28,000</td><td>83.3%</td><td>+0.44</td><td>0.73</td><td>4.1%</td><td>Collapsing</td></tr>
+  </tbody>
+</table>
+
+<p>
+At epoch 26,000 &mdash; one snapshot before collapse &mdash; the memorization direction captures the top-2 residuals almost exactly (cos = 0.98 with PC1). The projections onto this direction track Zipfian weight rank:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Group</th><th>Projection at epoch 27,000</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Top-2 (52.6% of gradient)</td><td>+24.6</td></tr>
+    <tr><td>Top-5</td><td>+13.5</td></tr>
+    <tr><td>Top-10</td><td>+5.6</td></tr>
+    <tr><td>Top-28 (1%)</td><td>+1.9</td></tr>
+    <tr><td>Population mean</td><td>&minus;0.05</td></tr>
+  </tbody>
+</table>
+
+<p>
+The memorization pressure from the Zipfian weighting carves a single groove in the 128-dimensional penultimate layer. And the same direction recurs across all three collapse cycles &mdash; cosine similarity 0.88&ndash;0.93 across collapses separated by 30,000 epochs. The memorization subspace is a structural feature of how Zipfian gradient pressure distorts the Fourier manifold, not an accident of a particular training epoch.
+</p>
+
+<h2>Hidden, not destroyed</h2>
+
+<p>
+The most important finding is about what happens to the Fourier solution during the pre-collapse phase.
+</p>
+
+<p>
+At epoch 27,000, the model still classifies at 99.2% test accuracy, but \(h_1\) is effectively one-dimensional: PC1 captures 94.5% of variance, and the participation ratio &mdash; the effective number of dimensions carrying variance, computed as \((\sum \lambda_i)^2 / \sum \lambda_i^2\) &mdash; has dropped to 1.1 out of 128. If you classify test samples by nearest class centroid (NCC) in raw \(h_1\) space, accuracy is a pitiful 27.4%. The representations look ruined.
+</p>
+
+<p>
+But remove the single memorization direction and measure NCC in the orthogonal complement:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Epoch</th><th>Model acc</th><th>NCC (raw h1)</th><th>NCC (h1 &minus; PC1)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>24,000</td><td>98.5%</td><td>99.6%</td><td>98.8%</td></tr>
+    <tr><td>25,000</td><td>99.0%</td><td>97.6%</td><td><strong>99.8%</strong></td></tr>
+    <tr><td>26,000</td><td>99.2%</td><td>81.9%</td><td><strong>99.9%</strong></td></tr>
+    <tr><td>27,000</td><td>99.2%</td><td>27.4%</td><td><strong>99.8%</strong></td></tr>
+    <tr><td>28,000</td><td>83.3%</td><td>66.7%</td><td>90.4%</td></tr>
+  </tbody>
+</table>
+
+<p>
+At epoch 27,000 &mdash; where raw \(h_1\) is essentially 1D and raw NCC is 27% &mdash; removing one direction recovers <strong>99.8%</strong> NCC accuracy. The Fourier solution is completely intact in the 127 dimensions orthogonal to the memorization direction, even when that direction captures 94.5% of variance.
+</p>
+
+<p>
+It is like trying to hear a conversation next to a jet engine. The conversation (Fourier structure) hasn&rsquo;t gotten quieter &mdash; the engine (memorization amplification) has gotten louder. This is <em>contamination</em>, not <em>degradation</em>: the generalization structure is hidden by memorization variance, not damaged by it.
+</p>
+
+<p>
+After the collapse event (epoch 28,000), the picture changes. Removing the memorization direction no longer helps &mdash; the damage is now real structural damage, not recoverable contamination. This confirms the distinction: the pre-collapse phase is a window of opportunity where the solution can be saved by suppressing a single direction.
+</p>
+
+<h2>Two methods converge</h2>
+
+<p>
+We now have two independent ways to identify the memorization direction:
+</p>
+
+<p>
+<strong>Method 1: GLP residuals.</strong> The data-driven approach described above &mdash; PC1 of the \(h_1\) GLP residual covariance at pre-collapse epochs.
+</p>
+
+<p>
+<strong>Method 2: Zipf-weighted effective gradient.</strong> Compute \(\partial L / \partial h_1\) for each training sample, then weight by the Zipfian loss weights to get the effective gradient &mdash; the net force the loss is exerting on \(h_1\) representations. At pre-collapse, the direction of this effective gradient is overwhelmingly aligned with the memorization direction:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Epoch</th><th>Phase</th><th>cos(effective gradient, memorization dir)</th><th>Top-1% contribution along \(m\)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>24,000</td><td>Build</td><td>&minus;0.49</td><td>&mdash;</td></tr>
+    <tr><td>25,000</td><td>Peak</td><td>&minus;0.59</td><td>&mdash;</td></tr>
+    <tr><td><strong>26,000</strong></td><td><strong>Pre-collapse</strong></td><td><strong>&minus;0.85</strong></td><td><strong>93.4%</strong></td></tr>
+    <tr><td>27,000</td><td>Fragile</td><td>&minus;0.27</td><td>&mdash;</td></tr>
+    <tr><td>28,000</td><td>Collapsed</td><td>+0.10</td><td>&mdash;</td></tr>
+  </tbody>
+</table>
+
+<p>
+The negative sign means the loss gradient points along \(-m\), so gradient descent pushes features along \(+m\) &mdash; the memorization direction. At epoch 26,000, <strong>85% of the effective gradient&rsquo;s direction is memorization force</strong>, contributed almost entirely by the top 1% of samples (28 out of 2,822). The generalization gradient lives in the orthogonal complement, distributed broadly across all samples.
+</p>
+
+<p>
+The two methods &mdash; manifold-based (GLP residuals) and loss-landscape-based (Zipf-weighted gradient) &mdash; identify the same direction: cosine similarity > 0.97 at pre-collapse epochs. This convergence is what makes the direction actionable: if the memorization force is concentrated along a single axis, we can neutralize it by projecting that component out of the gradient while leaving the orthogonal generalization signal untouched.
+</p>
+
+<h2>Projecting out one direction</h2>
+
+<p>
+We insert a <code>custom_vjp</code><sup><a href="#fn3">3</a></sup> between the encoder output and the classification head. In the forward pass, it is an identity. In the backward pass, it projects the memorization component out of \(\partial L / \partial h_1\):
+</p>
+
+<p>
+$$\frac{\partial L}{\partial h_1}\bigg|_{\text{clean}} = \frac{\partial L}{\partial h_1} - \left(\frac{\partial L}{\partial h_1} \cdot \hat{m}\right) \hat{m}$$
+</p>
+
+<p>
+We test three conditions, identical in architecture, optimizer, and seed, differing only in whether and how \(\hat{m}\) is chosen:
+</p>
+
+<table>
+  <thead>
+    <tr><th></th><th>Baseline</th><th>Gradient-based</th><th>Frozen GLP direction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>\(\hat{m}\) source</td><td>N/A</td><td>Zipf-weighted eff. gradient</td><td>PC1 of h1 GLP residuals @ epoch 27k</td></tr>
+    <tr><td>Updated?</td><td>&mdash;</td><td>Every 100 epochs</td><td>Never</td></tr>
+    <tr><td>Accuracy collapses</td><td><strong>3</strong></td><td><strong>0</strong></td><td><strong>0</strong></td></tr>
+    <tr><td>Final test acc</td><td>0.871</td><td><strong>0.999</strong></td><td><strong>0.998</strong></td></tr>
+  </tbody>
+</table>
+
+<figure>
+  <img src="memorization_direction/baseline_calibration.png" alt="Baseline training dynamics (no suppression)">
+  <figcaption>Baseline: the Sisyphean collapse cycle. Three collapses at epochs ~28k, ~58k, and ~88k. Top-left panel shows test accuracy (red) and train accuracy (blue).</figcaption>
+</figure>
+
+<figure>
+  <img src="memorization_direction/gradient_suppression_calibration.png" alt="Training dynamics with gradient-based memorization suppression">
+  <figcaption>Gradient-based suppression: zero collapses. Test accuracy climbs to 99.9% and holds for the remaining 80k epochs.</figcaption>
+</figure>
+
+<p>
+Both suppression conditions completely eliminate the Sisyphean collapse. The gradient-based method, which recomputes the memorization direction every 100 epochs, achieves 99.9% sustained test accuracy with healthy representation geometry throughout (\(h_1\) PC1 stays below 12.5%, participation ratio stays above 11.5).
+</p>
+
+<p>
+The frozen GLP direction &mdash; extracted once from a snapshot at epoch 27,000 of the unmodified baseline and never updated &mdash; is equally effective at preventing <em>accuracy</em> collapse: 99.8% sustained. It does eventually develop a geometric anomaly (\(h_1\) PC1 climbs to 97% around epoch 60k), but this is an artifact of permanently removing one degree of freedom from the optimizer, not a new memorization subspace. The critical test: accuracy stays at 99.9% through this geometric reorganization. A mature Fourier solution, given enough uninterrupted time to consolidate, can survive even extreme geometric distortion.
+</p>
+
+<p>
+This is the causal validation. The frozen direction was discovered by a manifold model that knows nothing about Zipfian weights. Yet projecting out this single learned direction from the encoder gradient prevents all future collapses. The memorization subspace is real, low-dimensional, and causally decisive.
+</p>
+
+<h2>Autonomous discovery</h2>
+
+<p>
+The previous sections used directions that were identified by us: we chose which epoch to extract from, which layer to look at, and which analysis to run. Can a meta-model discover the relevant direction on its own?
+</p>
+
+<h3>Replay as a metacognitive buffer</h3>
+
+<p>
+We treat the 41 saved snapshots from the directional residuals experiment as a <strong>replay buffer</strong> &mdash; a record of the model&rsquo;s internal representational states across its full training history, including three complete collapse cycles.<sup><a href="#fn4">4</a></sup> Each snapshot contains the full \(h_1\) activation covariance, which encodes the geometry of the model&rsquo;s representations at that moment.
+</p>
+
+<p>
+We train tiny 1-D probes on these replayed states. Each probe takes as input the recent covariance drift \(\Delta C_e = C_e - C_{e-\Delta}\) &mdash; how \(h_1\)&rsquo;s representational geometry has been changing &mdash; and outputs a direction \(\hat{m}\) in \(h_1\), optimized to maximize \(\hat{m}^T \Delta C_e \hat{m}\) at epochs that precede geometric collapse (future peak \(h_1\) PC1 variance). Critically, the probe only trains on states where the model still looks healthy (\(h_1\) PC1 < 0.2), and its input is recent <em>change</em>, not the current state itself. It must find the dangerous axis from recent representational drift while the model still appears fine &mdash; a genuinely metacognitive test.
+</p>
+
+<p>
+This means the probe trains on epochs like 22,000 and 54,000, where the model has >96% test accuracy and nothing looks wrong yet, and must predict that collapse is coming thousands of epochs later.
+</p>
+
+<h3>The replay scores</h3>
+
+<figure>
+  <img src="memorization_direction/score_vs_epoch.png" alt="Replay meta-model scores overlaid on training dynamics">
+  <figcaption>Top: current (black) and future (red) h1 PC1 variance fraction &mdash; the three collapse spikes. Middle: test accuracy (green) with pink shading marking &ldquo;collapse soon&rdquo; windows. Bottom: z-scored replay scores from several probe variants. The healthy past-trajectory probe (orange) spikes positively before each collapse, while the model still has >95% accuracy.</figcaption>
+</figure>
+
+<p>
+The bottom panel is the key result. The healthy past-trajectory probe (orange) assigns high scores to epochs that precede collapse, even when trained only on the first two cycles. It produces its signal from representational drift alone &mdash; no access to accuracy, loss, or any outcome measure. The signal is visible thousands of epochs before accuracy begins to drop.
+</p>
+
+<h3>The recovered direction</h3>
+
+<p>
+The best healthy past-trajectory probe recovers essentially the same direction as the known memorization axis:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Reference direction</th><th>Cosine with replay-discovered direction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Frozen memorization dir @ epoch 27k</td><td><strong>0.999</strong></td></tr>
+    <tr><td>Residual PC1 @ epoch 58k (cycle 2)</td><td>0.958</td></tr>
+    <tr><td>Residual PC1 @ epoch 88k (cycle 3)</td><td>0.933</td></tr>
+  </tbody>
+</table>
+
+<p>
+This is not approximate alignment &mdash; 0.999 cosine in 128 dimensions is near-identity. The replay meta-model, with no knowledge of Zipfian weights, Fourier structure, or modular arithmetic, found the same structural axis that our hand-crafted analysis identified.
+</p>
+
+<p>
+The direction also generalizes functionally. Projecting the replay-discovered direction out of raw \(h_1\) on held-out cycle-3 collapse snapshots recovers nearest-class-centroid accuracy:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Epoch</th><th>Raw test NCC</th><th>NCC after projection</th><th>Phase</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>86,000</td><td>99.8%</td><td>100.0%</td><td>Pre-collapse</td></tr>
+    <tr><td>87,000</td><td>95.3%</td><td>100.0%</td><td>Approaching collapse</td></tr>
+    <tr><td>88,000</td><td>70.4%</td><td><strong>94.4%</strong></td><td>Collapse</td></tr>
+  </tbody>
+</table>
+
+<h3>Causal validation</h3>
+
+<p>
+The alignment and functional recovery results are encouraging, but they are still correlational. The decisive test: does the replay-discovered direction work <em>causally</em> when fed back into the training loop?
+</p>
+
+<p>
+We take the direction output by the healthy past-trajectory probe and use it as the frozen suppression direction in the same <code>custom_vjp</code> intervention described above &mdash; project it out of \(\partial L / \partial h_1\) starting at epoch 20,000.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Metric</th><th>Baseline</th><th>Replay-discovered frozen direction</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Accuracy collapses</td><td>3</td><td><strong>0</strong></td></tr>
+    <tr><td>Final test acc</td><td>0.871</td><td><strong>0.9997</strong></td></tr>
+    <tr><td>Max test acc</td><td>0.999 (brief)</td><td>0.9998 (sustained)</td></tr>
+  </tbody>
+</table>
+
+<figure>
+  <img src="memorization_direction/replay_causal_calibration.png" alt="Training dynamics with replay-discovered direction suppression">
+  <figcaption>Causal validation: training dynamics when projecting out the replay-discovered memorization direction. Test accuracy (red, top-left) climbs to 99.9% and holds for the remaining 80k epochs &mdash; zero collapses. The late geometric reorganization (h1 PC1 climbing around epoch 55k, middle-left) mirrors the earlier frozen-direction experiment and does not affect accuracy.</figcaption>
+</figure>
+
+<p>
+The replay-discovered direction eliminates the Sisyphean collapse just as effectively as the hand-identified direction. A meta-model consuming only replayed representational states can autonomously discover a low-dimensional control variable that is causally sufficient to fix the core pathology.
+</p>
+
+<h2>Metacognitive supervision</h2>
+
+<p>
+The memorization direction result demonstrates something broader than a fix for a toy problem. It is a concrete example of what we might call <strong>metacognitive supervision</strong>: modulating a model&rsquo;s learning based on the organization of its own representations, rather than based on per-example performance.
+</p>
+
+<p>
+The relevant control variable has three properties worth highlighting:
+</p>
+
+<ol>
+  <li><strong>It is low-dimensional.</strong> A single direction in 128-D space governs whether training is healthy or pathological. Projecting out that direction removes ~85% of the memorization force while affecting only ~3% of the generalization gradient.</li>
+  <li><strong>It is stable.</strong> The same direction recurs across collapse cycles separated by 30,000 epochs (cosine > 0.88). The pathology has a fixed geometric signature in representation space, even though the Fourier solution itself takes on different neural instantiations each time the model rebuilds after collapse.</li>
+  <li><strong>It is autonomously discoverable.</strong> A replay-consuming meta-model, with no prior knowledge of modular arithmetic or Fourier structure, recovers the memorization direction from internal representational statistics alone &mdash; and the recovered direction is causally valid.</li>
+</ol>
+
+<p>
+These properties &mdash; together with the fact that they hold in a setting where we understand the ground truth completely &mdash; suggest that similar control variables may exist in larger-scale systems where the ground truth is not known.
+</p>
+
+<p>
+Standard training treats models as passive recipients of data: present examples, compute gradients, update weights. The model&rsquo;s own learned representations &mdash; which may already encode rich knowledge about the task&rsquo;s structure &mdash; play no role in deciding how new information should interact with existing knowledge. This is understandably destructive. The Zipfian grokking model <em>already knows</em> the Fourier solution; the problem is that naive backpropagation lets a handful of high-weight examples overwrite that knowledge anyway.
+</p>
+
+<p>
+Biological learners do not work this way. The hippocampal-neocortical complementary learning systems interplay<sup><a href="#fn5">5</a></sup> aggressively filters for information that is genuinely new and surprising before allowing it to interact with consolidated representations. Replay, gating, and consolidation ensure that what a system already knows is protected from what it is currently experiencing.
+</p>
+
+<p>
+What we have demonstrated here is a scaled-down but genuine proof of concept for this idea. The model&rsquo;s own activation space contains enough structure to identify which gradient components are destructive &mdash; and suppressing those components lets the model keep what it already knows. The model is, in a sense, more intelligent than we typically treat it as being; it is just rarely given the opportunity to bring that intelligence to bear on its own learning process. This line of work is about giving it that opportunity.
+</p>
+
+<hr class="divider">
+
+<h3>Code</h3>
+
+<p>All code for these experiments can be found <a href="https://github.com/jagilley/zipfian-grokking">here</a>.</p>
+
+<hr class="divider">
+
+<h3>Citation</h3>
+
+<pre><code>@article{gilley2026representationsupervision,
+  title   = {Representation as supervision},
+  author  = {Gilley, Jasper},
+  year    = {2026},
+  month   = {May},
+  url     = {https://jagilley.github.io/representation-as-supervision.html}
+}</code></pre>
+
+<hr class="divider">
+
+<h3>Notes</h3>
+
+<ol class="footnotes">
+  <li id="fn1">Luo, Feng, Darrell, Radford, and Steinhardt, <a href="https://arxiv.org/abs/2602.06964"><em>Learning a Generative Meta-Model of LLM Activations</em></a> (2026). We adapt their architecture &mdash; a stack of SwiGLU MLP blocks with flow-matching objective &mdash; to our 128-dimensional setting.</li>
+  <li id="fn2">2-layer MLP, hidden dims [128, 128], \(p = 97\), 30% train split, AdamW (lr = \(10^{-3}\), weight decay = 1.0), full-batch gradient descent.</li>
+  <li id="fn3">JAX&rsquo;s mechanism for defining custom backward passes, analogous to PyTorch&rsquo;s <code>autograd.Function</code>.</li>
+  <li id="fn4">Snapshots are spaced at 1k-epoch intervals with denser sampling around expected collapses. The probes are trained on the first two collapse cycles and evaluated on the held-out third cycle.</li>
+  <li id="fn5">McClelland, McNaughton, and O&rsquo;Reilly, <a href="https://doi.org/10.1037/0033-295X.102.3.419"><em>Why There Are Complementary Learning Systems in the Hippocampus and Neocortex</em></a> (1995).</li>
+</ol>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
+</div>
+
+</body>
+</html>
