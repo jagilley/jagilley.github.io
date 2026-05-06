@@ -194,7 +194,7 @@ At epoch 26,000 &mdash; one snapshot before collapse &mdash; the memorization di
 The memorization pressure from the Zipfian weighting carves a single groove in the 128-dimensional penultimate layer. And the same direction recurs across all three collapse cycles &mdash; cosine similarity 0.88&ndash;0.93 across collapses separated by 30,000 epochs. The memorization subspace is a structural feature of how Zipfian gradient pressure distorts the Fourier manifold, not an accident of a particular training epoch.
 </p>
 
-<h2>Hidden, not destroyed</h2>
+<h2>Fourier solution contamination</h2>
 
 <p>
 The most important finding is about what happens to the Fourier solution during the pre-collapse phase.
@@ -233,7 +233,7 @@ It is like trying to hear a conversation next to a jet engine. The conversation 
 After the collapse event (epoch 28,000), the picture changes. Removing the memorization direction no longer helps &mdash; the damage is now real structural damage, not recoverable contamination. This confirms the distinction: the pre-collapse phase is a window of opportunity where the solution can be saved by suppressing a single direction.
 </p>
 
-<h2>Two methods converge</h2>
+<h2>The memorization direction from the loss landscape</h2>
 
 <p>
 We now have two independent ways to identify the memorization direction:
@@ -265,10 +265,10 @@ The negative sign means the loss gradient points along \(-m\), so gradient desce
 </p>
 
 <p>
-The two methods &mdash; manifold-based (GLP residuals) and loss-landscape-based (Zipf-weighted gradient) &mdash; identify the same direction: cosine similarity > 0.97 at pre-collapse epochs. This convergence is what makes the direction actionable: if the memorization force is concentrated along a single axis, we can neutralize it by projecting that component out of the gradient while leaving the orthogonal generalization signal untouched.
+The two methods &mdash; manifold-based (GLP residuals) and loss-landscape-based (Zipf-weighted gradient) &mdash; identify the same direction: cosine similarity > 0.97 at pre-collapse epochs. This convergence makes the direction actionable: project it out of the gradient and the memorization force vanishes while the orthogonal generalization signal stays intact.
 </p>
 
-<h2>Projecting out one direction</h2>
+<h2>Suppressing the memorization gradient</h2>
 
 <p>
 We insert a <code>custom_vjp</code><sup><a href="#fn3">3</a></sup> between the encoder output and the classification head. In the forward pass, it is an identity. In the backward pass, it projects the memorization component out of \(\partial L / \partial h_1\):
@@ -309,11 +309,7 @@ Both suppression conditions completely eliminate the Sisyphean collapse. The gra
 </p>
 
 <p>
-The frozen GLP direction &mdash; extracted once from a snapshot at epoch 27,000 of the unmodified baseline and never updated &mdash; is equally effective at preventing <em>accuracy</em> collapse: 99.8% sustained. It does eventually develop a geometric anomaly (\(h_1\) PC1 climbs to 97% around epoch 60k), but this is an artifact of permanently removing one degree of freedom from the optimizer, not a new memorization subspace. The critical test: accuracy stays at 99.9% through this geometric reorganization. A mature Fourier solution, given enough uninterrupted time to consolidate, can survive even extreme geometric distortion.
-</p>
-
-<p>
-This is the causal validation. The frozen direction was discovered by a manifold model that knows nothing about Zipfian weights. Yet projecting out this single learned direction from the encoder gradient prevents all future collapses. The memorization subspace is real, low-dimensional, and causally decisive.
+The frozen GLP direction &mdash; extracted once at epoch 27,000 and never updated &mdash; is equally effective: 99.8% sustained accuracy with zero collapses. It eventually develops a geometric anomaly (\(h_1\) PC1 climbs to ~97% around epoch 60k), but accuracy holds at 99.9% through the reorganization. That a single direction, discovered by a manifold model with no knowledge of Zipfian weights, suffices to prevent all future collapses confirms that the memorization subspace is low-dimensional and causally decisive.
 </p>
 
 <h2>Autonomous discovery</h2>
@@ -332,10 +328,6 @@ We treat the 41 saved snapshots from the directional residuals experiment as a <
 We train tiny 1-D probes on these replayed states. Each probe takes as input the recent covariance drift \(\Delta C_e = C_e - C_{e-\Delta}\) &mdash; how \(h_1\)&rsquo;s representational geometry has been changing &mdash; and outputs a direction \(\hat{m}\) in \(h_1\), optimized to maximize \(\hat{m}^T \Delta C_e \hat{m}\) at epochs that precede geometric collapse (future peak \(h_1\) PC1 variance). Critically, the probe only trains on states where the model still looks healthy (\(h_1\) PC1 < 0.2), and its input is recent <em>change</em>, not the current state itself. It must find the dangerous axis from recent representational drift while the model still appears fine &mdash; a genuinely metacognitive test.
 </p>
 
-<p>
-This means the probe trains on epochs like 22,000 and 54,000, where the model has >96% test accuracy and nothing looks wrong yet, and must predict that collapse is coming thousands of epochs later.
-</p>
-
 <h3>The replay scores</h3>
 
 <figure>
@@ -344,10 +336,10 @@ This means the probe trains on epochs like 22,000 and 54,000, where the model ha
 </figure>
 
 <p>
-The bottom panel is the key result. The healthy past-trajectory probe (orange) assigns high scores to epochs that precede collapse, even when trained only on the first two cycles. It produces its signal from representational drift alone &mdash; no access to accuracy, loss, or any outcome measure. The signal is visible thousands of epochs before accuracy begins to drop.
+The healthy past-trajectory probe (orange, bottom panel) assigns high scores to epochs that precede collapse, even when trained only on the first two cycles. The signal comes from representational drift alone &mdash; no access to accuracy, loss, or any outcome measure &mdash; and appears thousands of epochs before accuracy drops.
 </p>
 
-<h3>The recovered direction</h3>
+<h3>Alignment with the known memorization axis</h3>
 
 <p>
 The best healthy past-trajectory probe recovers essentially the same direction as the known memorization axis:
@@ -383,14 +375,8 @@ The direction also generalizes functionally. Projecting the replay-discovered di
   </tbody>
 </table>
 
-<h3>Causal validation</h3>
-
 <p>
-The alignment and functional recovery results are encouraging, but they are still correlational. The decisive test: does the replay-discovered direction work <em>causally</em> when fed back into the training loop?
-</p>
-
-<p>
-We take the direction output by the healthy past-trajectory probe and use it as the frozen suppression direction in the same <code>custom_vjp</code> intervention described above &mdash; project it out of \(\partial L / \partial h_1\) starting at epoch 20,000.
+Using this direction as the frozen suppression target in the same <code>custom_vjp</code> intervention &mdash; projecting it out of \(\partial L / \partial h_1\) starting at epoch 20,000 &mdash; eliminates the collapse cycle entirely:
 </p>
 
 <table>
