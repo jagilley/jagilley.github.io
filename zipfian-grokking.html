@@ -106,6 +106,15 @@
       line-height: 1.6;
       color: #444;
     }
+    .update-note {
+      background-color: #e8f0e8;
+      border-left: 4px solid #5a8a5a;
+      padding: 1rem 1.25rem;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #444;
+    }
   </style>
 </head>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -309,6 +318,10 @@ In Zipfian grokking, the &ldquo;wide&rdquo; abstraction is memorization of the t
 <p>
 The same dynamic plausibly extends to large-scale pretraining, where models must encode shallow and deep abstractions in superposition. While high-dimensional networks can pack features into orthogonal subspaces, there is a hard upper bound on how many fit in finite parameters<sup><a href="#fn4">4</a></sup>, and real-world models are still dramatically underparameterized relative to their training data<sup><a href="#fn5">5</a></sup>. Abstraction depth is likely limited by capacity competition between abstractions themselves.
 </p>
+
+<div class="update-note">
+<strong>Update (June 2026):</strong> <a href="https://arxiv.org/abs/2605.29548">Huang et al.</a> provide direct evidence for this claim. &ldquo;Why Larger Models Learn More&rdquo; shows that smaller models allocate neurons preferentially to high-frequency tasks, leaving insufficient capacity for rare and complex representations &mdash; and that this capacity competition manifests as gradient interference that actively overwrites emerging features for infrequent tasks. Only when models are large enough for common-task neurons to saturate (producing weaker gradients) can rare-task features survive. This is the same mechanism we observe in miniature: Zipfian weighting creates a dominant gradient signal that overwrites the Fourier structure, and only sufficient regularization pressure can protect it.
+</div>
 
 <p>
 Of course, in real-world settings, abstraction interference is likely to look different than in the Zipfian grokking problem. In the Zipfian grokking problem, the attractor towards wide abstractions is coherent (two dominant training pairs pulling in a consistent direction at \(s=1.5\)) and the model is overparameterized relative to the dimensionality of its training data, so the result is oscillatory dynamics ad infinitum. In real-world settings, the attractor towards wide abstractions is diverse and incoherent, and the models are dramatically underparameterized relative to the complexity of their training data. To the extent that abstractions are formed during pretraining rather than post-training,<sup><a href="#fn6">6</a>,<a href="#fn7">7</a></sup> the same mechanisms would manifest not as oscillatory collapse but as a soft ceiling on abstraction depth.
