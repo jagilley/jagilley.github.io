@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Small networks trained to predict a neural network's later-layer activations from its earlier-layer activations, learning an empirical approximation of the computational function that the intervening layers implement." />
+  <title>Forward Self-Models Learn an Empirical Approximation of Neural Network Computation | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/forward-self-models.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Forward Self-Models Learn an Empirical Approximation of Neural Network Computation" />
+  <meta property="og:description" content="Small networks trained to predict a neural network's later-layer activations from its earlier-layer activations, learning an empirical approximation of the computational function that the intervening layers implement." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/forward_self_models/open_loop_diagram.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://jagilley.github.io/forward_self_models/open_loop_diagram.png" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="canonical" href="https://jagilley.github.io/forward-self-models.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem;
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 2rem 0;
+    }
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1.5rem 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+    }
+    th {
+      background-color: #e0e0e0;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem auto;
+      border: 1px solid #ccc;
+    }
+    figcaption {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: -1rem;
+      margin-bottom: 1.5rem;
+    }
+    .footnotes {
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 0.5rem;
+    }
+    .post-footer .author {
+      text-align: right;
+      margin: 0;
+    }
+    .post-footer .author a {
+      margin-left: 0.75rem;
+    }
+    .abstract {
+      background-color: #e8e8e8;
+      border-left: 4px solid #888;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #444;
+    }
+  </style>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+<h1>
+    Forward Self-Models Learn an Empirical Approximation of Neural Network Computation
+</h1>
+<p class="author">
+Jasper Gilley<br>
+</p>
+
+<hr class="divider">
+
+<p class="abstract">
+  We introduce <strong><em>forward self-models</em></strong>: small networks trained to predict a neural network's later-layer activations from its earlier-layer activations, learning an empirical approximation of the computational function that the intervening layers implement. We demonstrate this by training forward self-models with sizes of 1-3% of main model parameters on main models ranging from 30M to 1B parameters, achieving up to 97% cosine similarity with the target activations and up to 94% recovery of the KL divergence of a layer's contribution to the output distribution. Forward self-model prediction errors are interpretably structured and track the computational complexity gap between the main model and forward model. We argue that forward self-models provide a primitive for both mechanistic interpretability and future model architectures that require an explicit model of their own computational dynamics. Code is available at <a href="https://github.com/jagilley/forward-self-models">https://github.com/jagilley/forward-self-models</a>.
+</p>
+
+<h2>1. Introduction</h2>
+
+<p>
+A transformer's layers transform representations sequentially through the residual stream. Each layer applies attention and feedforward computation, producing output activations that become the next layer's input. The computational function each layer implements is central to understanding how the model works, but it is difficult to characterize directly. Existing approaches study this function indirectly: probing identifies what information is linearly accessible at each layer, and ablation measures each layer's causal contribution to the output. These approaches characterize what information exists and where it matters, but say less about the transformation itself.
+</p>
+
+<p>
+We introduce a technique that directly approximates layers' computational function. A <em>forward self-model</em> is a small auxiliary network trained to predict a main model's later-layer activations from its earlier-layer activations. It learns through observation alone how the intervening layers transform their inputs. Because the forward model is deliberately small (1-3% of the main model's parameters), its approximation is imperfect, and what it captures is specifically the compressible component of the layer's computation. What it misses, the prediction residual, reveals the 'computational novelty' reflecting which aspects of the computation are genuinely hard to compress.
+</p>
+
+<p>
+We train forward self-models on language modeling tasks at various model sizes. On our own 30M parameter GPT, a forward model predicting a single transformer layer achieves 0.97 cosine similarity with the target layer's activations. Attention pattern similarity is near-perfect (&gt;0.98 cosine for 3 of 4 heads) while weight similarity is zero due to the gauge symmetry of the attention mechanism under rotations of the projection matrices. Its prediction errors track computational complexity (distributed attention, long-range context matching) rather than prediction difficulty. In causal substitution, replacing the layer with the forward model's prediction recovers 94% of the layer's KL contribution, with uniform degradation across several behavioral categories.
+</p>
+
+<p>
+At <strong>Llama 3.2 1B</strong> scale, a 26.2M-parameter forward model (2.1% of Llama) achieves 0.94 cosine similarity with a layer's computation. Per-head decomposition reveals that the prediction error concentrates in the MLP rather than the attention heads, recovering a meaningful decomposition of which computations in a 1.24B-parameter model are predictable from the preceding layer state and which are not.
+</p>
+
+<p>
+Our main contributions are:
+</p>
+
+<ol>
+  <li>The forward self-model technique for learning empirical approximations of neural network layer computation.</li>
+  <li>Causal fidelity: forward models can substitute for the layers they predict with minimal behavioral degradation, recovering 74-94% of the replaced layers' KL contribution at both 29M and 1.24B parameter scale.</li>
+  <li>Interpretable residual structure: the prediction residual tracks computational complexity rather than prediction difficulty.</li>
+  <li>A meaningful decomposition of Llama 3.2 1B layer computation, recovered by a 2.1%-parameter forward model through MSE optimization on frozen activations alone, with the prediction error mapping onto the architectural boundary between attention and the MLP.</li>
+  <li>A dissociation between representation and computation in the forward self-model objective: conditioning on a model's intermediate representations allows the forward model to compress the computational function that the intervening layers implement, rather than the joint representation-computation problem that conventional model compression addresses. This dissociation explains both the technique's parameter efficiency and the interpretability of its prediction errors, and suggests forward self-models as a primitive for techniques that require an explicit, compact model of a neural network's computational dynamics.</li>
+</ol>
+
+<h2>2. Method</h2>
+
+<h3>2.1 The auxiliary forward model</h3>
+
+<p>
+The forward model is a small transformer that takes the main model's residual-stream activations at layer \(i\) and predicts the activations at layer \(j > i\). It processes the same sequence of positions as the main model but through its own, much smaller, set of weights. It uses causal attention (seeing only positions \(\leq t\) when predicting position \(t\)) so that its computation is compatible with the main model's autoregressive structure.
+</p>
+
+<p>
+The forward model's loss is MSE between its predicted activations \(\hat{a}_j\) and the main model's actual activations \(a_j\):
+</p>
+
+<p style="text-align:center;">\[\mathcal{L}_{\text{fwd}} = \frac{1}{T} \sum_{t=1}^{T} \| \hat{a}_{j,t} - a_{j,t} \|^2\]</p>
+
+<p>
+No gradient flows from this loss into the main model. The target activations \(a_j\) are detached. The forward model is a passive observer of the main model's computation, learning from its own prediction errors.
+</p>
+
+<p>
+The key architectural choice is that the forward model must be significantly smaller than the main model. Our default configuration uses 1-3% of the main model's parameters, with a single attention head operating in a compressed 64-dimensional subspace. This capacity constraint ensures that the prediction residual \(r = a_j - \hat{a}_j\) captures genuine computational novelty rather than training noise.
+</p>
+
+<figure>
+  <img src="forward_self_models/open_loop_diagram.png" alt="The forward model predicts later-layer activations from earlier-layer activations.">
+  <figcaption>The forward model predicts later-layer activations from earlier-layer activations. The prediction residual captures computation that the forward model's capacity could not anticipate.</figcaption>
+</figure>
+
+<p>
+The two models train independently on their respective losses: the main model on the task loss, the forward model on MSE.
+</p>
+
+<h3>2.2 Architecture details</h3>
+
+<p>
+For all experiments unless otherwise noted:
+</p>
+
+<h4>Main models</h4>
+
+<p>
+<strong>Language (ours).</strong> 4-layer, 4-head, 256-dim GPT-2 (28.9M params), trained on FineWeb-Edu (10M tokens, no temperature filtering). AdamW with lr=3e-4 and weight decay 0.01.
+</p>
+
+<p>
+<strong>Language (Llama).</strong> Llama 3.2 1B (1.24B params, 16 layers, d=2048, 32 attention heads with GQA in 8 KV groups). Frozen; activations cached from 100M tokens.
+</p>
+
+<h4>Forward models</h4>
+
+<p>
+<strong>Language (ours).</strong> For a 1-layer prediction gap (post_block0 &rarr; post_block1): 1-layer transformer, 1 attention head, 64-dim key/query/value, MLP hidden 512 (330K params, ~1% of main model). For a 3-layer gap (post_block0 &rarr; post_block3): 2-layer transformer, same head configuration (660K params, ~2.3%). Pre-norm (LayerNorm before attention and MLP), residual connections, causal attention. AdamW with lr=1e-3 and weight decay 0.01.
+</p>
+
+<p>
+<strong>Language (Llama).</strong> For predicting layer \(7 \to 8\) of Llama 3.2 1B (d=2048): 1-layer transformer, 1 attention head, 128-dim key/query/value, SwiGLU MLP hidden 4096 (26.2M params, ~2.1% of main model). AdamW with lr=1e-4 and weight decay 0.01.
+</p>
+
+<h2>3. Results</h2>
+
+<p>
+We begin with the 330K-parameter transformer forward model predicting post_block0 &rarr; post_block1 (one layer of the 28.9M-parameter GPT). It achieves 0.972 cosine similarity with only 0.003 MSE. For comparison, a per-position MLP of similar size (263K params) predicting from post_embed achieves only 0.788 cosine. The MLP is structurally blind to cross-position attention effects, so its residual tells you only that attention exists, which is trivially predictable. The transformer forward model's residual captures genuinely novel information: computation that exceeded the forward model's representational capacity.
+</p>
+
+<h3>3.1 Causal substitution</h3>
+
+<p>
+We can directly measure how much of block1's computation the forward model captures by replacing block1 entirely with the forward model's prediction and continuing the forward pass from block2 onward:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Mode</th><th>Accuracy</th><th>KL vs Normal</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Normal (block1 intact)</td><td>0.222</td><td>&mdash;</td></tr>
+    <tr><td>Substituted (forward model)</td><td>0.217</td><td>0.062</td></tr>
+    <tr><td>Ablated (skip block1 entirely)</td><td>0.146</td><td>1.094</td></tr>
+  </tbody>
+</table>
+
+<p>
+The forward model recovers ~94% of block1's KL contribution. Ablating block1 entirely destroys 7.6 percentage points of accuracy; substituting costs only 0.5 percentage points. Degradation is uniform across behavioral categories: punctuation, induction, high-confidence predictions, function words, and content words all show KL between 0.04-0.07. No behavior-specific catastrophic failure.
+</p>
+
+<h3>3.2 Capacity scaling</h3>
+
+<p>
+We froze the main model and trained forward models at five capacity points on the same frozen activations (all predicting post_block0 &rarr; post_block3, a 3-layer gap):
+</p>
+
+<table>
+  <thead>
+    <tr><th>% of model</th><th>Params</th><th>% of predicted layers</th><th>Cosine</th><th>d(sentence start)</th><th>d(before closer)</th><th>Effective rank</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1%</td><td>330K</td><td>5%</td><td>0.890</td><td>-0.58</td><td>+0.78</td><td>247</td></tr>
+    <tr><td>3%</td><td>791K</td><td>11%</td><td>0.930</td><td>-0.64</td><td>+0.92</td><td>250</td></tr>
+    <tr><td>10%</td><td>3.2M</td><td>44%</td><td><strong>0.999</strong></td><td><strong>-0.37</strong></td><td><strong>+0.30</strong></td><td>235</td></tr>
+    <tr><td>22%</td><td>6.3M</td><td>88%</td><td>0.999</td><td>-0.45</td><td>+0.66</td><td>244</td></tr>
+  </tbody>
+</table>
+
+<p>
+The forward model saturates at approximately the parameter count of the layers it predicts. Both the 3.2M and 6.3M models reach cosine 0.999 with identical residual norms. The saturation point (3.2M params, ~44% of the predicted layers' 7.2M total) roughly matches the parameter count of a single transformer block (~2.4M each), even though the forward model is predicting three blocks simultaneously. Once the forward model's capacity reaches this scale, adding more parameters doesn't help. The behavioral effect sizes shrink as capacity increases: delimiter tracking drops from d=+0.78 at 1% to d=+0.30 at 10%, as the architectural bottleneck loosens.
+</p>
+
+<h3>3.3 Prediction depth</h3>
+
+<p>
+All experiments above predict a single transformer layer. The same approach extends to multi-layer prediction, where the forward model approximates the joint computation of several blocks at once.
+</p>
+
+<p>
+We tested this on a frozen 77M-parameter GPT (8 layers, 8 heads, 512-dim) trained on 100M tokens of FineWeb-Edu. A 1.18M-parameter forward model (1-layer transformer, single 64-dim attention head, 1.5% of the main model) predicted from post_block0 across gaps of 1, 2, and 3 layers.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Layers predicted</th><th>Cosine</th><th>KL (sub)</th><th>KL (abl)</th><th>Recovery</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>0.995</td><td>0.024</td><td>0.258</td><td>91%</td></tr>
+    <tr><td>2</td><td>0.977</td><td>0.092</td><td>0.542</td><td>83%</td></tr>
+    <tr><td>3</td><td>0.950</td><td>0.213</td><td>0.894</td><td>76%</td></tr>
+  </tbody>
+</table>
+
+<p>
+Prediction quality degrades gracefully with depth. A 3-layer prediction still captures 95% of the directional content and recovers 76% of the skipped layers' causal contribution to the output distribution. The same 1.5%-capacity forward model is approximating 3&times; more computation in the 3-layer case, so the capacity scaling results from Section 3.2 suggest that a proportionally larger forward model would close much of this gap.
+</p>
+
+<h3>3.4 Gauge symmetry: same function, different weights</h3>
+
+<p>
+The forward model achieves near-perfect attention pattern similarity with block1 while having zero weight similarity:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Block1 head</th><th>Attention cosine</th><th>Q weight cosine</th><th>K weight cosine</th><th>V weight cosine</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Head 0</td><td><strong>0.989</strong></td><td>-0.022</td><td>-0.056</td><td>-0.005</td></tr>
+    <tr><td>Head 1</td><td><strong>0.998</strong></td><td>+0.011</td><td>-0.008</td><td>-0.007</td></tr>
+    <tr><td>Head 2</td><td><strong>0.995</strong></td><td>-0.031</td><td>-0.041</td><td>-0.011</td></tr>
+    <tr><td>Head 3</td><td><strong>0.916</strong></td><td>+0.021</td><td>+0.014</td><td>+0.009</td></tr>
+  </tbody>
+</table>
+
+<p>
+The single forward model head replicates the attention patterns of three of block1's four heads at &gt;0.98 cosine, while all QKV weight cosines are indistinguishable from zero. It found a completely different parameterization that produces the same function.
+</p>
+
+<p>
+This is expected from a symmetry argument. Attention has a gauge freedom: applying the same rotation \(R\) to both \(Q\) and \(K\) projections preserves the attention pattern, since \((QR)(KR)^T = QR R^T K^T = QK^T\). Similarly, rotations in \(V\) are absorbed by the output projection. The forward model landed in a rotated version of the same functional basin, orthogonal in parameter space but identical in function space.
+</p>
+
+<p>
+CKA between the forward model's and block1's representations confirms geometric equivalence (&gt;0.98 post-attention and post-output). Both transform their inputs by similar magnitudes (CKA to input ~0.74-0.75 for both), confirming the forward model applies a transformation of comparable magnitude, not a shallow approximation.
+</p>
+
+<p>
+Head 3 is the outlier, with 0.916 attention cosine and 37x higher KL divergence than heads 0-2. Whatever head 3 does that the forward model can't replicate with a single compressed head is the genuinely "hard" part of block1's computation.
+</p>
+
+<h3>3.5 Residual structure</h3>
+
+<table>
+  <thead>
+    <tr><th>Threshold</th><th>Rank (of 256)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>50% variance</td><td>62</td></tr>
+    <tr><td>90% variance</td><td>189</td></tr>
+    <tr><td>95% variance</td><td>217</td></tr>
+    <tr><td>Effective rank (entropy)</td><td><strong>199.8</strong></td></tr>
+  </tbody>
+</table>
+
+<p>
+Top-1 PC explains 2.4%, top-5 explain 9.3%. The forward model is slightly worse than the layers it models everywhere, rather than completely missing specific sub-circuits.
+</p>
+
+<h3>3.6 Behavioral structure of the residual</h3>
+
+<p>
+Despite being full-rank, the residual has clear structure when conditioned on the <em>type</em> of computation the main model is performing:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Category</th><th>Mean residual norm</th><th>Cohen's d</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Before closer (delimiter tracking)</td><td>0.973</td><td><strong>+0.84</strong></td></tr>
+    <tr><td>Sentence start</td><td>0.724</td><td><strong>-0.85</strong></td></tr>
+    <tr><td>After punctuation</td><td>0.757</td><td><strong>-0.62</strong></td></tr>
+    <tr><td>After opener</td><td>0.939</td><td><strong>+0.62</strong></td></tr>
+    <tr><td>Focused attention (max weight &gt;0.5)</td><td>0.758</td><td><strong>-0.61</strong></td></tr>
+  </tbody>
+</table>
+
+<p>
+The forward model struggles most at positions requiring long-range context matching (before closing delimiters, d=+0.84) and handles local computations easily (sentence starts, d=-0.85; focused attention, d=-0.61). This makes computational sense. The forward model's single 64-dim attention head can match focused, single-source retrieval but struggles with multi-source integration.
+</p>
+
+<p>
+Critically, <em>prediction difficulty</em> shows negligible effects. Easy versus hard predictions show d=+0.10 versus d=-0.03. High versus low output entropy show d=-0.07 versus d=+0.07. The residual tracks the computational complexity of the model's processing, largely independent of prediction difficulty.
+</p>
+
+<p>
+The key correlating factor is attention entropy. Even after controlling for how much computation block1 contributes (normalizing residual by block1 contribution norm), attention entropy still correlates at r=+0.332. The forward model fails disproportionately on distributed attention patterns, exactly where its single compressed head is most capacity-limited.
+</p>
+
+<h2>4. Scaling to Llama 3.2 1B</h2>
+
+<p>
+We cached 100M tokens of Llama 3.2 1B (1.24B params, 16 layers, d=2048) activations on FineWeb at layers \(7 \to 8\) and trained a 26.2M-parameter forward model (2.1% of Llama) on the frozen activations. The forward model uses SwiGLU to match Llama's activation function.
+</p>
+
+<table>
+  <thead>
+    <tr><th></th><th>Toy GPT (d=256, 1.1%)</th><th>Llama 1B (d=2048, 2.1%)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Peak cosine</td><td>0.972</td><td>0.937</td></tr>
+    <tr><td>MSE</td><td>0.003</td><td>0.0018</td></tr>
+    <tr><td>Effective rank / max</td><td>78%</td><td>93%</td></tr>
+    <tr><td>Top-1 PC variance</td><td>2.4%</td><td>0.6%</td></tr>
+  </tbody>
+</table>
+
+<p>
+A 26M-parameter forward model captures 94% of the directional content of a 1.24B-parameter model's layer computation, trained purely on frozen activations without access to the main model's weights or gradients. The lower cosine relative to the toy model reflects MLP compression: the forward model's SwiGLU MLP (hidden 4096) is a 2x compression of Llama's MLP (hidden 8192), and the per-head decomposition (Section 4.2) confirms the MLP is the dominant source of prediction error.
+</p>
+
+<h3>4.1 Causal substitution at Llama scale</h3>
+
+<p>
+We validated the forward model's functional fidelity via causal substitution: replacing Llama's layer 8 with the forward model's prediction and continuing the forward pass from layer 9 onward.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Mode</th><th>Accuracy</th><th>KL vs Normal</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Normal (layer 8 intact)</td><td>0.470</td><td>&mdash;</td></tr>
+    <tr><td>Substituted (forward model)</td><td>0.456</td><td>0.093</td></tr>
+    <tr><td>Ablated (skip layer 8 entirely)</td><td>0.419</td><td>0.353</td></tr>
+  </tbody>
+</table>
+
+<p>
+The forward model recovers 74% of layer 8's KL contribution. The remaining gap compared to the toy model (74% vs 94%) reflects MLP capacity compression: the forward model's SwiGLU MLP (hidden 4096) is a 2x compression of Llama's MLP (hidden 8192). As the capacity scaling analysis (Section 3.2) showed, a larger forward model would close this gap. In the toy model, the forward model saturated at cosine 0.999 once its capacity reached approximately the parameter count of the predicted layers.
+</p>
+
+<p>
+The key finding replicates. Degradation is strikingly uniform across behavioral categories.
+</p>
+
+<table>
+  <thead>
+    <tr><th>Category</th><th>KL (sub)</th><th>KL (abl)</th><th>Recovery</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>High confidence</td><td>0.067</td><td>0.298</td><td>78%</td></tr>
+    <tr><td>Low confidence</td><td>0.108</td><td>0.386</td><td>72%</td></tr>
+    <tr><td>Function words</td><td>0.089</td><td>0.331</td><td>73%</td></tr>
+    <tr><td>Punctuation</td><td>0.061</td><td>0.244</td><td>75%</td></tr>
+  </tbody>
+</table>
+
+<p>
+Recovery ranges from 72% to 78%. No behavior-specific catastrophic failure. At both 29M and 1.24B parameters, the capacity bottleneck binds uniformly across behavioral categories.
+</p>
+
+<h3>4.2 Per-head decomposition</h3>
+
+<p>
+At toy scale, the gauge symmetry analysis (Section 3.4) showed the forward model learns the layer's computational function rather than its parameterization. We can test whether this generalizes by asking whether the forward model's error pattern maps onto the architectural structure of the layer it predicts at Llama scale.
+</p>
+
+<p>
+Llama layer 8 has 32 attention heads (GQA with 8 KV groups) and an MLP, whose contributions sum linearly to the layer output via the bias-free output projection. We decompose this sum exactly and measure each component's alignment with the forward model's residual.
+</p>
+
+<table>
+  <thead>
+    <tr><th></th><th>Norm (share of \(\Delta\))</th><th>\(\cos(\text{comp}, r)\)</th><th>\(\text{corr}(\|\text{comp}\|, \|r\|)\)</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>32 attention heads (total)</td><td>18.0 (84%)</td><td>0.019 avg</td><td>0.07 avg</td></tr>
+    <tr><td>MLP</td><td>3.4 (16%)</td><td><strong>0.410</strong></td><td><strong>0.577</strong></td></tr>
+  </tbody>
+</table>
+
+<p>
+The decomposition maps cleanly onto the architectural boundary between attention and the MLP. Attention accounts for 84% of the layer's output norm, but the forward model's prediction error aligns almost entirely with the MLP, with 22x the directional alignment with the residual (0.410 vs 0.019 average across heads) and a 0.577 correlation between MLP output magnitude and residual magnitude. Within attention, no single head or KV group is substantially harder to capture than the others. \(\cos(\text{head}_i, r)\) ranges from \(-0.009\) to \(+0.048\) across all 32 heads, and each head's output subspace captures a nearly equal share of residual variance (3.5%-4.9%, against 3.1% null expectation for a 64-dim subspace of 2048 dimensions).
+</p>
+
+<figure>
+  <img src="forward_self_models/fig4_llama_heads.png" alt="Exact decomposition of Llama layer 8's output into its 32 attention heads and its MLP.">
+  <figcaption>Exact decomposition of Llama layer 8's output into its 32 attention heads (colored by KV group) and its MLP. Left: attention accounts for 84% of the output norm, spread across many comparable heads. Right: the forward model's prediction error aligns almost entirely with the MLP (\(\cos = 0.41\)) and is near zero for every attention head. The error maps cleanly onto the attention/MLP architectural boundary.</figcaption>
+</figure>
+
+<p>
+The forward model has recovered, through MSE optimization on frozen activations alone, a meaningful decomposition of a 1.24B-parameter model's layer computation. The reason the decomposition falls along the attention/MLP boundary is consistent with the gauge symmetry. Attention patterns can be reproduced through rotated weights, so a single compressed 128-dim head can learn a "principal attention pattern" that approximates the 32-head ensemble at a 16x compression ratio. The MLP's pointwise nonlinear transformation through a high-dimensional hidden space (SwiGLU, hidden 8192) is a different kind of function. Each neuron implements an independent feature-conditional computation, and the forward model's smaller MLP (SwiGLU, hidden 4096) cannot replicate this at 2x compression, despite matching Llama's activation function. The forward model's weights are, concretely, a compact empirical model of which computations in Llama layer 8 are predictable from the preceding layer state and which are not.
+</p>
+
+<h2>5. Discussion</h2>
+
+<p>
+The forward self-model provides a new lens for studying the mechanisms of neural network computation. It is similarly motivated to work such as direct modeling of the activation manifold (Luo et al., 2026), learned feature decompositions with SAEs (Cunningham et al., 2023), NLAs (Fraser-Taliente et al., 2026), and activation oracles (Karvonen et al., 2025). While deconstructing activations in their own right has been of great interest in the literature, we show that it is computationally much cheaper to perform conditional modeling of activations-to-activations.
+</p>
+
+<p>
+This potentially owes to forward self-models' intriguing property of dissociating representation from computation. Neural networks must do two things at once: discover a representational basis that encodes the regularities of a data domain, and perform computation using this representational basis to produce valid outputs. Capacity limitation is helpful for computation, since a model that can memorize its training data has no need to learn useful circuits (Solomonoff, 1964; Hutter, 2005), but harmful for representation, since models are limited in their ability to develop good representations by data-induced abstraction interference (Huang et al., 2026). Conditioning on representation and modeling computation allows for a dissociation between these two conditions, because the forward self-model is, from the perspective of the main model, already afforded the optimal representation for the task.
+</p>
+
+<p>
+The causal substitution results provide direct evidence for this dissociation: the forward model is not merely a statistical summary of the target layer's activations, but an executable approximation of its computational function, recovering 74-94% of the layer's causal contribution to the output distribution. This is a different kind of object from a probe, which describes what information is accessible at a layer, or an ablation, which measures what is necessary. The forward self-model approximates <em>what the layer does</em> &mdash; the transformation itself. Because this approximation is compact, causally faithful, and specific to computation rather than representation, forward self-models provide a primitive for techniques that require an explicit model of a neural network's computational dynamics.
+</p>
+
+<br>
+
+<p><em>Thanks to Devi Parikh for her feedback on this work.</em></p>
+
+<hr class="divider">
+
+<h3>Code</h3>
+
+All code for these experiments can be found <a href="https://github.com/jagilley/forward-self-models">here</a>.
+
+<hr class="divider">
+
+<h3>References</h3>
+
+<ol class="footnotes">
+  <li>Cunningham, H., Ewart, A., Riggs, L., Huben, R., and Sharkey, L. Sparse autoencoders find highly interpretable features in language models. <em>arXiv preprint arXiv:2309.08600</em>, 2023.</li>
+  <li>Fraser-Taliente, K., Kantamneni, S., Ong, E., Mossing, D., Lu, C., Bogdan, P. C., Ameisen, E., Chen, J., Kishylau, D., Pearce, A., Tarng, J., Wu, A., Wu, J., Zhang, Y., Ziegler, D. M., Hubinger, E., Batson, J., Lindsey, J., Zimmerman, S., and Marks, S. Natural language autoencoders produce unsupervised explanations of LLM activations. <em>Transformer Circuits Thread</em>, 2026.</li>
+  <li>Huang, J., Wurgaft, D., Bansal, R., Ruis, L., Saphra, N., Alvarez-Melis, D., Lampinen, A., Potts, C., and Lubana, E. S. Why larger models learn more: Effects of capacity, interference, and rare-task retention. <em>arXiv preprint arXiv:2605.29548</em>, 2026.</li>
+  <li>Hutter, M. <em>Universal Artificial Intelligence: Sequential Decisions Based on Algorithmic Probability.</em> Springer, 2005.</li>
+  <li>Karvonen, A., Chua, J., Dumas, C., Fraser-Taliente, K., Kantamneni, S., Minder, J., Ong, E., Sharma, A. S., Wen, D., Evans, O., and Marks, S. Activation oracles: Training and evaluating LLMs as general-purpose activation explainers. <em>arXiv preprint arXiv:2512.15674</em>, 2025.</li>
+  <li>Luo, G., Feng, J., Darrell, T., Radford, A., and Steinhardt, J. Learning a generative meta-model of LLM activations. <em>arXiv preprint arXiv:2602.06964</em>, 2026.</li>
+  <li>Solomonoff, R. J. A formal theory of inductive inference. <em>Information and Control</em>, 7(1):1-22, 1964.</li>
+</ol>
+
+<hr class="divider">
+
+<h3>Citation</h3>
+
+<pre><code>@article{gilley2026forwardselfmodels,
+  title   = {Forward Self-Models Learn an Empirical Approximation of Neural Network Computation},
+  author  = {Gilley, Jasper},
+  year    = {2026},
+  url     = {https://jagilley.github.io/forward-self-models.html}
+}</code></pre>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
+</div>
+
+</body>
+</html>
