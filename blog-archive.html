@@ -52,6 +52,21 @@
       margin-bottom: 1.5rem;
       display: inline-block;
     }
+    /* companion sub-link (e.g. a scrolldeck visual walkthrough of a post) */
+    .companion-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #0366d6;
+      text-decoration: none;
+    }
+    .companion-link .cl-icon { font-size: 0.8rem; opacity: 0.75; }
+    .companion-link .cl-label { text-decoration: underline; text-underline-offset: 2px; }
+    .companion-link:hover .cl-label { text-decoration: none; }
+    .companion-link .cl-arrow { transition: transform 0.15s ease; }
+    .companion-link:hover .cl-arrow { transform: translateX(3px); }
   </style>
 </head>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -67,6 +82,9 @@
 <div class="blog-entry">
   <h3><a href="forward-self-models.html">Forward Self-Models Learn an Empirical Approximation of Neural Network Computation</a></h3>
   <p class="blog-date">June 2026</p>
+  <a href="forward-self-models-visual.html" class="companion-link">
+    <span class="cl-icon">&#9656;</span> <span class="cl-label">Visual walkthrough</span> <span class="cl-arrow">&rarr;</span>
+  </a>
 </div>
 
 <div class="blog-entry">

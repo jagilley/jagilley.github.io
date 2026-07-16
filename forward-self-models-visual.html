@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A visual, scroll-driven walkthrough of forward self-models: small networks trained to predict a neural network's later-layer activations from its earlier-layer activations, learning an empirical approximation of the computational function that the intervening layers implement." />
+  <title>Forward Self-Models — A Visual Walkthrough | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/forward-self-models-visual.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Forward Self-Models — A Visual Walkthrough" />
+  <meta property="og:description" content="A visual, scroll-driven walkthrough of forward self-models." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/forward_self_models/open_loop_diagram_horizontal.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://jagilley.github.io/forward_self_models/open_loop_diagram_horizontal.png" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="canonical" href="https://jagilley.github.io/forward-self-models-visual.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    :root{
+      --mainblue:#3B82F6; --maindark:#1E3A5F; --fwdgreen:#22C55E; --emerald600:#059669; --fwddark:#14532D;
+      --arrowyellow:#EAB308; --grayout:#9CA3AF; --streamgray:#64748B; --warmred:#EF4444;
+      --softpurple:#8B5CF6; --amber:#F59E0B;
+      --slate50:#F8FAFC; --slate100:#F1F5F9; --slate200:#E2E8F0; --slate700:#334155; --slate800:#1E293B;
+      --emerald50:#ECFDF5;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+    }
+
+    html{scroll-behavior:smooth;}
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+      font-size: 1.1rem;
+      overflow-x: hidden;
+    }
+    a { color: #0366d6; }
+    .archive-link { margin-bottom: 1.5rem; display: inline-block; }
+
+    /* ── top scroll-progress bar ─────────────────────────────── */
+    .scroll-progress{
+      position: fixed; top:0; left:0; right:0; height:3px; z-index:50;
+      background: var(--mainblue);
+      transform: scaleX(0); transform-origin: 0 50%;
+      transition: transform .08s linear;
+    }
+
+    /* ── hero / title ────────────────────────────────────────── */
+    .hero{
+      background: var(--slate800); color:#fff;
+      border-radius:18px; padding:4rem 2rem 3.25rem; text-align:center;
+      margin: .5rem 0 0; position:relative; overflow:hidden;
+    }
+    .hero::after{ /* subtle vignette glow */
+      content:""; position:absolute; inset:0;
+      background: radial-gradient(120% 90% at 50% -10%, rgba(59,130,246,.28), transparent 60%);
+      pointer-events:none;
+    }
+    .hero .kicker{ font-family:var(--sans); letter-spacing:.22em; text-transform:uppercase;
+      font-size:.72rem; color:var(--mainblue); font-weight:700; }
+    .hero h1{ color:#fff; font-size: clamp(2.1rem, 6vw, 3.4rem); margin:.6rem 0 .2rem; line-height:1.05; }
+    .hero .sub{ color:var(--slate200); font-size:1.15rem; max-width:34ch; margin:.4rem auto 0; }
+    .hero .byline{ color:var(--grayout); font-family:var(--sans); font-size:.9rem; margin-top:2rem; }
+    .hero svg{ display:block; margin:2.25rem auto 1.75rem; max-width:min(460px,90%); height:auto; position:relative; }
+
+    .lead{
+      font-family:var(--sans); color:var(--slate700); font-size:1rem;
+      text-align:center; max-width:56ch; margin:1.75rem auto 0; line-height:1.6;
+    }
+    .lead .scroll-cue{ display:block; margin-top:1.1rem; color:var(--grayout); font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; }
+    .scroll-cue::after{ content:"↓"; display:block; font-size:1.2rem; margin-top:.2rem; animation: bob 1.8s ease-in-out infinite; }
+    @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+
+    /* ── section divider bands (beamer \section pages) ───────── */
+    .band{
+      background: var(--slate800); color:#fff;
+      border-radius:16px; padding:2.4rem 2.2rem; margin:3rem 0 1.5rem; position:relative; overflow:hidden;
+    }
+    .band .sec-num{ font-family:var(--sans); color:var(--mainblue); font-weight:700; letter-spacing:.2em; font-size:.78rem; }
+    .band h2{ color:#fff; margin:.35rem 0 0; font-size: clamp(1.6rem,4.5vw,2.1rem); border:none; }
+    .band .sec-progress{ height:3px; background:rgba(255,255,255,.14); border-radius:3px; margin-top:1.3rem; overflow:hidden; }
+    .band .sec-progress i{ display:block; height:100%; background:var(--mainblue); border-radius:3px;
+      transform-origin:0 50%; transform:scaleX(0); transition: transform 1.1s cubic-bezier(.22,.61,.36,1) .1s; }
+    .band.in-view .sec-progress i{ transform:scaleX(var(--p,.2)); }
+
+    /* ── slide panels ────────────────────────────────────────── */
+    .panel{
+      background:#fff; border:1px solid #e7e7ea; border-radius:16px;
+      padding:2.1rem 2.2rem; margin:1.5rem 0;
+      box-shadow: 0 6px 30px rgba(15,23,42,.06);
+    }
+    .frame-title{
+      font-family: inherit; font-weight:700; color:#111; font-size:1.4rem; line-height:1.25;
+      margin:0 0 1.25rem; padding-left:.85rem; border-left:4px solid var(--mainblue);
+    }
+    .panel p{ line-height:1.6; }
+    .panel p:first-of-type{ margin-top:0; }
+    .note{ font-family:var(--sans); color:var(--grayout); font-size:.92rem; text-align:center; margin:1.1rem 0 0; }
+    .note.left{ text-align:left; }
+
+    /* inline emphasis colors (beamer macros) */
+    .hl{ color:var(--mainblue); font-weight:700; }
+    .fwd{ color:var(--emerald600); font-weight:700; }
+    .dim{ color:var(--grayout); }
+    .red{ color:var(--warmred); font-weight:700; }
+    .purple{ color:var(--softpurple); }
+    .amberc{ color:var(--amber); }
+
+    /* ── beamer "blocks" ─────────────────────────────────────── */
+    .block{ border-radius:9px; overflow:hidden; border:1px solid var(--slate200); margin:1.1rem 0;
+      box-shadow:0 1px 2px rgba(15,23,42,.05); }
+    .block > .bt{ background:var(--mainblue); color:#fff; font-family:var(--sans); font-weight:600;
+      font-size:.95rem; padding:.5rem .95rem; }
+    .block > .bb{ background:var(--slate50); padding:.95rem 1.1rem; }
+    .block > .bb :last-child{ margin-bottom:0; }
+    .alertblock > .bt{ background:var(--warmred); }
+    .alertblock > .bb{ background:#fef2f2; }
+    .exampleblock > .bt{ background:var(--emerald600); }
+    .exampleblock > .bb{ background:var(--emerald50); }
+    .block.notitle > .bb{ border-radius:9px; }
+
+    /* ── stat cards ──────────────────────────────────────────── */
+    .stats{ display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:1.5rem 0; }
+    .stat{ flex:1 1 170px; max-width:250px; border-radius:12px; padding:1.1rem 1rem; text-align:center; }
+    .stat .n{ font-family:var(--sans); font-weight:800; font-size:2rem; line-height:1; letter-spacing:-.01em; }
+    .stat .l{ font-family:var(--sans); font-size:.85rem; color:var(--slate700); margin-top:.4rem; }
+    .stat.blue{ background:rgba(59,130,246,.1);} .stat.blue .n{ color:var(--mainblue); }
+    .stat.green{ background:rgba(34,197,94,.1);} .stat.green .n{ color:var(--emerald600); }
+    .stat.purple{ background:rgba(139,92,246,.1);} .stat.purple .n{ color:var(--softpurple); }
+
+    /* ── columns ─────────────────────────────────────────────── */
+    .cols{ display:grid; grid-template-columns:1fr 1fr; gap:1.9rem; align-items:start; }
+    .cols.left-wide{ grid-template-columns:1.15fr 1fr; }
+    .cols.right-wide{ grid-template-columns:1fr 1.15fr; }
+    .cols h4{ margin:.2rem 0 .5rem; font-size:1.05rem; }
+    @media (max-width:760px){ .cols,.cols.left-wide,.cols.right-wide{ grid-template-columns:1fr; gap:1.25rem; } }
+
+    .diagram{ text-align:center; }
+    .diagram svg{ max-width:100%; height:auto; }
+    .diagram text{ font-family:var(--sans); }
+
+    /* ── tables ──────────────────────────────────────────────── */
+    table{ border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; font-family:var(--sans); }
+    th,td{ border:1px solid #e2e2e6; padding:.42rem .6rem; text-align:left; }
+    th{ background:var(--slate100); font-weight:600; color:var(--slate800); }
+    td strong{ color:#111; }
+    caption, .tbl-cap{ font-family:var(--sans); font-weight:600; font-size:.95rem; text-align:left; margin:.2rem 0 .3rem; color:var(--slate800); }
+
+    /* ── "kind of object" & "why boundary" card rows ─────────── */
+    .cardrow{ display:flex; gap:1rem; align-items:stretch; justify-content:center; flex-wrap:wrap; margin:1rem 0; }
+    .ocard{ flex:1 1 200px; max-width:280px; border-radius:12px; padding:1.1rem 1.1rem 1rem; text-align:center;
+      border:1.5px solid var(--slate200); background:var(--slate50); }
+    .ocard .h{ font-family:var(--sans); font-weight:700; font-size:1rem; margin-bottom:.4rem; }
+    .ocard .d{ font-size:.95rem; color:var(--slate700); }
+    .ocard .cap{ font-family:var(--sans); font-size:.78rem; color:var(--grayout); margin-top:.6rem; }
+    .ocard.fsm{ border-color:var(--fwdgreen); background:var(--emerald50); }
+    .ocard.fsm .h{ color:var(--emerald600); } .ocard.fsm .cap{ color:var(--emerald600); }
+    .ocard.blue{ border-color:var(--mainblue); background:rgba(59,130,246,.06); } .ocard.blue .h{ color:var(--mainblue); }
+    .ocard.red{ border-color:var(--warmred); background:rgba(239,68,68,.06); } .ocard.red .h{ color:var(--warmred); }
+    .vs{ align-self:center; font-family:var(--sans); font-weight:800; color:var(--grayout); font-size:1.2rem; }
+
+    /* ── dissociation two-box ────────────────────────────────── */
+    .diss{ display:flex; gap:0; align-items:center; justify-content:center; flex-wrap:wrap; margin:.5rem 0; }
+    .diss .b{ flex:1 1 240px; max-width:320px; border-radius:12px; padding:1.2rem; border:1.5px solid; }
+    .diss .b.old{ border-color:var(--grayout); background:rgba(156,163,175,.08); }
+    .diss .b.new{ border-color:var(--fwdgreen); background:var(--emerald50); }
+    .diss .b .h{ font-family:var(--sans); font-weight:700; font-size:.95rem; margin-bottom:.5rem; }
+    .diss .b.old .h{ color:var(--slate700); } .diss .b.new .h{ color:var(--emerald600); }
+    .diss .arrow{ padding:0 1rem; text-align:center; font-family:var(--sans); color:var(--mainblue); font-size:.78rem; min-width:96px; }
+    .diss .arrow .big{ font-size:1.6rem; line-height:1; }
+    @media (max-width:640px){ .diss .arrow{ transform:rotate(90deg); padding:.6rem 0; } }
+
+    ul.tight{ margin:.4rem 0; padding-left:1.2rem; } ul.tight li{ margin:.2rem 0; }
+    ol.tight{ margin:.4rem 0; padding-left:1.3rem; } ol.tight li{ margin:.35rem 0; }
+
+    /* ── outro ───────────────────────────────────────────────── */
+    .outro{ background:var(--slate800); color:#fff; border-radius:18px; padding:3rem 2rem 2.5rem; text-align:center; margin:3rem 0 0; position:relative; overflow:hidden; }
+    .outro::after{ content:""; position:absolute; inset:0;
+      background: radial-gradient(120% 90% at 50% 110%, rgba(34,197,94,.22), transparent 60%); pointer-events:none; }
+    .outro h2{ color:#fff; border:none; margin:0 0 1.4rem; }
+    .outro .scards{ display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; }
+    .outro .sc{ flex:1 1 150px; max-width:210px; background:var(--slate700); border-radius:10px; padding:.9rem .8rem; }
+    .outro .sc .n{ font-family:var(--sans); font-weight:700; font-size:1.02rem; }
+    .outro .sc .s{ font-family:var(--sans); font-size:.72rem; color:var(--slate200); margin-top:.25rem; }
+    .outro .closing{ color:var(--slate200); max-width:60ch; margin:1.9rem auto 0; line-height:1.6; }
+    .outro code{ background:rgba(255,255,255,.1); color:#fff; padding:.1rem .35rem; border-radius:4px; }
+    .outro .byline{ color:var(--grayout); font-family:var(--sans); font-size:.85rem; margin-top:1.4rem; }
+    .outro a{ color:#93c5fd; }
+
+    .post-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:.5rem; flex-wrap:wrap; gap:.5rem; }
+    .post-footer .author{ text-align:right; margin:0; font-family:var(--sans); font-size:.95rem; }
+    .post-footer .author a{ margin-left:.75rem; }
+
+    /* ── SVG animation primitives ────────────────────────────── */
+    .anim-draw{ stroke-dasharray:1; stroke-dashoffset:1; transition: stroke-dashoffset 1.05s cubic-bezier(.22,.61,.36,1) .15s; }
+    .in-view .anim-draw{ stroke-dashoffset:0; }
+    .anim-fade{ opacity:0; transition: opacity .55s ease .45s; }
+    .in-view .anim-fade{ opacity:1; }
+    .anim-grow{ opacity:0; transform: scaleY(.02); transform-origin: bottom; transition: transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-grow{ opacity:1; transform: scaleY(1); }
+    .anim-growx{ opacity:0; transform: scaleX(.02); transform-origin: left; transition: transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-growx{ opacity:1; transform: scaleX(1); }
+
+    /* ── reveal on scroll (Apple-style) ──────────────────────── */
+    .reveal{ opacity:0; transform: translateY(26px); transition: opacity .75s cubic-bezier(.22,.61,.36,1), transform .75s cubic-bezier(.22,.61,.36,1); }
+    .in-view .reveal, .reveal.in-view{ opacity:1; transform:none; }
+    .d1{ transition-delay:.06s; } .d2{ transition-delay:.14s; } .d3{ transition-delay:.22s; } .d4{ transition-delay:.30s; } .d5{ transition-delay:.38s; }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+      .reveal,.anim-grow,.anim-growx{ transform:none !important; } /* not .anim-fade: it carries no animation transform, only opacity — keep its static rotations */
+      .anim-draw{ stroke-dashoffset:0 !important; }
+      .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+      .scroll-cue::after{ animation:none; }
+    }
+  </style>
+  <noscript><style>
+    /* JS disabled: reveal everything, skip scroll-driven animation */
+    .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+    .reveal,.anim-grow,.anim-growx{ transform:none !important; } /* not .anim-fade: keep its static rotations */
+    .anim-draw{ stroke-dashoffset:0 !important; }
+    .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+    .scroll-progress{ display:none; }
+  </style></noscript>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<!-- shared SVG arrowhead markers -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah-white" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+  <marker id="ah-gray" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <marker id="ah-grayout" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/></marker>
+  <marker id="ah-yellow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#EAB308"/></marker>
+  <marker id="ah-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#16A34A"/></marker>
+  <marker id="ah-blue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3B82F6"/></marker>
+  <marker id="ah-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8B5CF6"/></marker>
+</defs></svg>
+
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+
+<!-- ══════════════════════ HERO / TITLE ══════════════════════ -->
+<header class="hero" data-observe>
+  <div class="reveal">
+    <div class="kicker">A Visual Walkthrough</div>
+    <h1>Forward Self-Models</h1>
+    <p class="sub">Learning an Empirical Approximation of Neural Network Computation</p>
+  </div>
+
+  <svg class="reveal d2" viewBox="0 0 460 108" role="img" aria-label="a_i flows into a small forward model, producing a hat a_j">
+    <g>
+      <rect x="18" y="30" width="78" height="40" rx="8" fill="#3B82F6" fill-opacity=".38" class="anim-fade"/>
+      <text x="57" y="55" text-anchor="middle" fill="#fff" font-size="17" font-style="italic" class="anim-fade">a&#8202;<tspan font-size="12" dy="4">i</tspan></text>
+
+      <rect x="160" y="26" width="140" height="48" rx="9" fill="#22C55E" fill-opacity=".42" class="anim-fade"/>
+      <text x="230" y="55" text-anchor="middle" fill="#fff" font-size="15" font-weight="600" class="anim-fade">Forward model</text>
+
+      <rect x="364" y="30" width="78" height="40" rx="8" fill="#3B82F6" fill-opacity=".38" class="anim-fade"/>
+      <text x="403" y="55" text-anchor="middle" fill="#fff" font-size="17" font-style="italic" class="anim-fade">&#226;&#8202;<tspan font-size="12" dy="4">j</tspan></text>
+
+      <line x1="96" y1="50" x2="158" y2="50" stroke="#fff" stroke-width="1.6" marker-end="url(#ah-white)" pathLength="1" class="anim-draw"/>
+      <line x1="300" y1="50" x2="362" y2="50" stroke="#fff" stroke-width="1.6" marker-end="url(#ah-white)" pathLength="1" class="anim-draw"/>
+
+      <text x="230" y="96" text-anchor="middle" fill="#9CA3AF" font-size="12" class="anim-fade">1&ndash;3% of parameters</text>
+    </g>
+  </svg>
+
+  <p class="byline reveal d3">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</header>
+
+<p class="lead">
+  This is a visual companion to the paper
+  <a href="forward-self-models.html">&ldquo;Forward Self-Models Learn an Empirical Approximation of Neural Network Computation.&rdquo;</a>
+  <span class="scroll-cue">Scroll</span>
+</p>
+
+<!-- ══════════════════════ § MOTIVATION ══════════════════════ -->
+<section class="band" data-observe style="--p:.2">
+  <div class="reveal"><div class="sec-num">SECTION 01</div><h2>Motivation</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: What does a layer do? -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">What does a layer <em>do</em>?</h2>
+  <div class="cols left-wide">
+    <div class="reveal d1">
+      <p style="margin-top:0">A transformer layer takes activations in and produces activations out. Existing tools study this indirectly:</p>
+      <ul class="tight">
+        <li><span class="hl">Probing</span> &mdash; what information is <em>linearly accessible</em></li>
+        <li><span class="hl">Ablation</span> &mdash; what is <em>causally necessary</em></li>
+        <li><span class="hl">SAEs</span> &mdash; what <em>features</em> are present</li>
+      </ul>
+      <p>These characterize <em>what information exists</em> and <em>where it matters</em> &mdash; but none directly approximates <em>the transformation itself</em>.</p>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".08">
+      <svg viewBox="0 0 300 250" role="img" aria-label="Residual stream feeding three layers, with a question over the transformation">
+        <!-- residual stream -->
+        <line x1="46" y1="24" x2="46" y2="228" stroke="#64748B" stroke-width="5" stroke-linecap="round"/>
+        <text x="20" y="128" fill="#64748B" font-size="11" text-anchor="middle" transform="rotate(-90 20 128)">residual stream</text>
+        <text x="46" y="16" fill="#9CA3AF" font-size="13" text-anchor="middle">&#8942;</text>
+        <text x="46" y="246" fill="#9CA3AF" font-size="13" text-anchor="middle">&#8942;</text>
+        <!-- blocks bottom->top: i-1, i, i+1 -->
+        <g class="anim-fade">
+          <rect x="96" y="176" width="130" height="34" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.2"/>
+          <text x="161" y="197" text-anchor="middle" fill="#1E3A5F" font-size="13">Layer i&#8722;1</text>
+          <rect x="96" y="112" width="130" height="34" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.2"/>
+          <text x="161" y="133" text-anchor="middle" fill="#1E3A5F" font-size="13">Layer i</text>
+          <rect x="96" y="48" width="130" height="34" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.2"/>
+          <text x="161" y="69" text-anchor="middle" fill="#1E3A5F" font-size="13">Layer i+1</text>
+        </g>
+        <!-- read/write arrows -->
+        <g stroke="#64748B" stroke-width="1" fill="none">
+          <line x1="46" y1="199" x2="94" y2="199" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+          <line x1="94" y1="187" x2="48" y2="187" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+          <line x1="46" y1="135" x2="94" y2="135" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+          <line x1="94" y1="123" x2="48" y2="123" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+          <line x1="46" y1="71" x2="94" y2="71" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+          <line x1="94" y1="59" x2="48" y2="59" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+        </g>
+        <!-- question brace -->
+        <path d="M244,111 q8,0 8,5 v8 q0,5 8,5 q-8,0 -8,5 v8 q0,5 -8,5" fill="none" stroke="#EF4444" stroke-width="1.6" class="anim-fade"/>
+        <text x="276" y="138" fill="#EF4444" font-size="26" font-weight="700" class="anim-fade">?</text>
+      </svg>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Forward self-models: the idea -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Forward self-models: the idea</h2>
+  <div class="block reveal d1">
+    <div class="bt">Core intuition</div>
+    <div class="bb">
+      Train a <span class="fwd">small auxiliary network</span> to predict a model's <span class="hl">later-layer activations</span> from its <span class="hl">earlier-layer activations</span> &mdash; learning how the intervening layers transform their inputs.
+    </div>
+  </div>
+  <div class="cols" style="margin-top:1.4rem">
+    <div class="reveal d2">
+      <h4>What the forward model <span class="fwd">captures</span></h4>
+      <ul class="tight">
+        <li>The <em>compressible component</em> of the layer's computation</li>
+        <li>An executable, causally faithful approximation</li>
+      </ul>
+    </div>
+    <div class="reveal d3">
+      <h4>What the <span class="red">residual</span> reveals</h4>
+      <ul class="tight">
+        <li><em>Computational novelty</em> &mdash; the genuinely hard-to-compress part</li>
+        <li>Tracks complexity, not prediction difficulty</li>
+      </ul>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Dissociating representation from computation -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Dissociating representation from computation</h2>
+  <div class="diss reveal d1">
+    <div class="b old">
+      <div class="h">Model compression</div>
+      <div style="font-size:.95rem;color:var(--slate700)">
+        Must jointly solve:
+        <ul class="tight" style="list-style:none;padding-left:0;margin:.5rem 0 0">
+          <li><span class="purple">&#9679;</span> <strong>Representation</strong> <span class="dim" style="font-size:.85em">(discover good features)</span></li>
+          <li><span class="hl">&#9679;</span> <strong>Computation</strong> <span class="dim" style="font-size:.85em">(learn useful circuits)</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="arrow">
+      <span class="big">&rarr;</span><br>condition on<br>activations
+    </div>
+    <div class="b new">
+      <div class="h">Forward self-model</div>
+      <div style="font-size:.95rem;color:var(--slate700)">
+        Representation is <em>given</em>. Only needs to learn:
+        <ul class="tight" style="list-style:none;padding-left:0;margin:.5rem 0 .5rem">
+          <li><span class="hl">&#9679;</span> <strong>Computation</strong> <span class="dim" style="font-size:.85em">(transform \(a_i \to a_j\))</span></li>
+        </ul>
+        &rArr; <strong>1&ndash;3%</strong> of parameters
+      </div>
+    </div>
+  </div>
+  <p class="note reveal d2">This dissociation explains both the parameter efficiency and the interpretability of the prediction errors.</p>
+</article>
+
+<!-- ══════════════════════ § METHOD ══════════════════════ -->
+<section class="band" data-observe style="--p:.4">
+  <div class="reveal"><div class="sec-num">SECTION 02</div><h2>Method</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: Architecture -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Architecture</h2>
+  <div class="diagram reveal d1" data-parallax=".06">
+    <svg viewBox="-30 0 590 300" role="img" aria-label="The forward model taps activations a_i and predicts a_j, trained by MSE with no gradient to the main model">
+      <!-- residual stream -->
+      <line x1="60" y1="34" x2="60" y2="266" stroke="#64748B" stroke-width="5" stroke-linecap="round"/>
+      <text x="46" y="150" fill="#64748B" font-size="11" text-anchor="middle" transform="rotate(-90 46 150)">residual stream</text>
+      <text x="60" y="284" fill="#9CA3AF" font-size="11" text-anchor="middle">input</text>
+      <text x="60" y="26" fill="#9CA3AF" font-size="11" text-anchor="middle">logits</text>
+      <!-- blocks bottom(Block0)->top(Block3) -->
+      <g class="anim-fade">
+        <rect x="112" y="210" width="92" height="30" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.1"/><text x="158" y="229" text-anchor="middle" fill="#1E3A5F" font-size="12">Block 0</text>
+        <rect x="112" y="158" width="92" height="30" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.1"/><text x="158" y="177" text-anchor="middle" fill="#1E3A5F" font-size="12">Block 1</text>
+        <rect x="112" y="106" width="92" height="30" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.1"/><text x="158" y="125" text-anchor="middle" fill="#1E3A5F" font-size="12">Block 2</text>
+        <rect x="112" y="54" width="92" height="30" rx="5" fill="#3B82F6" fill-opacity=".08" stroke="#3B82F6" stroke-width="1.1"/><text x="158" y="73" text-anchor="middle" fill="#1E3A5F" font-size="12">Block 3</text>
+      </g>
+      <g stroke="#64748B" stroke-width=".9" fill="none">
+        <line x1="60" y1="231" x2="110" y2="231" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/><line x1="110" y1="219" x2="62" y2="219" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+        <line x1="60" y1="179" x2="110" y2="179" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/><line x1="110" y1="167" x2="62" y2="167" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+        <line x1="60" y1="127" x2="110" y2="127" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/><line x1="110" y1="115" x2="62" y2="115" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+        <line x1="60" y1="75" x2="110" y2="75" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/><line x1="110" y1="63" x2="62" y2="63" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw"/>
+      </g>
+      <!-- tap points -->
+      <circle cx="60" cy="196" r="5" fill="#EAB308" class="anim-fade"/>
+      <text x="44" y="200" text-anchor="middle" fill="#EAB308" font-size="13" font-weight="700" font-style="italic" class="anim-fade">a<tspan font-size="9" dy="3">i</tspan></text>
+      <circle cx="60" cy="64" r="5" fill="#EAB308" fill-opacity=".7" class="anim-fade"/>
+      <text x="44" y="68" text-anchor="middle" fill="#EAB308" fill-opacity=".8" font-size="13" font-weight="700" font-style="italic" class="anim-fade">a<tspan font-size="9" dy="3">j</tspan></text>
+      <!-- forward model -->
+      <rect x="336" y="130" width="122" height="58" rx="9" fill="#22C55E" fill-opacity=".1" stroke="#22C55E" stroke-width="1.4" class="anim-fade"/>
+      <text x="397" y="156" text-anchor="middle" fill="#14532D" font-size="13" font-weight="600" class="anim-fade">Forward</text>
+      <text x="397" y="172" text-anchor="middle" fill="#14532D" font-size="13" font-weight="600" class="anim-fade">model</text>
+      <text x="397" y="202" text-anchor="middle" fill="#16A34A" font-size="10.5" class="anim-fade">1&ndash;3% of params</text>
+      <!-- a_i -> fwd (solid) -->
+      <path d="M66,196 L250,196 L250,168 L334,168" fill="none" stroke="#EAB308" stroke-width="1.5" marker-end="url(#ah-yellow)" pathLength="1" class="anim-draw"/>
+      <!-- a_j -> fwd (dashed, detached) -->
+      <path d="M66,64 L66,46 L296,46 L296,150 L334,150" fill="none" stroke="#EAB308" stroke-opacity=".75" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah-yellow)" class="anim-fade"/>
+      <text x="300" y="40" text-anchor="middle" fill="#9CA3AF" font-size="10" font-style="italic" class="anim-fade">detached</text>
+      <!-- output -->
+      <line x1="458" y1="168" x2="512" y2="168" stroke="#16A34A" stroke-width="1.4" marker-end="url(#ah-green)" pathLength="1" class="anim-draw"/>
+      <text x="524" y="172" text-anchor="middle" fill="#16A34A" font-size="14" font-weight="700" font-style="italic" class="anim-fade">&#226;<tspan font-size="9" dy="3">j</tspan></text>
+      <!-- predicted-layers brace -->
+      <path d="M28,64 q-7,0 -7,10 v42 q0,10 -7,10 q7,0 7,10 v42 q0,10 7,10" fill="none" stroke="#3B82F6" stroke-opacity=".6" stroke-width="1.3" class="anim-fade"/>
+      <g transform="rotate(-90 2 126)"><text x="2" y="126" fill="#3B82F6" font-size="10" text-anchor="middle" class="anim-fade">predicted layers</text></g>
+    </svg>
+  </div>
+  <p class="note reveal d2" style="text-align:center">
+    Loss is MSE between predicted and actual activations, with no gradient to the main model:
+    &nbsp;\(\;\mathcal{L} = \frac{1}{T}\sum_t \lVert \hat{a}_{j,t} - a_{j,t}\rVert^2\)
+  </p>
+</article>
+
+<!-- Slide: Setup -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Setup</h2>
+  <div class="cols">
+    <div class="block reveal d1">
+      <div class="bt">Main models</div>
+      <div class="bb">
+        <p style="margin:0"><strong>GPT (ours)</strong> <span class="dim">&mdash; 28.9M params</span><br>
+        <span style="font-size:.9em">4 layers, 4 heads, \(d{=}256\), FineWeb-Edu 10M tokens</span></p>
+        <p style="margin:.7rem 0 0"><strong>Llama 3.2 1B</strong> <span class="dim">&mdash; 1.24B params</span><br>
+        <span style="font-size:.9em">16 layers, 32 heads, \(d{=}2048\), frozen, 100M tokens cached</span></p>
+      </div>
+    </div>
+    <div class="block exampleblock reveal d2">
+      <div class="bt">Forward models</div>
+      <div class="bb">
+        <p style="margin:0"><strong>1-layer gap</strong> <span class="dim">&mdash; 330K params (1.1%)</span><br>
+        <span style="font-size:.9em">1 layer, 1 head, \(d_{kqv}{=}64\)</span></p>
+        <p style="margin:.6rem 0 0"><strong>3-layer gap</strong> <span class="dim">&mdash; 660K params (2.3%)</span><br>
+        <span style="font-size:.9em">2 layers, 1 head, \(d_{kqv}{=}64\)</span></p>
+        <p style="margin:.6rem 0 0"><strong>Llama</strong> <span class="dim">&mdash; 26.2M params (2.1%)</span><br>
+        <span style="font-size:.9em">1 layer, 1 head, \(d_{kqv}{=}128\), SwiGLU hidden 4096</span></p>
+      </div>
+    </div>
+  </div>
+  <p class="note reveal d3">All forward models use causal attention, pre-norm, AdamW. Main model weights frozen during forward model training.</p>
+</article>
+
+<!-- ══════════════════════ § RESULTS: TOY SCALE ══════════════════════ -->
+<section class="band" data-observe style="--p:.6">
+  <div class="reveal"><div class="sec-num">SECTION 03</div><h2>Results: Toy Scale</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: Core result -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">A 1%-parameter model captures the layer's function</h2>
+  <div class="stats">
+    <div class="stat blue reveal d1"><div class="n">0.972</div><div class="l">cosine similarity</div></div>
+    <div class="stat green reveal d2"><div class="n">94%</div><div class="l">KL recovery</div></div>
+    <div class="stat purple reveal d3"><div class="n">330K</div><div class="l">params (~1%)</div></div>
+  </div>
+  <div class="cols" style="margin-top:1.2rem">
+    <div class="reveal d2">
+      <div class="tbl-cap">Causal substitution</div>
+      <p style="margin:.2rem 0 .5rem;font-size:.95rem">Replace block&#8202;1 with the forward model's prediction:</p>
+      <table>
+        <thead><tr><th>Mode</th><th>Acc.</th><th>KL</th></tr></thead>
+        <tbody>
+          <tr><td>Normal</td><td>0.222</td><td>&mdash;</td></tr>
+          <tr><td>Substituted</td><td>0.217</td><td>0.062</td></tr>
+          <tr><td>Ablated</td><td>0.146</td><td>1.094</td></tr>
+        </tbody>
+      </table>
+      <p class="note left" style="font-size:.85rem">Recovers 94% of the layer's contribution. Costs 0.5pp accuracy; ablation costs 7.6pp.</p>
+    </div>
+    <div class="reveal d3">
+      <div class="tbl-cap">Comparison</div>
+      <p style="margin:.2rem 0 .5rem;font-size:.95rem">A per-position MLP of similar size:</p>
+      <table>
+        <thead><tr><th></th><th>Cosine</th></tr></thead>
+        <tbody>
+          <tr><td>Forward model (transformer)</td><td><strong>0.972</strong></td></tr>
+          <tr><td>Per-position MLP</td><td>0.788</td></tr>
+        </tbody>
+      </table>
+      <p class="note left" style="font-size:.9rem">The MLP is structurally blind to cross-position effects.</p>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Gauge symmetry -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Same function, different weights</h2>
+  <div class="cols left-wide">
+    <div class="reveal d1">
+      <p style="margin-top:0">The forward model's <em>single</em> head replicates three of block&#8202;1's four attention patterns at \(>0.98\) cosine &mdash; while all weight cosines \(\approx 0\).</p>
+      <table>
+        <thead><tr><th>Head</th><th>Attn cos</th><th>Q cos</th><th>V cos</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td><strong>0.989</strong></td><td>&minus;0.02</td><td>&minus;0.01</td></tr>
+          <tr><td>1</td><td><strong>0.998</strong></td><td>+0.01</td><td>&minus;0.01</td></tr>
+          <tr><td>2</td><td><strong>0.995</strong></td><td>&minus;0.03</td><td>&minus;0.01</td></tr>
+          <tr><td>3</td><td>0.916</td><td>+0.02</td><td>+0.01</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.95rem">Head&nbsp;3: the outlier. 37&times; higher KL than heads 0&ndash;2.</p>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".1">
+      <svg viewBox="0 0 240 300" role="img" aria-label="Two points in parameter space map to the same point in function space">
+        <!-- parameter space -->
+        <rect x="30" y="24" width="180" height="118" rx="6" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.2"/>
+        <text x="120" y="18" text-anchor="middle" fill="#9CA3AF" font-size="11">parameter space</text>
+        <path d="M150,72 C114.8,93.1 99.7,100.3 84.4,108.5" fill="none" stroke="#8B5CF6" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ah-purple)" class="anim-fade"/>
+        <text x="128" y="104" fill="#8B5CF6" font-size="12" font-style="italic" class="anim-fade">R</text>
+        <circle cx="150" cy="70" r="4.5" fill="#3B82F6" class="anim-fade"/>
+        <text x="160" y="68" fill="#3B82F6" font-size="12" font-style="italic" class="anim-fade">W</text>
+        <circle cx="78" cy="112" r="4.5" fill="#16A34A" class="anim-fade"/>
+        <text x="60" y="115" fill="#16A34A" font-size="12" font-style="italic" class="anim-fade">W&#8242;</text>
+        <!-- arrows down to function space -->
+        <line x1="150" y1="142" x2="122" y2="206" stroke="#3B82F6" stroke-opacity=".6" stroke-width="1.1" marker-end="url(#ah-blue)" pathLength="1" class="anim-draw"/>
+        <line x1="78" y1="142" x2="116" y2="206" stroke="#16A34A" stroke-opacity=".6" stroke-width="1.1" marker-end="url(#ah-green)" pathLength="1" class="anim-draw"/>
+        <!-- function space -->
+        <rect x="42" y="214" width="156" height="66" rx="6" fill="#3B82F6" fill-opacity=".05" stroke="#3B82F6" stroke-opacity=".3" stroke-width="1.2"/>
+        <text x="32" y="247" text-anchor="middle" fill="#9CA3AF" font-size="10" transform="rotate(-90 32 247)">function space</text>
+        <circle cx="120" cy="248" r="6" fill="#F59E0B" class="anim-fade"/>
+        <text x="120" y="272" text-anchor="middle" fill="#B45309" font-size="12" font-style="italic" class="anim-fade">f(x) = f&#8242;(x)</text>
+      </svg>
+      <p class="note" style="margin-top:.3rem;font-size:.85rem">\((QR)(KR)^\top = QK^\top\)</p>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Residual tracks complexity -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">The residual tracks computational complexity, not prediction difficulty</h2>
+  <div class="cols">
+    <div class="reveal d1">
+      <table>
+        <thead><tr><th>Computation type</th><th>Error vs. avg</th></tr></thead>
+        <tbody>
+          <tr><td colspan="2" style="background:#fafafb"><strong>Large errors</strong> <span class="dim">(hard to compress)</span></td></tr>
+          <tr><td>Delimiter tracking</td><td><span class="red">+0.84&sigma;</span></td></tr>
+          <tr><td>After opener</td><td><span class="red">+0.62&sigma;</span></td></tr>
+          <tr><td colspan="2" style="background:#fafafb"><strong>Small errors</strong> <span class="dim">(easy to compress)</span></td></tr>
+          <tr><td>Sentence start</td><td><span class="fwd">&minus;0.85&sigma;</span></td></tr>
+          <tr><td>Focused attention</td><td><span class="fwd">&minus;0.61&sigma;</span></td></tr>
+          <tr><td colspan="2" style="background:#fafafb"><strong>No effect</strong></td></tr>
+          <tr><td>Easy vs. hard tokens</td><td><span class="dim">&lt;0.1&sigma;</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note left" style="font-size:.82rem">&sigma; = std. deviations from mean error</p>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".08">
+      <svg viewBox="0 0 340 220" role="img" aria-label="Diverging bar chart of residual error by computation type in standard deviations">
+        <!-- center axis -->
+        <line x1="230" y1="14" x2="230" y2="192" stroke="#334155" stroke-width="1"/>
+        <!-- gridlines -->
+        <g stroke="#E2E8F0" stroke-width=".6">
+          <line x1="140" y1="14" x2="140" y2="192"/><line x1="185" y1="14" x2="185" y2="192"/>
+          <line x1="275" y1="14" x2="275" y2="192"/><line x1="320" y1="14" x2="320" y2="192"/>
+        </g>
+        <g font-size="9" fill="#64748B" text-anchor="middle"><text x="140" y="206">&minus;1</text><text x="185" y="206">&minus;.5</text><text x="230" y="206">0</text><text x="275" y="206">.5</text><text x="320" y="206">1</text></g>
+        <!-- bars: value*90 px from x=230 ; rows y -->
+        <!-- Before closer +0.84 red -->
+        <rect x="230" y="20" width="75.6" height="17" fill="#EF4444" fill-opacity=".65" class="anim-growx" style="transform-origin:230px 20px"/>
+        <text x="115" y="32" text-anchor="end" font-size="10" fill="#334155">Before closer</text>
+        <!-- After opener +0.62 red -->
+        <rect x="230" y="48" width="55.8" height="17" fill="#EF4444" fill-opacity=".65" class="anim-growx" style="transform-origin:230px 48px;--gd:.08s"/>
+        <text x="115" y="60" text-anchor="end" font-size="10" fill="#334155">After opener</text>
+        <!-- Focused attn -0.61 green -->
+        <rect x="175.1" y="76" width="54.9" height="17" fill="#22C55E" fill-opacity=".65" class="anim-growx" style="transform-origin:230px 76px;--gd:.16s"/>
+        <text x="115" y="88" text-anchor="end" font-size="10" fill="#334155">Focused attn</text>
+        <!-- After punct -0.62 green -->
+        <rect x="174.2" y="104" width="55.8" height="17" fill="#22C55E" fill-opacity=".65" class="anim-growx" style="transform-origin:230px 104px;--gd:.24s"/>
+        <text x="115" y="116" text-anchor="end" font-size="10" fill="#334155">After punct</text>
+        <!-- Sentence start -0.85 green -->
+        <rect x="153.5" y="132" width="76.5" height="17" fill="#22C55E" fill-opacity=".65" class="anim-growx" style="transform-origin:230px 132px;--gd:.32s"/>
+        <text x="115" y="144" text-anchor="end" font-size="10" fill="#334155">Sentence start</text>
+        <!-- Prediction diff +0.07 gray -->
+        <rect x="230" y="160" width="6.3" height="17" fill="#9CA3AF" fill-opacity=".55" class="anim-growx" style="transform-origin:230px 160px;--gd:.40s"/>
+        <text x="115" y="172" text-anchor="end" font-size="10" fill="#9CA3AF">Prediction diff.</text>
+      </svg>
+    </div>
+  </div>
+  <div class="block notitle reveal d3" style="margin-top:1.2rem;border-color:#fde68a">
+    <div class="bb" style="background:#fffbeb;text-align:center">
+      Errors reflect the <span class="hl">type of computation</span> (distributed vs. focused attention), not <strong>prediction difficulty</strong>.
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Prediction depth -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Prediction depth: graceful degradation</h2>
+  <p class="reveal d1" style="margin-top:0">Same 1.5%-parameter forward model, predicting across 1&ndash;3 layers on a frozen 77M GPT:</p>
+  <div class="diagram reveal d2">
+    <svg viewBox="0 0 360 240" role="img" aria-label="Bar chart of KL recovery percentage across 1, 2, and 3 predicted layers">
+      <!-- y axis + gridlines (0..100 -> y 200..40) -->
+      <g stroke="#E2E8F0" stroke-width=".7">
+        <line x1="70" y1="200" x2="340" y2="200"/>
+        <line x1="70" y1="160" x2="340" y2="160"/><line x1="70" y1="120" x2="340" y2="120"/>
+        <line x1="70" y1="80" x2="340" y2="80"/><line x1="70" y1="40" x2="340" y2="40"/>
+      </g>
+      <g font-size="10" fill="#64748B" text-anchor="end"><text x="62" y="204">0</text><text x="62" y="124">50</text><text x="62" y="44">100</text></g>
+      <text x="22" y="120" fill="#334155" font-size="11" text-anchor="middle" transform="rotate(-90 22 120)">KL recovery (%)</text>
+      <!-- bars: h = val/100*160 ; baseline 200 -->
+      <rect x="95"  y="54.4" width="56" height="145.6" rx="3" fill="#3B82F6" fill-opacity=".55" stroke="#3B82F6" class="anim-grow" style="transform-origin:123px 200px"/>
+      <rect x="182" y="67.2" width="56" height="132.8" rx="3" fill="#3B82F6" fill-opacity=".55" stroke="#3B82F6" class="anim-grow" style="transform-origin:210px 200px;--gd:.1s"/>
+      <rect x="269" y="78.4" width="56" height="121.6" rx="3" fill="#3B82F6" fill-opacity=".55" stroke="#3B82F6" class="anim-grow" style="transform-origin:297px 200px;--gd:.2s"/>
+      <g font-size="13" font-weight="700" fill="#3B82F6" text-anchor="middle" class="anim-fade">
+        <text x="123" y="47">91%</text><text x="210" y="60">83%</text><text x="297" y="71">76%</text>
+      </g>
+      <g text-anchor="middle" class="anim-fade">
+        <text x="123" y="217" font-size="12" fill="#334155">1 layer</text><text x="123" y="230" font-size="9" fill="#9CA3AF">cos = 0.995</text>
+        <text x="210" y="217" font-size="12" fill="#334155">2 layers</text><text x="210" y="230" font-size="9" fill="#9CA3AF">cos = 0.977</text>
+        <text x="297" y="217" font-size="12" fill="#334155">3 layers</text><text x="297" y="230" font-size="9" fill="#9CA3AF">cos = 0.950</text>
+      </g>
+    </svg>
+  </div>
+  <p class="note reveal d3">A proportionally larger forward model would close this gap (cf. capacity scaling).</p>
+</article>
+
+<!-- ══════════════════════ § SCALING TO LLAMA ══════════════════════ -->
+<section class="band" data-observe style="--p:.8">
+  <div class="reveal"><div class="sec-num">SECTION 04</div><h2>Scaling to Llama 3.2 1B</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: Llama results -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Llama 3.2 1B: the key findings replicate</h2>
+  <div class="stats">
+    <div class="stat blue reveal d1"><div class="n">0.937</div><div class="l">cosine similarity</div></div>
+    <div class="stat green reveal d2"><div class="n">74%</div><div class="l">KL recovery</div></div>
+    <div class="stat purple reveal d3"><div class="n">26.2M</div><div class="l">params (2.1%)</div></div>
+  </div>
+  <div class="cols" style="margin-top:1.2rem">
+    <div class="reveal d2">
+      <div class="tbl-cap">Causal substitution</div>
+      <table>
+        <thead><tr><th>Mode</th><th>Acc.</th><th>KL</th></tr></thead>
+        <tbody>
+          <tr><td>Normal</td><td>0.470</td><td>&mdash;</td></tr>
+          <tr><td>Substituted</td><td>0.456</td><td>0.093</td></tr>
+          <tr><td>Ablated</td><td>0.419</td><td>0.353</td></tr>
+        </tbody>
+      </table>
+      <p class="note left" style="font-size:.85rem">Recovers 74% of layer&#8202;8's contribution. Costs 1.4pp accuracy; ablation costs 5.1pp.</p>
+    </div>
+    <div class="reveal d3">
+      <div class="tbl-cap">Uniform degradation</div>
+      <table>
+        <thead><tr><th>Category</th><th>KL</th><th>Recovery</th></tr></thead>
+        <tbody>
+          <tr><td>High confidence</td><td>0.067</td><td>78%</td></tr>
+          <tr><td>Low confidence</td><td>0.108</td><td>72%</td></tr>
+          <tr><td>Function words</td><td>0.089</td><td>73%</td></tr>
+          <tr><td>Punctuation</td><td>0.061</td><td>75%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="note reveal d4">Recovery ranges 72&ndash;78% across all categories &mdash; no behavior-specific failure at either scale.</p>
+</article>
+
+<!-- Slide: Per-head decomposition -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Per-head decomposition: error maps onto the attention/MLP boundary</h2>
+  <div class="cols left-wide">
+    <div class="diagram reveal d1" data-parallax=".07">
+      <svg viewBox="0 0 340 210" role="img" aria-label="Bar chart: 32 attention heads near zero alignment with the residual, MLP at 0.41">
+        <!-- axes -->
+        <line x1="46" y1="180" x2="330" y2="180" stroke="#E2E8F0" stroke-width="1"/>
+        <line x1="46" y1="30" x2="46" y2="180" stroke="#E2E8F0" stroke-width="1"/>
+        <g stroke="#E2E8F0" stroke-width=".6"><line x1="46" y1="120" x2="330" y2="120"/><line x1="46" y1="60" x2="330" y2="60"/></g>
+        <g font-size="9" fill="#64748B" text-anchor="end"><text x="40" y="184">0</text><text x="40" y="124">0.2</text><text x="40" y="64">0.4</text></g>
+        <text x="16" y="105" fill="#334155" font-size="10" text-anchor="middle" transform="rotate(-90 16 105)">cos(comp, r)</text>
+        <!-- 32 attention heads at 0.019 -> h = .019/.5*150 = 5.7 -->
+        <g fill="#3B82F6" fill-opacity=".5" class="anim-fade">
+          <!-- generated bars -->
+          <rect x="58"  y="174.3" width="4" height="5.7"/><rect x="64"  y="174.3" width="4" height="5.7"/><rect x="70"  y="174.3" width="4" height="5.7"/><rect x="76"  y="174.3" width="4" height="5.7"/>
+          <rect x="82"  y="174.3" width="4" height="5.7"/><rect x="88"  y="174.3" width="4" height="5.7"/><rect x="94"  y="174.3" width="4" height="5.7"/><rect x="100" y="174.3" width="4" height="5.7"/>
+          <rect x="106" y="174.3" width="4" height="5.7"/><rect x="112" y="174.3" width="4" height="5.7"/><rect x="118" y="174.3" width="4" height="5.7"/><rect x="124" y="174.3" width="4" height="5.7"/>
+          <rect x="130" y="174.3" width="4" height="5.7"/><rect x="136" y="174.3" width="4" height="5.7"/><rect x="142" y="174.3" width="4" height="5.7"/><rect x="148" y="174.3" width="4" height="5.7"/>
+          <rect x="154" y="174.3" width="4" height="5.7"/><rect x="160" y="174.3" width="4" height="5.7"/><rect x="166" y="174.3" width="4" height="5.7"/><rect x="172" y="174.3" width="4" height="5.7"/>
+          <rect x="178" y="174.3" width="4" height="5.7"/><rect x="184" y="174.3" width="4" height="5.7"/><rect x="190" y="174.3" width="4" height="5.7"/><rect x="196" y="174.3" width="4" height="5.7"/>
+          <rect x="202" y="174.3" width="4" height="5.7"/><rect x="208" y="174.3" width="4" height="5.7"/><rect x="214" y="174.3" width="4" height="5.7"/><rect x="220" y="174.3" width="4" height="5.7"/>
+          <rect x="226" y="174.3" width="4" height="5.7"/><rect x="232" y="174.3" width="4" height="5.7"/><rect x="238" y="174.3" width="4" height="5.7"/><rect x="244" y="174.3" width="4" height="5.7"/>
+        </g>
+        <!-- MLP bar 0.410 -> h = 123 -->
+        <rect x="284" y="57" width="34" height="123" fill="#EF4444" fill-opacity=".6" stroke="#EF4444" class="anim-grow" style="transform-origin:301px 180px;--gd:.25s"/>
+        <text x="301" y="48" text-anchor="middle" font-size="12" font-weight="700" fill="#B91C1C" class="anim-fade">22&times;</text>
+        <text x="151" y="197" text-anchor="middle" font-size="11" fill="#3B82F6" class="anim-fade">32 attn heads</text>
+        <text x="301" y="197" text-anchor="middle" font-size="11" fill="#B91C1C" class="anim-fade">MLP</text>
+      </svg>
+    </div>
+    <div class="reveal d2">
+      <table>
+        <thead><tr><th></th><th>cos</th><th>corr</th></tr></thead>
+        <tbody>
+          <tr><td>32 heads</td><td>0.019</td><td>0.07</td></tr>
+          <tr><td>MLP</td><td><strong>0.410</strong></td><td><strong>0.577</strong></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.95rem;margin:.6rem 0 0">Attention: <span class="hl">84%</span> of output norm &mdash; but the forward model captures it almost perfectly.</p>
+      <p style="font-size:.95rem;margin:.6rem 0 0">Prediction error aligns with the <span class="red">MLP</span>: pointwise nonlinear computation that resists compression.</p>
+      <p class="note left" style="font-size:.82rem">Recovered via MSE on frozen activations alone.</p>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: Why the boundary -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Why the decomposition falls along this boundary</h2>
+  <div class="cardrow reveal d1">
+    <div class="ocard blue" style="text-align:left">
+      <div class="h">Attention</div>
+      <p style="margin:.2rem 0;font-size:.95rem"><strong>Gauge symmetry</strong><br><span style="font-family:var(--sans);font-size:.85em">\((QR)(KR)^\top = QK^\top\)</span></p>
+      <p style="margin:.5rem 0 0;font-size:.92rem">One compressed head learns a &ldquo;principal attention pattern&rdquo; &mdash; compresses 32 heads at 16&times;.</p>
+      <p style="margin:.5rem 0 0"><span class="fwd">cos &asymp; 0.02 with residual</span></p>
+    </div>
+    <div class="vs">vs</div>
+    <div class="ocard red" style="text-align:left">
+      <div class="h">MLP (SwiGLU)</div>
+      <p style="margin:.2rem 0;font-size:.95rem"><strong>Pointwise nonlinearity</strong><br><span style="font-family:var(--sans);font-size:.85em">Hidden 8192 &rarr; forward 4096</span></p>
+      <p style="margin:.5rem 0 0;font-size:.92rem">Each neuron: independent computation. No rotation trick &mdash; 2&times; compression leaves information behind.</p>
+      <p style="margin:.5rem 0 0"><span class="red">cos = 0.41 with residual</span></p>
+    </div>
+  </div>
+</article>
+
+<!-- ══════════════════════ § DISCUSSION ══════════════════════ -->
+<section class="band" data-observe style="--p:1">
+  <div class="reveal"><div class="sec-num">SECTION 05</div><h2>Discussion</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: What kind of object -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">What kind of object is a forward self-model?</h2>
+  <div class="cardrow reveal d1">
+    <div class="ocard">
+      <div class="h" style="color:var(--grayout)">Probe</div>
+      <div class="d">What information is <em>accessible</em>?</div>
+      <div class="cap">linear readout</div>
+    </div>
+    <div class="ocard">
+      <div class="h" style="color:var(--grayout)">Ablation</div>
+      <div class="d">What is causally <em>necessary</em>?</div>
+      <div class="cap">counterfactual</div>
+    </div>
+    <div class="ocard fsm">
+      <div class="h">Forward self-model</div>
+      <div class="d">What does the layer <em>do</em>?</div>
+      <div class="cap">executable approximation</div>
+    </div>
+  </div>
+  <div class="block alertblock notitle reveal d2" style="margin-top:1.2rem">
+    <div class="bb">
+      The forward self-model approximates <em>the transformation itself</em> &mdash; not what information exists, not what is necessary, but <strong>how the layer transforms its inputs</strong>.
+    </div>
+  </div>
+</article>
+
+<!-- Slide: representation-computation dissociation -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">The representation&ndash;computation dissociation</h2>
+  <div class="cols">
+    <div class="reveal d1">
+      <p style="margin-top:0">Neural networks must simultaneously:</p>
+      <ol class="tight">
+        <li><strong>Discover representations</strong><br><span style="font-size:.92em">Find a basis encoding the data domain's regularities</span></li>
+        <li><strong>Perform computation</strong><br><span style="font-size:.92em">Use that basis to produce valid outputs</span></li>
+      </ol>
+      <p>Capacity limitation is <span class="hl">helpful for computation</span> (prevents memorization) but <span class="red">harmful for representation</span> (limits abstraction).</p>
+    </div>
+    <div class="reveal d2">
+      <p style="margin-top:0">Forward self-models <span class="fwd">dissociate these</span>:</p>
+      <p>The main model's activations provide the <em>optimal representation</em>. The forward model only needs to learn the <em>computational function</em> \(a_i \to a_j\).</p>
+      <div class="block exampleblock">
+        <div class="bt">Consequence</div>
+        <div class="bb">
+          This explains both:
+          <ul class="tight" style="margin-bottom:0">
+            <li>The <strong>parameter efficiency</strong> (1&ndash;3%)</li>
+            <li>The <strong>interpretable residuals</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: primitive -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Forward self-models as a primitive</h2>
+  <p class="reveal d1" style="margin-top:0">A compact, causally faithful, computation-specific model of a neural network's dynamics.</p>
+  <div class="cols">
+    <div class="reveal d2">
+      <h4>For mechanistic interpretability</h4>
+      <ul class="tight">
+        <li>The residual reveals <em>what is genuinely hard to compress</em></li>
+        <li>Automatic decomposition along architecturally meaningful boundaries</li>
+        <li>Complements probes and ablations &mdash; a different lens on the same object</li>
+      </ul>
+    </div>
+    <div class="reveal d3">
+      <h4>For future architectures</h4>
+      <ul class="tight">
+        <li>An explicit model of a network's own computational dynamics</li>
+        <li>Predictions about what its own layers will do</li>
+        <li>Primitive for self-monitoring, metacognition, or adaptive computation</li>
+      </ul>
+    </div>
+  </div>
+</article>
+
+<!-- ══════════════════════ SUMMARY / OUTRO ══════════════════════ -->
+<footer class="outro" data-observe>
+  <div class="reveal"><h2>Summary</h2></div>
+  <div class="scards">
+    <div class="sc reveal d1"><div class="n">0.97 cosine</div><div class="s">330K params (1%)</div></div>
+    <div class="sc reveal d2"><div class="n">94% KL recovery</div><div class="s">causal substitution</div></div>
+    <div class="sc reveal d3"><div class="n">Structured errors</div><div class="s">computational complexity</div></div>
+    <div class="sc reveal d4"><div class="n">Scales to 1B+</div><div class="s">Llama 3.2 replication</div></div>
+  </div>
+  <p class="closing reveal d2">
+    Forward self-models provide a primitive for techniques that require an explicit, compact model of a neural network's computational dynamics.
+  </p>
+  <p class="reveal d3" style="margin-top:1.6rem">
+    Read the full paper: <a href="forward-self-models.html">Forward Self-Models Learn an Empirical Approximation of Neural Network Computation</a><br>
+    Code: <code>github.com/jagilley/forward-self-models</code>
+  </p>
+  <p class="byline reveal d3">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</footer>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // reveal-on-scroll
+  var observed = document.querySelectorAll('[data-observe]');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('in-view'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+    observed.forEach(function(el){ io.observe(el); });
+  } else {
+    observed.forEach(function(el){ el.classList.add('in-view'); });
+  }
+
+  // top scroll-progress bar
+  var bar = document.querySelector('.scroll-progress');
+  // parallax targets
+  var paraEls = reduce ? [] : Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
+  var ticking = false;
+  function update(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var frac = max > 0 ? doc.scrollTop / max : 0;
+    if (bar) bar.style.transform = 'scaleX(' + frac + ')';
+    if (paraEls.length){
+      var vh = window.innerHeight;
+      for (var i=0;i<paraEls.length;i++){
+        var el = paraEls[i];
+        var r = el.getBoundingClientRect();
+        if (r.bottom < -80 || r.top > vh + 80) continue;
+        var center = r.top + r.height/2;
+        var off = (center - vh/2) / vh;            // -0.5 .. 0.5 across viewport
+        var f = parseFloat(el.getAttribute('data-parallax')) || 0.08;
+        el.style.transform = 'translateY(' + (off * f * -80).toFixed(1) + 'px)';
+      }
+    }
+    ticking = false;
+  }
+  function onScroll(){ if (!ticking){ ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll, { passive:true });
+  update();
+})();
+</script>
+
+</body>
+</html>
