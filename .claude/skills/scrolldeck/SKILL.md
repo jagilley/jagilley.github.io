@@ -11,7 +11,10 @@ web page in this blog's faux-LaTeX skin: every slide becomes a card, every figur
 is rebuilt as inline SVG that assembles itself as it scrolls into view, and the
 whole thing reads like an Apple product page wearing a LaTeX sweater.
 
-Reference implementation (study it before building): **`forward-self-models-visual.html`**.
+Reference implementations (study before building): **`forward-self-models-visual.html`**
+(blue/green accent) and **`neural-networks-learn-bottom-up.html`** (orange accent) — two
+decks in the same format with *different signature colors*; see "The palette & per-deck
+accent" below for why.
 Starter skeleton with every primitive wired up: **`references/scaffold.html`** — copy it.
 
 ## The one rule you cannot break
@@ -50,8 +53,8 @@ hard requirement of the format, not a nice-to-have.
 2. **One slide → one panel, content verbatim.** Port the words as-is. Drop only
    pure slide-idiom (title/summary chrome) that the bookends already replace.
 3. **Rebuild figures as SVG — never screenshot the LaTeX/beamer output.** TikZ
-   diagrams become hand-built inline SVG in the fixed palette. This is where the
-   Overlap-QA loop earns its keep.
+   diagrams become hand-built inline SVG in the deck's palette (see below). This is
+   where the Overlap-QA loop earns its keep.
 4. **Serif prose, sans furniture.** Body prose inherits the LaTeX serif (the
    blog's signature). Diagram labels, stat numbers, table text, and block titles
    use `--sans`. This mirrors beamer's `\sffamily` labels over serif body.
@@ -75,9 +78,11 @@ hard requirement of the format, not a nice-to-have.
 7. **Wire it into the blog:** add an entry to `blog-archive.html` (newest first)
    and a `<loc>` to `sitemap.xml`. Link the companion prose post from the lead/outro.
 
-## The palette (do not improvise colors)
+## The palette & per-deck accent
 
-Beamer-extended, exposed as CSS vars in the scaffold:
+The table below is the **vocabulary** of hues (beamer-extended, exposed as CSS vars
+in the scaffold) — not a fixed per-element assignment. Don't *improvise* colors (no
+eyeballed one-off hex), but **do** give each deck its own signature identity:
 
 | var | hex | use |
 |---|---|---|
@@ -90,6 +95,31 @@ Beamer-extended, exposed as CSS vars in the scaffold:
 | `--streamgray` | `#64748B` | structural lines (residual stream, axes) |
 | `--grayout` | `#9CA3AF` | dimmed / `.dim` |
 | `--slate800/700/200/100/50` | see scaffold | dark bg / body text / borders / tints |
+
+**Per-deck signature accent.** Every scrolldeck earns *one* signature accent that
+owns the **chrome** — the scroll-progress bar, section bands, progress meters, the
+`.frame-title` left-rule, primary `.hl` and block titles — and it is often *not* the
+default blue. Derive it from the source when the deck has a color identity of its
+own: carry the source's `\definecolor`s over verbatim, compute any blends
+**precisely** (e.g. a beamer warmth scale `learned!P!unlearned` → generate the six
+band hexes with a throwaway script; never eyeball a gradient), then let the central
+metaphor drive the assignment. Two worked examples:
+
+- `forward-self-models-visual.html` runs on **blue + green** — its thesis is
+  "forward model = green, main model = blue," so those own the chrome.
+- `neural-networks-learn-bottom-up.html` runs on **orange** (`--gateorange #F97316`,
+  lifted straight from the source `.tex`) — its warmth scale encodes *how far each
+  level is learned*, so orange owns the chrome and blue is demoted to the
+  hierarchy / top-down / model role.
+
+The scaffold ships blue-primary; to re-accent, add your var (e.g. `--gateorange`) and
+repoint the chrome rules at it (`.scroll-progress`, the `.band`/`.sec-num`/
+`.sec-progress i` accents, `.frame-title` border, `.hl`, block-title backgrounds),
+then reassign the secondary colors (blue/green/red/purple) to whatever the metaphor
+needs — add a matching arrowhead `<marker>` (`#ah-orange`) and block variant
+(`.gateblock`) if the accent isn't already covered. When the source has no strong
+palette, pick one accent that fits the topic and commit to it. The rule is *don't
+invent arbitrary per-element hex* — not *always use blue*.
 
 ## SVG conventions
 
