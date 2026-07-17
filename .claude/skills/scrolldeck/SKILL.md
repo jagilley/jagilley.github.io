@@ -75,8 +75,23 @@ hard requirement of the format, not a nice-to-have.
 5. **Run the Overlap-QA loop** on every SVG (`references/overlap-qa.md`). Non-negotiable.
 6. **Verify the whole page** with headless Chrome, in normal *and* reduced-motion/
    no-JS state (render the isolation harness, which mirrors those overrides).
-7. **Wire it into the blog:** add an entry to `blog-archive.html` (newest first)
-   and a `<loc>` to `sitemap.xml`. Link the companion prose post from the lead/outro.
+7. **Make the share card (OG image).** Build a full-bleed **1200×630** card that
+   reproduces the hero — kicker, title, subtitle, the hero glyph SVG, byline, on the
+   `slate800` background with the accent radial glow — as a *standalone* HTML (reuse
+   the hero's CSS; leave the `anim-*` classes undefined so every element renders at
+   its final, fully-visible state). Render at 2× (`--force-device-scale-factor=2
+   --window-size=1200,630`) then downsample to 1200×630 (`sips -z 630 1200`) for crisp
+   anti-aliasing. Do **not** just screenshot the live hero — you'd capture the gray
+   page margins and rounded corners. Save to `resources/<slug>-og.png`, then add
+   `og:image` (+ `og:image:width`/`height`/`alt`) and `twitter:image` meta tags
+   pointing at `https://jagilley.github.io/resources/<slug>-og.png` (keep
+   `twitter:card=summary_large_image`). Mirror the *current* hero wording and
+   re-render if the hero changes; social scrapers cache, so re-scrape via the
+   platform card validators after publishing.
+8. **Wire it into the blog:** add an entry to `blog-archive.html` (newest first)
+   and a `<loc>` to `sitemap.xml`. Link the companion prose post from the lead/outro
+   (if there is none, the archive entry's title links straight to the scrolldeck —
+   drop the "Visual walkthrough" sub-link).
 
 ## The palette & per-deck accent
 
