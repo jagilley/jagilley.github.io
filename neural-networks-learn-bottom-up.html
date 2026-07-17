@@ -171,7 +171,7 @@
   <div class="reveal">
     <div class="kicker">A Visual Walkthrough</div>
     <h1>Learning From the Bottom Up</h1>
-    <p class="sub">When direction and depth of learning are set by the data, not the model</p>
+    <p class="sub">Direction and depth of learning in the data-limited regime</p>
   </div>
   <svg class="reveal d2" viewBox="0 0 312 190" role="img" aria-label="A pyramid of six stacked hierarchy levels, warm orange at the base fading to pale at the top, with an orange arrow climbing up its right side labeled learning climbs">
 <defs><clipPath id="hpyr"><polygon points="150,32 214,150 86,150"/></clipPath></defs>
@@ -226,7 +226,7 @@
 
 <!-- Slide: Language is hierarchical -->
 <article class="panel" data-observe>
-  <h2 class="frame-title reveal">Language is hierarchical &mdash; in two ways</h2>
+  <h2 class="frame-title reveal">Language is hierarchical, in two ways</h2>
   <div class="cols">
     <div class="reveal d1">
       <p style="margin-top:0">Train a network on data with hierarchical structure, like language, and two hierarchies are in play:</p>
@@ -720,7 +720,7 @@
 <text x="358" y="374" fill="#64748B" font-size="9.5" class="anim-fade">frontier (top learned level)</text>
 </svg>
   </div>
-  <p class="note reveal d2">Warmth = how far each level is learned (real per-level loss, \(m{=}2\) model). The order in which each level <em>begins</em> to fall is perfectly monotonic: leaves first, root last.</p>
+  <p class="note reveal d2">Warmth = how far each level is learned (real per-level loss, \(m{=}2\) model). The order in which each level <em>begins</em> to fall is perfectly monotonic: leaves first, root last. Here that model is a 4-layer, 4-head transformer (\(d{=}128\), ~0.8M params) trained on 5M tokens of Random Hierarchy Model data at \(L{=}6,\ v{=}8,\ m{=}2\) (64-token sequences).</p>
 </article>
 
 <!-- Slide: The same wave in the numbers -->
