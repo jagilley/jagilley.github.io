@@ -19,6 +19,12 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://jagilley.github.io/rl-is-not-enough.html</loc>
+    <lastmod>2026-08-25</lastmod>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://jagilley.github.io/confabulation-test.html</loc>
     <lastmod>2026-08-17</lastmod>
     <priority>0.9</priority>

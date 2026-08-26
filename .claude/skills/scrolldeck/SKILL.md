@@ -1,6 +1,6 @@
 ---
 name: scrolldeck
-description: Build a "scrolldeck" — a faux-LaTeX, scroll-driven visual presentation for the jagilley.github.io blog. Use when asked to make a visual/slides-style/scrollytelling post, port a talk or beamer/LaTeX deck into a scrollable web page, or create an "Apple-webpage-style" walkthrough where content and diagrams reveal on scroll. The reference implementation is forward-self-models-visual.html. REQUIRES a subagent visual-QA pass on every SVG (see references/overlap-qa.md) — do not skip it.
+description: Build a "scrolldeck" — a faux-LaTeX, scroll-driven visual presentation for the jagilley.github.io blog. Use when asked to make a visual/slides-style/scrollytelling post, port a talk or beamer/LaTeX deck into a scrollable web page, or create an "Apple-webpage-style" walkthrough where content and diagrams reveal on scroll. ALWAYS start by finding and reading the most recently built scrolldeck in the repo as the reference implementation (see "Find the reference deck"). REQUIRES a subagent visual-QA pass on every SVG (see references/overlap-qa.md) — do not skip it.
 ---
 
 # Scrolldeck
@@ -11,11 +11,39 @@ web page in this blog's faux-LaTeX skin: every slide becomes a card, every figur
 is rebuilt as inline SVG that assembles itself as it scrolls into view, and the
 whole thing reads like an Apple product page wearing a LaTeX sweater.
 
-Reference implementations (study before building): **`forward-self-models-visual.html`**
-(blue/green accent) and **`neural-networks-learn-bottom-up.html`** (orange accent) — two
-decks in the same format with *different signature colors*; see "The palette & per-deck
-accent" below for why.
 Starter skeleton with every primitive wired up: **`references/scaffold.html`** — copy it.
+For the *reference implementation*, don't use a name hardcoded here — look it up (next section).
+
+## Find the reference deck (do this first, every time)
+
+**The most recently built scrolldeck in this repo is the reference implementation.**
+Each new deck absorbs the fixes and refinements of the one before it, so the newest
+file — not a name frozen into this document — is the truest statement of the format.
+From the repo root:
+
+```bash
+ls -t $(grep -l 'class="scroll-progress"' *.html) | head -3
+```
+
+`class="scroll-progress"` appears exactly once in every scrolldeck and in no other
+post, so this lists the decks newest-first. It sorts by mtime, so it also catches a
+draft that hasn't been committed or added to the archive yet.
+
+**Read the top result end to end before you build anything** — its structure, its CSS
+deltas from the scaffold, its SVG idioms, its metadata block. Prefer *its* current
+practice over anything in this file that contradicts it. Skim the second result too
+when you want to see what changed between decks (`diff` them, or
+`git log --oneline -- <file>` for the newest deck's own revision history — the fix
+commits after publication are usually the most instructive part).
+
+If the top result's mtime looks misleading (a stale `touch`, a bulk reformat, a
+half-finished draft), cross-check real publication order against `blog-archive.html`
+(newest first) and `git log -1 --format=%ad --date=short -- <file>`, and fall through
+to the next entry.
+
+When you finish a deck, push anything that *generalizes* back into this skill or
+`references/scaffold.html`. The newest deck carries the practice; SKILL.md carries
+the rule.
 
 ## The one rule you cannot break
 
@@ -64,9 +92,9 @@ hard requirement of the format, not a nice-to-have.
 
 ## Build workflow
 
-1. **Read the source** (the `.tex`/slides) and the reference post
-   `forward-self-models-visual.html`. Map each slide to a panel and each
-   `\section` to a band.
+1. **Read the source** (the `.tex`/slides) and the **most recent scrolldeck**
+   (resolve it with the `ls -t` command above — never a hardcoded filename). Map each
+   slide to a panel and each `\section` to a band.
 2. **Copy `references/scaffold.html`** to `<slug>.html`. Fill in metadata.
 3. **Build the bookends**, then the bands, then the panels top to bottom. Keep
    prose verbatim; choose `.block`/`.stats`/`.cols` layouts per slide.

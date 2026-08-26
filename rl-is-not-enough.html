@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Reward optimization selects within the basis pretraining built — and pays more for it the more ways there are to be right. Exact bounds and three RL mechanisms on a generative model with known ground truth." />
+  <title>RL Is Not Enough When There Are Many Right Answers | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/rl-is-not-enough.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="RL Is Not Enough When There Are Many Right Answers" />
+  <meta property="og:description" content="Reward optimization selects within the basis pretraining built — and pays more for it the more ways there are to be right." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/rl-is-not-enough-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="RL is not enough when there are many right answers — a pyramid of hierarchy levels, cyan where the model has learned the structure and pale where it has not, cut by a fixed crimson dashed boundary while an amber arrow marks the pass rate climbing." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <meta name="twitter:image" content="https://jagilley.github.io/resources/rl-is-not-enough-og.png" />
+  <link rel="canonical" href="https://jagilley.github.io/rl-is-not-enough.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    :root{
+      /* signature accent — CRIMSON is the basis boundary: the line pretraining drew
+         and reward never moves. It owns the chrome. CYAN is the basis itself; the
+         source's warmth scale becomes a depth-of-colour scale here, pale slate =
+         at chance, deep cyan = that level's structure is learned. AMBER is the
+         reward channel — pass rate, the number that climbs anyway. */
+      --crimson:#E11D48; --crimson700:#BE123C; --crimson900:#881337; --crimson400:#FB7185; --crimson300:#FDA4AF; --crimson50:#FFF1F2;
+      --basis:#0E7490; --basis600:#0891B2; --basis400:#22D3EE; --basis300:#67E8F9; --basis900:#164E63; --basis50:#ECFEFF;
+      --unlearned:#E2E8F0;
+      --amber:#F59E0B; --amber600:#D97706; --amber700:#B45309; --amber300:#FCD34D; --amber50:#FFFBEB;
+      /* the two verifiers: blue = canonical (one right answer), green = validity (many) */
+      --mainblue:#3B82F6; --maindark:#1E3A5F; --emerald600:#059669; --fwdgreen:#22C55E; --fwddark:#14532D; --emerald50:#ECFDF5;
+      --arrowyellow:#EAB308; --grayout:#9CA3AF; --streamgray:#64748B; --warmred:#EF4444; --softpurple:#8B5CF6;
+      --slate50:#F8FAFC; --slate100:#F1F5F9; --slate200:#E2E8F0; --slate700:#334155; --slate800:#1E293B;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+    }
+    html{ scroll-behavior:smooth; }
+    body{ background:#f0f0f0; color:#333; max-width:1080px; margin:0 auto; padding:2rem 1.5rem 4rem; font-size:1.1rem; overflow-x:hidden; }
+    a{ color:#0366d6; }
+    .archive-link{ margin-bottom:1.5rem; display:inline-block; }
+
+    .scroll-progress{ position:fixed; top:0; left:0; right:0; height:3px; z-index:50; background:var(--crimson); transform:scaleX(0); transform-origin:0 50%; transition:transform .08s linear; }
+
+    .hero{ background:var(--slate800); color:#fff; border-radius:18px; padding:4rem 2rem 3.25rem; text-align:center; margin:.5rem 0 0; position:relative; overflow:hidden; }
+    .hero::after{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -10%, rgba(225,29,72,.30), transparent 60%); pointer-events:none; }
+    .hero h1{ color:#fff; font-size:clamp(1.75rem,5.4vw,3.05rem); margin:.6rem auto .2rem; line-height:1.08; text-wrap:balance; hyphens:manual; }
+    .hero .sub{ color:var(--slate200); font-size:1.08rem; max-width:46ch; margin:.9rem auto 0; line-height:1.5; hyphens:manual; }
+    .hero .byline{ color:var(--grayout); font-family:var(--sans); font-size:.9rem; margin-top:2rem; }
+    .hero .paperlinks{ display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center; margin:1.9rem auto 0; }
+    .hero .paperlinks a{ display:inline-flex; align-items:center; gap:.5rem; font-family:var(--sans); font-size:.92rem; font-weight:600;
+      color:#fff; text-decoration:none; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.24);
+      border-radius:999px; padding:.55rem 1.15rem; line-height:1;
+      transition:background .2s ease, border-color .2s ease, transform .2s ease; }
+    .hero .paperlinks a:hover, .hero .paperlinks a:focus-visible{ background:var(--crimson); border-color:var(--crimson); transform:translateY(-1px); }
+    .hero .paperlinks svg{ display:block; margin:0; width:16px; height:16px; max-width:none; flex:none; }
+    .hero svg{ display:block; margin:2.4rem auto 1.6rem; max-width:min(560px,94%); height:auto; position:relative; }
+    .lead{ font-family:var(--sans); color:var(--slate700); font-size:1rem; text-align:center; max-width:62ch; margin:1.75rem auto 0; line-height:1.6; hyphens:manual; }
+    .scroll-cue{ display:block; margin-top:1.1rem; color:var(--grayout); font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; }
+    .scroll-cue::after{ content:"\2193"; display:block; font-size:1.2rem; margin-top:.2rem; animation:bob 1.8s ease-in-out infinite; }
+    @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+
+    .band{ background:var(--slate800); color:#fff; border-radius:16px; padding:2.4rem 2.2rem; margin:3rem 0 1.5rem; position:relative; overflow:hidden; }
+    .band .sec-num{ font-family:var(--sans); color:var(--crimson400); font-weight:700; letter-spacing:.2em; font-size:.78rem; }
+    .band h2{ color:#fff; margin:.35rem 0 0; font-size:clamp(1.6rem,4.5vw,2.1rem); border:none; }
+    .band .sec-progress{ height:3px; background:rgba(255,255,255,.14); border-radius:3px; margin-top:1.3rem; overflow:hidden; }
+    .band .sec-progress i{ display:block; height:100%; background:var(--crimson400); border-radius:3px; transform-origin:0 50%; transform:scaleX(0); transition:transform 1.1s cubic-bezier(.22,.61,.36,1) .1s; }
+    .band.in-view .sec-progress i{ transform:scaleX(var(--p,.2)); }
+
+    .panel{ background:#fff; border:1px solid #e7e7ea; border-radius:16px; padding:2.1rem 2.2rem; margin:1.5rem 0; box-shadow:0 6px 30px rgba(15,23,42,.06); }
+    .frame-title{ font-weight:700; color:#111; font-size:1.4rem; line-height:1.25; margin:0 0 1.25rem; padding-left:.85rem; border-left:4px solid var(--crimson); }
+    .panel p{ line-height:1.6; } .panel p:first-of-type{ margin-top:0; }
+    .note{ font-family:var(--sans); color:var(--grayout); font-size:.92rem; text-align:center; margin:1.1rem 0 0; }
+    .note.left{ text-align:left; }
+
+    /* inline emphasis — the source's \warmtext / \hltext / \greentext / \dimtext */
+    .hl{ color:var(--crimson); font-weight:700; } .basis{ color:var(--basis); font-weight:700; }
+    .blue{ color:var(--mainblue); font-weight:700; } .fwd{ color:var(--fwddark); font-weight:700; }
+    .amberT{ color:var(--amber700); font-weight:700; }
+    .dim{ color:var(--grayout); } .red{ color:var(--crimson); font-weight:700; }
+
+    .block{ border-radius:9px; overflow:hidden; border:1px solid var(--slate200); margin:1.1rem 0; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+    .block > .bt{ background:var(--crimson); color:#fff; font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.5rem .95rem; }
+    .block > .bb{ background:var(--crimson50); padding:.95rem 1.1rem; } .block > .bb :last-child{ margin-bottom:0; }
+    .basisblock > .bt{ background:var(--basis); } .basisblock > .bb{ background:var(--basis50); }
+    .exampleblock > .bt{ background:var(--emerald600); } .exampleblock > .bb{ background:var(--emerald50); }
+
+    .stats{ display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:1.5rem 0; }
+    .stat{ flex:1 1 170px; max-width:250px; border-radius:12px; padding:1.1rem 1rem; text-align:center; }
+    .stat .n{ font-family:var(--sans); font-weight:800; font-size:2rem; line-height:1; letter-spacing:-.01em; }
+    .stat .l{ font-family:var(--sans); font-size:.85rem; color:var(--slate700); margin-top:.4rem; }
+    .stat.crimson{ background:rgba(225,29,72,.09);} .stat.crimson .n{ color:var(--crimson); }
+    .stat.basis{ background:rgba(14,116,144,.10);} .stat.basis .n{ color:var(--basis); }
+    .stat.amber{ background:rgba(245,158,11,.14);} .stat.amber .n{ color:var(--amber700); }
+    .stat.blue{ background:rgba(59,130,246,.10);} .stat.blue .n{ color:var(--mainblue); }
+
+    .cols{ display:grid; grid-template-columns:1fr 1fr; gap:1.9rem; align-items:start; }
+    .cols.left-wide{ grid-template-columns:1.15fr 1fr; } .cols.right-wide{ grid-template-columns:1fr 1.15fr; }
+    .cols h4{ margin:.2rem 0 .5rem; font-size:1.05rem; }
+    @media (max-width:760px){ .cols,.cols.left-wide,.cols.right-wide{ grid-template-columns:1fr; gap:1.25rem; } }
+
+    .diagram{ text-align:center; } .diagram svg{ max-width:100%; height:auto; } .diagram text{ font-family:var(--sans); }
+    .diagram.wide svg{ width:100%; }
+
+    /* the two verifier cards (source: two tikz card nodes) */
+    .vcards{ display:grid; grid-template-columns:1fr 1fr; gap:1.1rem; margin:1.4rem 0 0; }
+    .vcard{ border-radius:10px; border:1px solid; padding:.85rem 1rem; font-family:var(--sans); font-size:.94rem; line-height:1.45; }
+    .vcard .vt{ font-weight:700; } .vcard .vs{ display:block; margin-top:.4rem; font-size:.82rem; color:var(--slate700); }
+    .vcard.exact{ border-color:var(--mainblue); background:rgba(59,130,246,.05); }
+    .vcard.parse{ border-color:var(--emerald600); background:rgba(5,150,105,.05); }
+    @media (max-width:760px){ .vcards{ grid-template-columns:1fr; } }
+
+    table{ border-collapse:collapse; width:100%; margin:1rem 0; font-size:.92rem; font-family:var(--sans); }
+    th,td{ border:1px solid #e2e2e6; padding:.42rem .6rem; text-align:left; vertical-align:top; } th{ background:var(--slate100); font-weight:600; color:var(--slate800); }
+    td strong{ color:#111; } td.num, th.num{ text-align:right; font-variant-numeric:tabular-nums; }
+    .tbl-cap{ font-family:var(--sans); font-weight:600; font-size:.95rem; text-align:left; margin:.2rem 0 .3rem; color:var(--slate800); }
+
+    ul.tight{ margin:.4rem 0; padding-left:1.2rem; } ul.tight li{ margin:.28rem 0; }
+    ol.tight{ margin:.4rem 0; padding-left:1.3rem; } ol.tight li{ margin:.35rem 0; }
+
+    .outro{ background:var(--slate800); color:#fff; border-radius:18px; padding:3rem 2rem 2.5rem; text-align:center; margin:3rem 0 0; position:relative; overflow:hidden; }
+    .outro::after{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 110%, rgba(8,145,178,.30), transparent 60%); pointer-events:none; }
+    .outro h2{ color:#fff; border:none; margin:0 0 1.4rem; }
+    .outro .scards{ display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; }
+    .outro .sc{ flex:1 1 160px; max-width:210px; background:var(--slate700); border-radius:10px; padding:.9rem .8rem; }
+    .outro .sc .n{ font-family:var(--sans); font-weight:700; font-size:1.02rem; }
+    .outro .sc .s{ font-family:var(--sans); font-size:.72rem; color:var(--slate200); margin-top:.25rem; line-height:1.35; hyphens:manual; }
+    .outro .closing{ color:var(--slate200); max-width:62ch; margin:1.9rem auto 0; line-height:1.6; }
+    .outro .byline{ color:var(--grayout); font-family:var(--sans); font-size:.85rem; margin-top:1.4rem; }
+    .outro a{ color:var(--crimson300); }
+    .post-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:.5rem; flex-wrap:wrap; gap:.5rem; }
+    .post-footer .author{ text-align:right; margin:0; font-family:var(--sans); font-size:.95rem; } .post-footer .author a{ margin-left:.75rem; }
+
+    .anim-draw{ stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset 1.05s cubic-bezier(.22,.61,.36,1) .15s; }
+    .in-view .anim-draw{ stroke-dashoffset:0; }
+    .anim-fade{ opacity:0; transition:opacity .55s ease .45s; } .in-view .anim-fade{ opacity:1; }
+    .anim-grow{ opacity:0; transform:scaleY(.02); transform-origin:bottom; transition:transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-grow{ opacity:1; transform:scaleY(1); }
+    .anim-growx{ opacity:0; transform:scaleX(.02); transform-origin:left; transition:transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-growx{ opacity:1; transform:scaleX(1); }
+    .reveal{ opacity:0; transform:translateY(26px); transition:opacity .75s cubic-bezier(.22,.61,.36,1), transform .75s cubic-bezier(.22,.61,.36,1); }
+    .in-view .reveal, .reveal.in-view{ opacity:1; transform:none; }
+    .d1{ transition-delay:.06s; } .d2{ transition-delay:.14s; } .d3{ transition-delay:.22s; } .d4{ transition-delay:.30s; } .d5{ transition-delay:.38s; }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+      .reveal,.anim-grow,.anim-growx{ transform:none !important; }
+      .anim-draw{ stroke-dashoffset:0 !important; }
+      .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+      .scroll-cue::after{ animation:none; }
+    }
+  </style>
+  <noscript><style>
+    .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+    .reveal,.anim-grow,.anim-growx{ transform:none !important; }
+    .anim-draw{ stroke-dashoffset:0 !important; }
+    .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+    .scroll-progress{ display:none; }
+  </style></noscript>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<!-- shared SVG arrowhead markers -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah-white" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+  <marker id="ah-gray" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <marker id="ah-grayout" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9CA3AF"/></marker>
+  <marker id="ah-crimson" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#E11D48"/></marker>
+  <marker id="ah-basis" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0E7490"/></marker>
+  <marker id="ah-amber" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#F59E0B"/></marker>
+  <marker id="ah-amber-dk" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D97706"/></marker>
+  <marker id="ah-blue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3B82F6"/></marker>
+  <marker id="ah-green" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+  <marker id="ah-maindark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1E3A5F"/></marker>
+  <pattern id="nosig" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse">
+    <line x1="0" y1="0" x2="0" y2="7" stroke="#9CA3AF" stroke-width="1.6" stroke-opacity=".7"/>
+  </pattern>
+</defs></svg>
+
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<header class="hero" data-observe>
+  <div class="reveal">
+    <h1>RL is not enough<br>when there are many right answers</h1>
+    <p class="sub">Reward optimization selects within the basis pretraining built &mdash; and pays more for it the more ways there are to be right</p>
+  </div>
+  <nav class="paperlinks reveal d1" aria-label="Post resources">
+    <a href="https://drive.google.com/file/d/1pf1m6_X0EKCCsJnG8x9mPyuUWbBNbmyV/view?usp=sharing" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4M2 10h4M2 14h4M2 18h4"/><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M15 2v20"/></svg>
+      Colab
+    </a>
+  </nav>
+  <svg class="reveal d2" viewBox="0 28 520 186" role="img" aria-label="A pyramid of six stacked hierarchy levels. The bottom band is bright cyan (the model has learned that level), and the bands fade to near-background darkness toward the apex (nothing learned there). A crimson dashed line cuts across the pyramid a third of the way up and continues out to the right, labeled 'boundary: fixed'. To the left of the pyramid an amber arrow points upward, labeled 'pass rate climbs'.">
+    <defs><clipPath id="heroPyr"><polygon points="120,196 225,46 330,196"/></clipPath></defs>
+    <g clip-path="url(#heroPyr)">
+      <rect x="100" y="171" width="250" height="25" fill="#22D3EE" class="anim-fade"/>
+      <rect x="100" y="146" width="250" height="25" fill="#289CB4" class="anim-fade"/>
+      <rect x="100" y="121" width="250" height="25" fill="#2E6D83" class="anim-fade"/>
+      <rect x="100" y="96"  width="250" height="25" fill="#32485D" class="anim-fade"/>
+      <rect x="100" y="71"  width="250" height="25" fill="#32455A" class="anim-fade"/>
+      <rect x="100" y="46"  width="250" height="25" fill="#334458" class="anim-fade"/>
+      <g stroke="#1E293B" stroke-width="1.1" stroke-opacity=".75" class="anim-fade">
+        <line x1="100" y1="171" x2="350" y2="171"/><line x1="100" y1="146" x2="350" y2="146"/>
+        <line x1="100" y1="96" x2="350" y2="96"/><line x1="100" y1="71" x2="350" y2="71"/>
+      </g>
+      <line x1="100" y1="121" x2="350" y2="121" stroke="#FB7185" stroke-width="2.2" stroke-dasharray="6 4" class="anim-fade" style="transition-delay:.6s"/>
+    </g>
+    <polygon points="120,196 225,46 330,196" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1.2" pathLength="1" class="anim-draw"/>
+    <line x1="290" y1="121" x2="400" y2="121" stroke="#FB7185" stroke-width="2.2" stroke-dasharray="6 4" class="anim-fade" style="transition-delay:.6s"/>
+    <text x="408" y="125.5" fill="#FDA4AF" font-size="12.5" font-weight="700" class="anim-fade">boundary: fixed</text>
+    <line x1="86" y1="194" x2="86" y2="54" stroke="#F59E0B" stroke-width="2.4" marker-end="url(#ah-amber)" pathLength="1" class="anim-draw"/>
+    <text x="74" y="120" text-anchor="end" fill="#FCD34D" font-size="12.5" font-weight="700" class="anim-fade">pass rate</text>
+    <text x="74" y="136" text-anchor="end" fill="#FCD34D" font-size="12.5" font-weight="700" class="anim-fade">climbs</text>
+  </svg>
+  <p class="byline reveal d3">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</header>
+
+<p class="lead">
+  RL from a blank slate conquers games; on language we pretrain first and use reward only to finish.
+  Here is what reward optimization actually does to a model whose generating process we know exactly &mdash;
+  three mechanisms, five levels of synonymy, two verifiers, and a boundary that never moves.
+  <span class="scroll-cue">Scroll</span>
+</p>
+
+<!-- ══════════════════ § 01 THE QUESTION ══════════════════ -->
+<section class="band" id="section-01" data-observe style="--p:.2">
+  <div class="reveal"><div class="sec-num">SECTION 01</div><h2>The question</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: games vs language -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Games yield to RL from scratch. Language does not.</h2>
+  <div class="cols">
+    <div class="reveal d1">
+      <p style="margin-top:0">RL from a blank slate conquers games; on language we <span class="basis">pretrain</span> first
+        and use reward only to finish. The obvious difference: <span class="hl">how many right answers</span>
+        each state admits.</p>
+      <div class="block">
+        <div class="bt">The sharper question</div>
+        <div class="bb">Does reward optimization <em>create</em> capability in the basis pretraining built &mdash;
+          or only rearrange and degrade what is already there?</div>
+      </div>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".07">
+      <svg viewBox="0 0 400 341" role="img" aria-label="Two stacked panels. The top panel, titled 'a game: one best move', shows a box labeled 'state' with three gray arrows fanning out to three small answer tiles: the top tile is amber with a check mark and is annotated 'the only reward'; the two below are pale gray with crosses. The bottom panel, titled 'language: many valid continuations', shows a box labeled 'prompt' with five gray arrows fanning out to five green answer tiles, each with a check mark, annotated 'different strings, same meaning'.">
+        <text x="6" y="16" fill="#1E3A5F" font-size="12.5" font-weight="700" class="anim-fade">a game: one best move</text>
+        <rect x="12" y="63" width="66" height="34" rx="5" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3" class="anim-fade"/>
+        <text x="45" y="85" text-anchor="middle" fill="#164E63" font-size="12" font-weight="700" class="anim-fade">state</text>
+        <g stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw">
+          <line x1="80" y1="79" x2="217" y2="46"/><line x1="80" y1="80" x2="217" y2="80"/><line x1="80" y1="81" x2="217" y2="114"/>
+        </g>
+        <rect x="222" y="32" width="52" height="28" rx="4" fill="#FEF3C7" stroke="#D97706" stroke-width="1.1" class="anim-fade"/>
+        <text x="248" y="51" text-anchor="middle" fill="#B45309" font-size="14" font-weight="700" class="anim-fade">&#10003;</text>
+        <rect x="222" y="66" width="52" height="28" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.1" class="anim-fade"/>
+        <text x="248" y="85" text-anchor="middle" fill="#9CA3AF" font-size="14" font-weight="700" class="anim-fade">&#10007;</text>
+        <rect x="222" y="100" width="52" height="28" rx="4" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.1" class="anim-fade"/>
+        <text x="248" y="119" text-anchor="middle" fill="#9CA3AF" font-size="14" font-weight="700" class="anim-fade">&#10007;</text>
+        <text x="282" y="50" fill="#64748B" font-size="11.5" class="anim-fade">the only reward</text>
+
+        <line x1="6" y1="152" x2="394" y2="152" stroke="#E2E8F0" stroke-width="1" class="anim-fade"/>
+
+        <text x="6" y="180" fill="#1E3A5F" font-size="12.5" font-weight="700" class="anim-fade">language: many valid continuations</text>
+        <rect x="12" y="247" width="66" height="34" rx="5" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3" class="anim-fade"/>
+        <text x="45" y="269" text-anchor="middle" fill="#164E63" font-size="12" font-weight="700" class="anim-fade">prompt</text>
+        <g stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw">
+          <line x1="80" y1="262" x2="217" y2="208"/><line x1="80" y1="263" x2="217" y2="236"/><line x1="80" y1="264" x2="217" y2="264"/>
+          <line x1="80" y1="265" x2="217" y2="292"/><line x1="80" y1="266" x2="217" y2="320"/>
+        </g>
+        <g class="anim-fade">
+          <rect x="222" y="196" width="52" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="1.1"/>
+          <text x="248" y="213" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">&#10003;</text>
+          <rect x="222" y="224" width="52" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="1.1"/>
+          <text x="248" y="241" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">&#10003;</text>
+          <rect x="222" y="252" width="52" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="1.1"/>
+          <text x="248" y="269" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">&#10003;</text>
+          <rect x="222" y="280" width="52" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="1.1"/>
+          <text x="248" y="297" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">&#10003;</text>
+          <rect x="222" y="308" width="52" height="24" rx="4" fill="#ECFDF5" stroke="#059669" stroke-width="1.1"/>
+          <text x="248" y="325" text-anchor="middle" fill="#14532D" font-size="13" font-weight="700">&#10003;</text>
+        </g>
+        <text x="282" y="260" fill="#64748B" font-size="11.5" class="anim-fade">different strings,</text>
+        <text x="282" y="275" fill="#64748B" font-size="11.5" class="anim-fade">same meaning</text>
+      </svg>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: the dial -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">A dial for &ldquo;how many ways to say the same thing&rdquo;</h2>
+  <div class="cols right-wide">
+    <div class="reveal d1">
+      <p style="margin-top:0">The <span class="basis">Random Hierarchy Model</span>: every feature expands, by one of
+        <span class="hl">\(m\)</span> interchangeable rules, into 2 children; 6 levels down to 64 tokens.</p>
+      <p>\(m\) \(=\) how many surface forms each meaning has. \(m{=}1\): the whole language is
+        <strong>8 sequences</strong> &mdash; a game. \(m{=}8\): uniform &mdash; noise.</p>
+      <p>Sweep \(m\in\{1,2,3,4,6\}\); tree shape, sequence length, model and rollout budget all fixed.</p>
+      <p class="dim" style="font-size:.92rem">Cagnetta et al., <em>Phys. Rev. X</em>, 2024.</p>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".06">
+      <svg viewBox="0 0 389 254" role="img" aria-label="A three-level binary tree. A root node R at the top branches to X and Y; X branches to P and Q, Y branches to S and T; each of those four branches to two colored token tiles labeled c, a, e, b, f, c, a, d. An amber label at the upper left, 'picks 1 of m rules', has a curved amber arrow pointing at the edge between R and X.">
+        <g stroke="#64748B" stroke-width="0.9" marker-end="url(#ah-gray)" pathLength="1" class="anim-draw">
+          <line x1="196" y1="52" x2="111" y2="82"/><line x1="212" y1="52" x2="297" y2="82"/>
+          <line x1="102" y1="114" x2="62" y2="144"/><line x1="114" y1="114" x2="154" y2="144"/>
+          <line x1="294" y1="114" x2="254" y2="144"/><line x1="306" y1="114" x2="346" y2="144"/>
+          <line x1="54" y1="176" x2="44" y2="208"/><line x1="66" y1="176" x2="76" y2="208"/>
+          <line x1="150" y1="176" x2="140" y2="208"/><line x1="162" y1="176" x2="172" y2="208"/>
+          <line x1="246" y1="176" x2="236" y2="208"/><line x1="258" y1="176" x2="268" y2="208"/>
+          <line x1="342" y1="176" x2="332" y2="208"/><line x1="354" y1="176" x2="364" y2="208"/>
+        </g>
+        <g class="anim-fade">
+          <rect x="187" y="20" width="34" height="32" rx="4" fill="#CFFAFE" stroke="#164E63" stroke-width="1.4"/>
+          <text x="204" y="41" text-anchor="middle" fill="#164E63" font-size="13" font-weight="700">R</text>
+          <rect x="93" y="86" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="108" y="105" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">X</text>
+          <rect x="285" y="86" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="300" y="105" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">Y</text>
+          <rect x="45" y="148" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="60" y="167" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">P</text>
+          <rect x="141" y="148" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="156" y="167" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">Q</text>
+          <rect x="237" y="148" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="252" y="167" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">S</text>
+          <rect x="333" y="148" width="30" height="28" rx="4" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.2"/>
+          <text x="348" y="167" text-anchor="middle" fill="#164E63" font-size="12.5" font-weight="700">T</text>
+        </g>
+        <g class="anim-fade">
+          <rect x="27" y="212" width="30" height="30" rx="3" fill="#E3D26F" stroke="#1E3A5F" stroke-opacity=".25"/><text x="42" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">c</text>
+          <rect x="63" y="212" width="30" height="30" rx="3" fill="#E8998D" stroke="#1E3A5F" stroke-opacity=".25"/><text x="78" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">a</text>
+          <rect x="123" y="212" width="30" height="30" rx="3" fill="#84B6C4" stroke="#1E3A5F" stroke-opacity=".25"/><text x="138" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">e</text>
+          <rect x="159" y="212" width="30" height="30" rx="3" fill="#F0C987" stroke="#1E3A5F" stroke-opacity=".25"/><text x="174" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">b</text>
+          <rect x="219" y="212" width="30" height="30" rx="3" fill="#8FA6D6" stroke="#1E3A5F" stroke-opacity=".25"/><text x="234" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">f</text>
+          <rect x="255" y="212" width="30" height="30" rx="3" fill="#E3D26F" stroke="#1E3A5F" stroke-opacity=".25"/><text x="270" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">c</text>
+          <rect x="315" y="212" width="30" height="30" rx="3" fill="#E8998D" stroke="#1E3A5F" stroke-opacity=".25"/><text x="330" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">a</text>
+          <rect x="351" y="212" width="30" height="30" rx="3" fill="#A3C9A8" stroke="#1E3A5F" stroke-opacity=".25"/><text x="366" y="232" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700">d</text>
+        </g>
+        <text x="8" y="24" fill="#B45309" font-size="11.5" font-weight="700" class="anim-fade">picks 1 of <tspan font-style="italic">m</tspan> rules</text>
+        <path d="M106,32 C132,38 147,51 153.5,63" fill="none" stroke="#D97706" stroke-width="1.1" marker-end="url(#ah-amber-dk)" pathLength="1" class="anim-draw"/>
+      </svg>
+    </div>
+  </div>
+  <div class="diagram wide reveal d3" style="margin-top:1.2rem">
+    <svg viewBox="0 0 760 158" role="img" aria-label="A horizontal dial. A gray axis runs left to right with six ticks labeled m=1, m=2, m=3, m=4, m=6 and m=8, spaced by sequence entropy: 3, 66, 103, 129, 166 and 192 bits. The first five ticks carry filled amber dots; the m=8 tick carries a hollow dot. Under m=1 it reads '8 sequences, a game' in green; under m=8 it reads 'uniform, noise' in crimson. The axis caption reads 'sequence entropy, of 192 bits max'.">
+      <line x1="60" y1="70" x2="700" y2="70" stroke="#64748B" stroke-width="2.2" pathLength="1" class="anim-draw"/>
+      <g class="anim-fade">
+        <g stroke="#64748B" stroke-width="1.2">
+          <line x1="60" y1="60" x2="60" y2="80"/><line x1="162" y1="60" x2="162" y2="80"/>
+          <line x1="264" y1="60" x2="264" y2="80"/><line x1="367" y1="60" x2="367" y2="80"/>
+          <line x1="496" y1="60" x2="496" y2="80"/><line x1="700" y1="60" x2="700" y2="80"/>
+        </g>
+        <g stroke="#94A3B8" stroke-width="0.7">
+          <line x1="162" y1="60" x2="162" y2="40"/><line x1="367" y1="60" x2="367" y2="40"/>
+        </g>
+        <g fill="#64748B" font-size="11" text-anchor="middle">
+          <text x="60" y="53">3 bits</text><text x="162" y="34">66 bits</text><text x="264" y="53">103 bits</text>
+          <text x="367" y="34">129 bits</text><text x="496" y="53">166 bits</text><text x="700" y="53">192 bits</text>
+        </g>
+        <g fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+          <text x="60" y="95"><tspan font-style="italic">m</tspan>=1</text><text x="162" y="95"><tspan font-style="italic">m</tspan>=2</text>
+          <text x="264" y="95"><tspan font-style="italic">m</tspan>=3</text><text x="367" y="95"><tspan font-style="italic">m</tspan>=4</text>
+          <text x="496" y="95"><tspan font-style="italic">m</tspan>=6</text><text x="700" y="95"><tspan font-style="italic">m</tspan>=8</text>
+        </g>
+        <g fill="#F59E0B"><circle cx="60" cy="70" r="5.5"/><circle cx="162" cy="70" r="5.5"/><circle cx="264" cy="70" r="5.5"/><circle cx="367" cy="70" r="5.5"/><circle cx="496" cy="70" r="5.5"/></g>
+        <circle cx="700" cy="70" r="5.5" fill="#fff" stroke="#64748B" stroke-width="1.4"/>
+        <text x="60" y="115" text-anchor="middle" fill="#14532D" font-size="11">8 sequences</text>
+        <text x="60" y="129" text-anchor="middle" fill="#14532D" font-size="11" font-weight="700">a game</text>
+        <text x="700" y="115" text-anchor="middle" fill="#E11D48" font-size="11">uniform</text>
+        <text x="700" y="129" text-anchor="middle" fill="#E11D48" font-size="11" font-weight="700">noise</text>
+        <text x="380" y="129" text-anchor="middle" fill="#64748B" font-size="11">sequence entropy, of 192 bits max</text>
+      </g>
+    </svg>
+  </div>
+</article>
+
+<!-- ══════════════════ § 02 A TEST BENCH ══════════════════ -->
+<section class="band" data-observe style="--p:.4">
+  <div class="reveal"><div class="sec-num">SECTION 02</div><h2>A test bench with exact ground truth</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: the task + two verifiers -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">The task: finish the sequence &mdash; and two ways to grade it</h2>
+  <div class="diagram wide reveal d1" data-parallax=".05">
+    <svg viewBox="0 0 757 96" role="img" aria-label="A strip of 64 small token cells. The left 32 are filled dark slate and braced below as 'prefix — 32 tokens, given'. The right 32 are amber outlines and braced below as 'suffix — 32 tokens, generated by the policy'. An amber arrow points down at the join between them, labeled 'sample at temperature 1'.">
+      <text x="378.5" y="13" text-anchor="middle" fill="#B45309" font-size="11.5" class="anim-fade">sample at temperature 1</text>
+      <line x1="378.5" y1="19" x2="378.5" y2="28.5" stroke="#D97706" stroke-width="1.4" marker-end="url(#ah-amber-dk)" class="anim-fade"/>
+      <g class="anim-fade"><rect x="28" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="39" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="50" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="61" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="72" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="83" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="94" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="105" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="116" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="127" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="138" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="149" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="160" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="171" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="182" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="193" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="204" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="215" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="226" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="237" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="248" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="259" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="270" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="281" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="292" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="303" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="314" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="325" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="336" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="347" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="358" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="369" y="32" width="8" height="22" rx="1.4" fill="#334155"/><rect x="380" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="391" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="402" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="413" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="424" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="435" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="446" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="457" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="468" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="479" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="490" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="501" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="512" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="523" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="534" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="545" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="556" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="567" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="578" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="589" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="600" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="611" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="622" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="633" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="644" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="655" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="666" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="677" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="688" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="699" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="710" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/><rect x="721" y="32" width="8" height="22" rx="1.4" fill="none" stroke="#D97706" stroke-width="1"/></g>
+      <path d="M28,60 L28,66 L200.5,66 L202.5,71 L204.5,66 L377,66 L377,60" fill="none" stroke="#64748B" stroke-width="1.1" pathLength="1" class="anim-draw"/>
+      <text x="202.5" y="88" text-anchor="middle" fill="#1E3A5F" font-size="12" font-weight="700" class="anim-fade">prefix &mdash; 32 tokens, given</text>
+      <path d="M380,60 L380,66 L552.5,66 L554.5,71 L556.5,66 L729,66 L729,60" fill="none" stroke="#64748B" stroke-width="1.1" pathLength="1" class="anim-draw"/>
+      <text x="554.5" y="88" text-anchor="middle" fill="#B45309" font-size="12" font-weight="700" class="anim-fade">suffix &mdash; 32 tokens, generated by the policy</text>
+    </svg>
+  </div>
+  <div class="vcards reveal d2">
+    <div class="vcard exact">
+      <span class="vt" style="color:var(--mainblue)">exact</span> &mdash; matches the one sampled ground-truth suffix, token by token.
+      <span class="vs">A <strong>canonical-answer</strong> verifier: a synonym counts as <em>wrong</em>.</span>
+    </div>
+    <div class="vcard parse">
+      <span class="vt" style="color:var(--fwddark)">parse</span> &mdash; any grammatical continuation, graded by how far up the tree prefix\(+\)suffix parses.
+      <span class="vs">A <strong>validity</strong> verifier: a synonym counts as <em>right</em>.</span>
+    </div>
+  </div>
+  <div class="block basisblock reveal d3">
+    <div class="bt">Start every mechanism from the same place</div>
+    <div class="bb">Each \(m\) is pretrained <em>to plateau</em>; every mechanism starts from that checkpoint.
+      The claim is about what reward does to a <em>given</em> basis.</div>
+  </div>
+</article>
+
+<!-- Slide: the ladder -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Three mechanisms, one budget, ending at the class limit</h2>
+  <div class="cols left-wide">
+    <div class="diagram reveal d1" data-parallax=".07">
+      <svg viewBox="0 0 420 250" role="img" aria-label="A ladder of three stacked rungs, top to bottom: 'REINFORCE — no anchor, pure policy gradient'; '+ KL anchor — to the frozen pretrained policy'; and, highlighted in amber, 'Expert iteration — best-of-16 to SFT on winners, times 6'. To their right a list reads 'same checkpoint, same 384K rollouts, both verifiers, five values of m', and a long amber arrow runs down the right-hand edge labeled 'stronger'.">
+        <g class="anim-fade">
+          <rect x="14" y="16" width="230" height="54" rx="6" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3"/>
+          <text x="129" y="38" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700">REINFORCE</text>
+          <text x="129" y="56" text-anchor="middle" fill="#334155" font-size="11">no anchor &mdash; pure policy gradient</text>
+          <rect x="14" y="90" width="230" height="54" rx="6" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3"/>
+          <text x="129" y="112" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700">+ KL anchor</text>
+          <text x="129" y="130" text-anchor="middle" fill="#334155" font-size="11">to the frozen pretrained policy</text>
+          <rect x="14" y="164" width="230" height="54" rx="6" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+          <text x="129" y="186" text-anchor="middle" fill="#B45309" font-size="13" font-weight="700">Expert iteration</text>
+          <text x="129" y="204" text-anchor="middle" fill="#334155" font-size="11">best-of-16 &rarr; SFT on winners, &times;6</text>
+        </g>
+        <g class="anim-fade" fill="#64748B" font-size="11">
+          <text x="262" y="86">same checkpoint</text>
+          <text x="262" y="108">same 384K rollouts</text>
+          <text x="262" y="130">both verifiers</text>
+          <text x="262" y="152">five values of <tspan font-style="italic">m</tspan></text>
+        </g>
+        <line x1="400" y1="18" x2="400" y2="230" stroke="#D97706" stroke-width="1.6" marker-end="url(#ah-amber-dk)" pathLength="1" class="anim-draw"/>
+        <g transform="rotate(-90 388 124)"><text x="388" y="124" text-anchor="middle" fill="#B45309" font-size="11" font-weight="700" class="anim-fade">stronger</text></g>
+      </svg>
+    </div>
+    <div class="reveal d2">
+      <div class="block basisblock" style="margin-top:0">
+        <div class="bt">Two kinds of result</div>
+        <div class="bb"><span class="basis">Bounds</span>: exact Bayes limits on the known tree.
+          <span class="hl">Attainment</span>: what each mechanism captures, at what cost.</div>
+      </div>
+      <div class="block">
+        <div class="bt">Why end at expert iteration</div>
+        <div class="bb">The limit of the class every policy gradient approximates &mdash; if <em>it</em> can&rsquo;t move
+          the boundary, &ldquo;your variant was weak&rdquo; is off the table.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- ══════════════════ § 03 WHAT IS ACHIEVABLE ══════════════════ -->
+<section class="band" data-observe style="--p:.6">
+  <div class="reveal"><div class="sec-num">SECTION 03</div><h2>What is achievable at all</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: the headroom bound -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Demand one canonical answer, and there is nothing to optimize toward</h2>
+  <div class="cols left-wide">
+    <div class="diagram reveal d1" data-parallax=".06">
+      <svg viewBox="0 0 430 332" role="img" aria-label="A bar chart of exact-match accuracy for m=1, 2, 3, 4 and 6. Each bar has a pale gray lower section rising from a dashed 'uniform guess 1/8' line to the blind floor, and an amber cap on top for the prefix-conditional headroom. The amber cap is 0.096 tall at m=1 and collapses to 0.005, 0.0005 and approximately zero at larger m.">
+        <line x1="34" y1="252" x2="34" y2="34" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+        <g transform="rotate(-90 18 142)"><text x="18" y="142" text-anchor="middle" fill="#64748B" font-size="11" class="anim-fade">exact-match accuracy</text></g>
+        <g class="anim-grow" style="transform-origin:74px 220.75px"><rect x="50" y="65.5" width="48" height="155.25" rx="1.5" fill="#E2E8F0"/></g>
+        <g class="anim-grow" style="transform-origin:146px 220.75px;--gd:.07s"><rect x="122" y="183.5" width="48" height="37.25" rx="1.5" fill="#E2E8F0"/></g>
+        <g class="anim-grow" style="transform-origin:218px 220.75px;--gd:.14s"><rect x="194" y="191.5" width="48" height="29.25" rx="1.5" fill="#E2E8F0"/></g>
+        <g class="anim-grow" style="transform-origin:290px 220.75px;--gd:.21s"><rect x="266" y="207.75" width="48" height="13" rx="1.5" fill="#E2E8F0"/></g>
+        <g class="anim-grow" style="transform-origin:362px 220.75px;--gd:.28s"><rect x="338" y="211.5" width="48" height="9.25" rx="1.5" fill="#E2E8F0"/></g>
+        <g class="anim-fade">
+          <rect x="50" y="41.5" width="48" height="24" rx="1.5" fill="#F59E0B"/>
+          <rect x="122" y="182.25" width="48" height="1.25" fill="#F59E0B"/>
+          <rect x="194" y="191.25" width="48" height="0.25" fill="#F59E0B"/>
+        </g>
+        <line x1="34" y1="220.75" x2="412" y2="220.75" stroke="#9CA3AF" stroke-width="0.9" stroke-dasharray="3 3" class="anim-fade"/>
+        <text x="410" y="236" text-anchor="end" fill="#64748B" font-size="11" class="anim-fade">uniform guess 1/8</text>
+        <line x1="34" y1="252" x2="412" y2="252" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+        <g class="anim-fade" fill="#B45309" font-size="11.5" font-weight="700" text-anchor="middle">
+          <text x="74" y="34.5">0.096</text><text x="146" y="175">0.005</text><text x="218" y="184">0.0005</text>
+          <text x="290" y="200">&#8776;0</text><text x="362" y="204">&#8776;0</text>
+        </g>
+        <g class="anim-fade" fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+          <text x="74" y="270"><tspan font-style="italic">m</tspan>=1</text><text x="146" y="270"><tspan font-style="italic">m</tspan>=2</text>
+          <text x="218" y="270"><tspan font-style="italic">m</tspan>=3</text><text x="290" y="270"><tspan font-style="italic">m</tspan>=4</text>
+          <text x="362" y="270"><tspan font-style="italic">m</tspan>=6</text>
+        </g>
+        <g class="anim-fade">
+          <rect x="36" y="286" width="22" height="14" rx="1.5" fill="#E2E8F0"/>
+          <text x="64" y="297" fill="#64748B" font-size="11">position marginals &mdash; no structure needed</text>
+          <rect x="36" y="308" width="22" height="14" rx="1.5" fill="#F59E0B"/>
+          <text x="64" y="319" fill="#64748B" font-size="11">prefix-conditional headroom &mdash; the part that needs understanding</text>
+        </g>
+      </svg>
+    </div>
+    <div class="reveal d2">
+      <p style="margin-top:0">Computed exactly by belief propagation &mdash; <em>no optimizer can beat it</em>.
+        Deep hierarchies mix: beyond \(m{=}1\) the canonical-answer reward carries
+        <span class="hl">no semantic content</span>; only sharpening remains (\(0.19\to0.28\) at \(m{=}2\)).</p>
+      <div class="block basisblock">
+        <div class="bt">The validity verifier runs the other way</div>
+        <div class="bb">More synonyms, more grammatical strings, <em>denser</em> reward.
+          &ldquo;Complexity&rdquo; belongs to the verifier \(\times\) domain pair.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: the pretrained basis -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Pretraining builds a basis with a boundary &mdash; and it sinks as \(m\) grows</h2>
+  <div class="diagram wide reveal d1" data-parallax=".05">
+    <svg viewBox="0 0 860 356" role="img" aria-label="Five pyramids side by side, one for each value of m: 1, 2, 3, 4 and 6. Each pyramid is divided into six horizontal bands, L0 at the bottom to L5 at the apex, colored from pale slate (at chance) to deep cyan (learned). At m=1, 2 and 3 every band is deep cyan. At m=4 the colour drains above L0 and the top two bands are hatched gray for 'nothing to predict'; a crimson dashed basis boundary cuts across at the top of L1. At m=6 only L0 holds faint colour and the boundary sits at the top of L0. Labels under each pyramid give the learned fraction and the plateau step count; a legend at the bottom shows the pale-to-cyan scale and the hatch pattern.">
+    <defs><clipPath id="p1"><polygon points="98,250 150,75 202,250"/></clipPath><clipPath id="p2"><polygon points="223,250 275,75 327,250"/></clipPath><clipPath id="p3"><polygon points="348,250 400,75 452,250"/></clipPath><clipPath id="p4"><polygon points="473,250 525,75 577,250"/></clipPath><clipPath id="p5"><polygon points="598,250 650,75 702,250"/></clipPath></defs>
+      <g clip-path="url(#p1)" class="anim-fade" style="transition-delay:0s">
+        <rect x="84" y="220.83" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="84" y="191.67" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="84" y="162.5" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="84" y="133.33" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="84" y="104.17" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="84" y="75" width="132" height="29.17" fill="#0E7490"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="84" y1="220.83" x2="216" y2="220.83"/><line x1="84" y1="191.67" x2="216" y2="191.67"/><line x1="84" y1="162.5" x2="216" y2="162.5"/><line x1="84" y1="133.33" x2="216" y2="133.33"/><line x1="84" y1="104.17" x2="216" y2="104.17"/></g>
+      </g>
+      <polygon points="98,250 150,75 202,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="150" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade"><tspan font-style="italic">m</tspan>=1</text>
+      <g clip-path="url(#p2)" class="anim-fade" style="transition-delay:0.07s">
+        <rect x="209" y="220.83" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="209" y="191.67" width="132" height="29.17" fill="#0E7490"/>
+        <rect x="209" y="162.5" width="132" height="29.17" fill="#107591"/>
+        <rect x="209" y="133.33" width="132" height="29.17" fill="#147793"/>
+        <rect x="209" y="104.17" width="132" height="29.17" fill="#147793"/>
+        <rect x="209" y="75" width="132" height="29.17" fill="#127692"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="209" y1="220.83" x2="341" y2="220.83"/><line x1="209" y1="191.67" x2="341" y2="191.67"/><line x1="209" y1="162.5" x2="341" y2="162.5"/><line x1="209" y1="133.33" x2="341" y2="133.33"/><line x1="209" y1="104.17" x2="341" y2="104.17"/></g>
+      </g>
+      <polygon points="223,250 275,75 327,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="275" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade"><tspan font-style="italic">m</tspan>=2</text>
+      <g clip-path="url(#p3)" class="anim-fade" style="transition-delay:0.14s">
+        <rect x="334" y="220.83" width="132" height="29.17" fill="#107591"/>
+        <rect x="334" y="191.67" width="132" height="29.17" fill="#167994"/>
+        <rect x="334" y="162.5" width="132" height="29.17" fill="#1F7D98"/>
+        <rect x="334" y="133.33" width="132" height="29.17" fill="#167994"/>
+        <rect x="334" y="104.17" width="132" height="29.17" fill="#147793"/>
+        <rect x="334" y="75" width="132" height="29.17" fill="#2C849D"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="334" y1="220.83" x2="466" y2="220.83"/><line x1="334" y1="191.67" x2="466" y2="191.67"/><line x1="334" y1="162.5" x2="466" y2="162.5"/><line x1="334" y1="133.33" x2="466" y2="133.33"/><line x1="334" y1="104.17" x2="466" y2="104.17"/></g>
+      </g>
+      <polygon points="348,250 400,75 452,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="400" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade"><tspan font-style="italic">m</tspan>=3</text>
+      <g clip-path="url(#p4)" class="anim-fade" style="transition-delay:0.21s">
+        <rect x="459" y="220.83" width="132" height="29.17" fill="#3489A1"/>
+        <rect x="459" y="191.67" width="132" height="29.17" fill="#8FBBCB"/>
+        <rect x="459" y="162.5" width="132" height="29.17" fill="#BAD2DE"/>
+        <rect x="459" y="133.33" width="132" height="29.17" fill="#C2D7E2"/>
+        <rect x="459" y="104.17" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="459" y="75" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="459" y="104.17" width="132" height="29.17" fill="url(#nosig)"/>
+        <rect x="459" y="75" width="132" height="29.17" fill="url(#nosig)"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="459" y1="220.83" x2="591" y2="220.83"/><line x1="459" y1="191.67" x2="591" y2="191.67"/><line x1="459" y1="162.5" x2="591" y2="162.5"/><line x1="459" y1="133.33" x2="591" y2="133.33"/><line x1="459" y1="104.17" x2="591" y2="104.17"/></g>
+      </g>
+      <g clip-path="url(#p4)"><line x1="459" y1="191.67" x2="591" y2="191.67" stroke="#E11D48" stroke-width="2.2" stroke-dasharray="5 3.4" class="anim-fade" style="transition-delay:.6s"/></g>
+      <polygon points="473,250 525,75 577,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="525" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade"><tspan font-style="italic">m</tspan>=4</text>
+      <g clip-path="url(#p5)" class="anim-fade" style="transition-delay:0.28s">
+        <rect x="584" y="220.83" width="132" height="29.17" fill="#96BECD"/>
+        <rect x="584" y="191.67" width="132" height="29.17" fill="#D7E2EB"/>
+        <rect x="584" y="162.5" width="132" height="29.17" fill="#D7E2EB"/>
+        <rect x="584" y="133.33" width="132" height="29.17" fill="#DEE6EE"/>
+        <rect x="584" y="104.17" width="132" height="29.17" fill="#DCE5ED"/>
+        <rect x="584" y="75" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="584" y="75" width="132" height="29.17" fill="url(#nosig)"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="584" y1="220.83" x2="716" y2="220.83"/><line x1="584" y1="191.67" x2="716" y2="191.67"/><line x1="584" y1="162.5" x2="716" y2="162.5"/><line x1="584" y1="133.33" x2="716" y2="133.33"/><line x1="584" y1="104.17" x2="716" y2="104.17"/></g>
+      </g>
+      <g clip-path="url(#p5)"><line x1="584" y1="220.83" x2="716" y2="220.83" stroke="#E11D48" stroke-width="2.2" stroke-dasharray="5 3.4" class="anim-fade" style="transition-delay:.6s"/></g>
+      <polygon points="598,250 650,75 702,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="650" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade"><tspan font-style="italic">m</tspan>=6</text>
+      <g class="anim-fade" fill="#64748B" font-size="12" font-weight="700" text-anchor="end">
+        <text x="80" y="239.4">L0</text><text x="80" y="210.2">L1</text><text x="80" y="181.1">L2</text>
+        <text x="80" y="151.9">L3</text><text x="80" y="122.7">L4</text><text x="80" y="93.6">L5</text>
+      </g>
+      <g class="anim-fade" fill="#64748B" font-size="11" text-anchor="end">
+        <text x="80" y="70">root</text><text x="80" y="266">tokens</text>
+      </g>
+      <g transform="rotate(-90 40 165)"><text x="40" y="165" text-anchor="middle" fill="#64748B" font-size="11.5" class="anim-fade">hierarchy level</text></g>
+      <g class="anim-fade" text-anchor="middle" font-size="11.5" fill="#64748B">
+        <text x="150" y="274">learned <tspan font-weight="700" fill="#334155">0.999</tspan></text>
+        <text x="275" y="274">learned <tspan font-weight="700" fill="#334155">0.996</tspan></text>
+        <text x="400" y="274">learned <tspan font-weight="700" fill="#334155">0.979</tspan></text>
+        <text x="525" y="274">learned <tspan font-weight="700" fill="#334155">0.663</tspan></text>
+        <text x="650" y="274">learned <tspan font-weight="700" fill="#334155">0.228</tspan></text>
+      </g>
+      <g class="anim-fade" text-anchor="middle" font-size="10.5" fill="#9CA3AF">
+        <text x="150" y="290">plateau at 3.0K steps</text><text x="275" y="290">plateau at 7.0K steps</text>
+        <text x="400" y="290">plateau at 13.3K steps</text><text x="525" y="290">plateau at 14.5K steps</text>
+        <text x="650" y="290">plateau at 7.3K steps</text>
+      </g>
+      <g class="anim-fade">
+        <text x="726" y="214" fill="#E11D48" font-size="12.5" font-weight="700">basis boundary</text>
+        <text x="726" y="231" fill="#E11D48" font-size="10.5">the ladder starts</text>
+        <text x="726" y="244" fill="#E11D48" font-size="10.5">from here</text>
+        <path d="M718,211 Q702,213.5 689,220.3" fill="none" stroke="#E11D48" stroke-width="1.4" marker-end="url(#ah-crimson)"/>
+      </g>
+      <g class="anim-fade">
+        <defs><linearGradient id="warmleg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#0E7490"/>
+        </linearGradient></defs>
+        <rect x="44" y="310" width="150" height="18" fill="url(#warmleg)" stroke="#1E3A5F" stroke-opacity=".25" stroke-width="0.7"/>
+        <text x="44" y="344" fill="#64748B" font-size="10.5">at chance</text>
+        <text x="194" y="344" text-anchor="end" fill="#64748B" font-size="10.5">learned</text>
+        <rect x="244" y="310" width="40" height="18" fill="url(#nosig)" stroke="#1E3A5F" stroke-opacity=".25" stroke-width="0.7"/>
+        <text x="294" y="323" fill="#64748B" font-size="10.5">nothing to predict there either (root-crossing positions mix)</text>
+      </g>
+    </svg>
+  </div>
+  <p class="note">Same 2.7M-parameter model at every \(m\), trained to plateau. Colour \(=\) share of each level&rsquo;s
+    learnable structure actually learned (next-token loss vs. the Bayes floor).</p>
+</article>
+
+<!-- ══════════════════ § 04 WHAT EACH MECHANISM ATTAINS ══════════════════ -->
+<section class="band" data-observe style="--p:.8">
+  <div class="reveal"><div class="sec-num">SECTION 04</div><h2>What each mechanism attains</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: REINFORCE self-destructs -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Vanilla REINFORCE destroys the basis at every \(m\)</h2>
+  <div class="cols">
+    <div class="diagram reveal d1" data-parallax=".06">
+      <svg viewBox="0 0 430 310" role="img" aria-label="A grouped bar chart of next-token loss above the Bayes floor, in nats, after vanilla REINFORCE. For each of m=1, 2, 3, 4 and 6 a blue bar (exact verifier) sits beside a green bar (parse verifier); values run from 9.5 to 14.2 nats. A crimson dashed line far below all the bars marks uniform guessing at 2.08 nats; the legend notes the pretrained model sits at approximately zero.">
+        <line x1="40" y1="230" x2="40" y2="36" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+        <g transform="rotate(-90 22 130)" class="anim-fade">
+          <text x="22" y="125" text-anchor="middle" fill="#64748B" font-size="10.5">next-token loss above</text>
+          <text x="22" y="139" text-anchor="middle" fill="#64748B" font-size="10.5">the Bayes floor (nats)</text>
+        </g>
+        <g fill="#3B82F6">
+          <rect x="46" y="76.6" width="28" height="153.4" rx="1.5" class="anim-grow" style="transform-origin:60px 230px"/>
+          <rect x="116" y="85.7" width="28" height="144.3" rx="1.5" class="anim-grow" style="transform-origin:130px 230px;--gd:.07s"/>
+          <rect x="186" y="101.3" width="28" height="128.7" rx="1.5" class="anim-grow" style="transform-origin:200px 230px;--gd:.14s"/>
+          <rect x="256" y="89.6" width="28" height="140.4" rx="1.5" class="anim-grow" style="transform-origin:270px 230px;--gd:.21s"/>
+          <rect x="326" y="74" width="28" height="156" rx="1.5" class="anim-grow" style="transform-origin:340px 230px;--gd:.28s"/>
+        </g>
+        <g fill="#059669">
+          <rect x="78" y="53.2" width="28" height="176.8" rx="1.5" class="anim-grow" style="transform-origin:92px 230px;--gd:.03s"/>
+          <rect x="148" y="96.1" width="28" height="133.9" rx="1.5" class="anim-grow" style="transform-origin:162px 230px;--gd:.1s"/>
+          <rect x="218" y="106.5" width="28" height="123.5" rx="1.5" class="anim-grow" style="transform-origin:232px 230px;--gd:.17s"/>
+          <rect x="288" y="68.8" width="28" height="161.2" rx="1.5" class="anim-grow" style="transform-origin:302px 230px;--gd:.24s"/>
+          <rect x="358" y="45.4" width="28" height="184.6" rx="1.5" class="anim-grow" style="transform-origin:372px 230px;--gd:.31s"/>
+        </g>
+        <g class="anim-fade" fill="#64748B" font-size="10" text-anchor="middle">
+          <text x="60" y="72.6">11.8</text><text x="92" y="49.2">13.6</text>
+          <text x="130" y="81.7">11.1</text><text x="162" y="92.1">10.3</text>
+          <text x="200" y="97.3">9.9</text><text x="232" y="102.5">9.5</text>
+          <text x="270" y="85.6">10.8</text><text x="302" y="64.8">12.4</text>
+          <text x="340" y="70">12.0</text><text x="372" y="41.4">14.2</text>
+        </g>
+        <line x1="40" y1="202.96" x2="415" y2="202.96" stroke="#E11D48" stroke-width="1.1" stroke-dasharray="4 3" class="anim-fade"/>
+        <line x1="40" y1="230" x2="415" y2="230" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+        <g class="anim-fade" fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+          <text x="76" y="248"><tspan font-style="italic">m</tspan>=1</text><text x="146" y="248"><tspan font-style="italic">m</tspan>=2</text>
+          <text x="216" y="248"><tspan font-style="italic">m</tspan>=3</text><text x="286" y="248"><tspan font-style="italic">m</tspan>=4</text>
+          <text x="356" y="248"><tspan font-style="italic">m</tspan>=6</text>
+        </g>
+        <g class="anim-fade">
+          <rect x="46" y="264" width="20" height="12" rx="1.5" fill="#3B82F6"/>
+          <text x="72" y="274" fill="#64748B" font-size="10.5">exact verifier</text>
+          <rect x="186" y="264" width="20" height="12" rx="1.5" fill="#059669"/>
+          <text x="212" y="274" fill="#64748B" font-size="10.5">parse verifier</text>
+          <line x1="46" y1="292" x2="66" y2="292" stroke="#E11D48" stroke-width="1.4" stroke-dasharray="4 3"/>
+          <text x="72" y="296" fill="#E11D48" font-size="10.5">uniform guessing</text>
+          <line x1="186" y1="292" x2="206" y2="292" stroke="#64748B" stroke-width="1.4"/>
+          <text x="212" y="296" fill="#64748B" font-size="10.5">pretrained: &#8776;0</text>
+        </g>
+      </svg>
+    </div>
+    <div class="reveal d2">
+      <p style="margin-top:0">10&ndash;14 nats above the floor &mdash; far <em>worse than uniform guessing</em> &mdash;
+        at every \(m\), with entropy collapsed (greedy \(\equiv\) sampled).</p>
+      <ul class="tight">
+        <li>\(m{=}1\) was already solved (0.849 vs. ceiling 0.842); REINFORCE dragged it to <span class="hl">0.388</span>.</li>
+        <li>Layer features stop tracking the hierarchy (\(\eta^2\) \(0.65\to0.14\)).</li>
+      </ul>
+      <div class="block">
+        <div class="bt">Diagnosis</div>
+        <div class="bb">Self-destruction, not absent signal: the reward was climbing when it crashed.</div>
+      </div>
+    </div>
+  </div>
+  <div class="diagram wide reveal d3" style="margin-top:.6rem">
+    <svg viewBox="36 -2 650 179" role="img" aria-label="A training-reward trajectory for the parse verifier at m=2 over 6000 steps. The amber curve starts near 0.9, edges up to a peak, then falls off a cliff to 0.4, recovers slightly to about 0.42 and stays flat for the rest of training. It is annotated 'climbs to 0.92, then crashes to 0.42'.">
+      <text x="76" y="13" fill="#64748B" font-size="11" class="anim-fade">training reward, parse verifier, <tspan font-style="italic">m</tspan>=2</text>
+      <line x1="72" y1="150" x2="72" y2="24" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+      <line x1="72" y1="150" x2="672" y2="150" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+      <g class="anim-fade" fill="#64748B" font-size="10.5" text-anchor="end">
+        <text x="64" y="32">0.9</text><text x="64" y="136">0.4</text>
+      </g>
+      <text x="660" y="168" text-anchor="end" fill="#64748B" font-size="10.5" class="anim-fade">6K steps</text>
+      <polyline points="92,28.5 124,26.7 156,24 188,132 252,132 284,114.9 660,114.9" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round" pathLength="1" class="anim-draw"/>
+      <text x="214" y="72" fill="#B45309" font-size="11.5" font-weight="700" class="anim-fade">climbs to 0.92, then crashes to 0.42</text>
+    </svg>
+  </div>
+</article>
+
+<!-- Slide: the KL anchor -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Anchor it to the pretrained policy, and there is almost nothing to gain</h2>
+  <p class="reveal d1" style="margin-top:0">Anchored REINFORCE, 384K rollouts: the destruction is cured
+    (\(10\)&ndash;\(14 \to 0.05\)&ndash;\(0.8\) nats above floor, no collapse). What is left, sampled-policy accuracy:</p>
+  <div class="reveal d2">
+    <table>
+      <thead><tr>
+        <th class="num">\(m\)</th>
+        <th><span style="color:var(--mainblue)">exact</span>: pretrained \(\to\) RL</th>
+        <th>calibrated ref. (\(\sum P^2\))</th>
+        <th><span style="color:var(--fwddark)">parse</span>: pretrained \(\to\) RL</th>
+        <th class="num">nats above floor</th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td>0.836 &rarr; 0.841</td><td>0.842 (ceiling)</td><td>0.977 &rarr; <span style="color:var(--crimson);font-weight:700">0.758</span></td><td class="num">2.93</td></tr>
+        <tr><td class="num">2</td><td>0.191 &rarr; 0.190</td><td>0.191</td><td>0.980 &rarr; 0.993</td><td class="num">0.29</td></tr>
+        <tr><td class="num">3</td><td>0.157 &rarr; 0.157</td><td>0.160</td><td>0.919 &rarr; 0.925</td><td class="num">0.07</td></tr>
+        <tr><td class="num">4</td><td>0.137 &rarr; 0.136</td><td>0.136</td><td>0.817 &rarr; 0.834</td><td class="num">0.42</td></tr>
+        <tr><td class="num">6</td><td>0.130 &rarr; 0.133</td><td>0.130</td><td>0.731 &rarr; 0.743</td><td class="num">0.79</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="cols reveal d3">
+    <p style="margin-top:.4rem"><span class="blue">Canonical</span>: zero gain at every \(m\ge2\) &mdash; the policy sits at its
+      calibrated reference, as the bound requires. At \(m{=}1\) it now <em>holds</em> the ceiling.</p>
+    <p style="margin-top:.4rem"><span class="fwd">Validity</span>: a \(+0.006\) to \(+0.017\) polish at \(m\ge2\).</p>
+  </div>
+  <div class="block reveal d4">
+    <div class="bt">Stasis, not learning</div>
+    <div class="bb">Stabilizing RL turns destruction into stasis &mdash; not into learning.</div>
+  </div>
+</article>
+
+<!-- Slide: expert iteration -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Expert iteration is far stronger &mdash; the flywheel really spins</h2>
+  <div class="cols">
+    <div class="diagram reveal d1" data-parallax=".06">
+      <svg viewBox="0 -6 414 306" role="img" aria-label="A grouped bar chart of root-level validity for the sampled policy at m=1, 2, 3, 4 and 6. Each group has three bars: gray (pretrained), blue (REINFORCE plus KL) and amber (expert iteration). Expert iteration is highest in every group except m=2, most dramatically at m=1 (0.999 versus a collapsed 0.243 for REINFORCE plus KL), m=4 (0.447 versus 0.248 pretrained) and m=6 (0.292 versus 0.153).">
+        <line x1="44" y1="240" x2="44" y2="34" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+        <g transform="rotate(-90 22 136)" class="anim-fade">
+          <text x="22" y="136" text-anchor="middle" fill="#64748B" font-size="10.5">root-level validity</text>
+          <text x="22" y="150" text-anchor="middle" fill="#64748B" font-size="10.5">(sampled policy)</text>
+        </g>
+        <g fill="#9CA3AF">
+          <rect x="50" y="54" width="20" height="186" rx="1.5" class="anim-grow" style="transform-origin:60px 240px"/>
+          <rect x="120" y="59.6" width="20" height="180.4" rx="1.5" class="anim-grow" style="transform-origin:130px 240px;--gd:.06s"/>
+          <rect x="190" y="128.8" width="20" height="111.2" rx="1.5" class="anim-grow" style="transform-origin:200px 240px;--gd:.12s"/>
+          <rect x="260" y="190.4" width="20" height="49.6" rx="1.5" class="anim-grow" style="transform-origin:270px 240px;--gd:.18s"/>
+          <rect x="330" y="209.4" width="20" height="30.6" rx="1.5" class="anim-grow" style="transform-origin:340px 240px;--gd:.24s"/>
+        </g>
+        <g fill="#3B82F6">
+          <rect x="72" y="191.4" width="20" height="48.6" rx="1.5" class="anim-grow" style="transform-origin:82px 240px;--gd:.02s"/>
+          <rect x="142" y="47.8" width="20" height="192.2" rx="1.5" class="anim-grow" style="transform-origin:152px 240px;--gd:.08s"/>
+          <rect x="212" y="126" width="20" height="114" rx="1.5" class="anim-grow" style="transform-origin:222px 240px;--gd:.14s"/>
+          <rect x="282" y="182.4" width="20" height="57.6" rx="1.5" class="anim-grow" style="transform-origin:292px 240px;--gd:.2s"/>
+          <rect x="352" y="208" width="20" height="32" rx="1.5" class="anim-grow" style="transform-origin:362px 240px;--gd:.26s"/>
+        </g>
+        <g fill="#F59E0B">
+          <rect x="94" y="40.2" width="20" height="199.8" rx="1.5" class="anim-grow" style="transform-origin:104px 240px;--gd:.04s"/>
+          <rect x="164" y="55.6" width="20" height="184.4" rx="1.5" class="anim-grow" style="transform-origin:174px 240px;--gd:.1s"/>
+          <rect x="234" y="111.2" width="20" height="128.8" rx="1.5" class="anim-grow" style="transform-origin:244px 240px;--gd:.16s"/>
+          <rect x="304" y="150.6" width="20" height="89.4" rx="1.5" class="anim-grow" style="transform-origin:314px 240px;--gd:.22s"/>
+          <rect x="374" y="181.6" width="20" height="58.4" rx="1.5" class="anim-grow" style="transform-origin:384px 240px;--gd:.28s"/>
+        </g>
+        <g class="anim-fade" font-size="9.5" fill="#64748B">
+          <text x="62.5" y="50" transform="rotate(-90 62.5 50)">0.930</text>
+          <text x="84.5" y="187.4" transform="rotate(-90 84.5 187.4)" fill="#3B82F6">0.243</text>
+          <text x="106.5" y="36.2" transform="rotate(-90 106.5 36.2)" fill="#B45309" font-weight="700">0.999</text>
+          <text x="132.5" y="55.6" transform="rotate(-90 132.5 55.6)">0.902</text>
+          <text x="154.5" y="43.8" transform="rotate(-90 154.5 43.8)" fill="#3B82F6">0.961</text>
+          <text x="176.5" y="51.6" transform="rotate(-90 176.5 51.6)" fill="#B45309" font-weight="700">0.922</text>
+          <text x="202.5" y="124.8" transform="rotate(-90 202.5 124.8)">0.556</text>
+          <text x="224.5" y="122" transform="rotate(-90 224.5 122)" fill="#3B82F6">0.570</text>
+          <text x="246.5" y="107.2" transform="rotate(-90 246.5 107.2)" fill="#B45309" font-weight="700">0.644</text>
+          <text x="272.5" y="186.4" transform="rotate(-90 272.5 186.4)">0.248</text>
+          <text x="294.5" y="178.4" transform="rotate(-90 294.5 178.4)" fill="#3B82F6">0.288</text>
+          <text x="316.5" y="146.6" transform="rotate(-90 316.5 146.6)" fill="#B45309" font-weight="700">0.447</text>
+          <text x="342.5" y="205.4" transform="rotate(-90 342.5 205.4)">0.153</text>
+          <text x="364.5" y="204" transform="rotate(-90 364.5 204)" fill="#3B82F6">0.160</text>
+          <text x="386.5" y="177.6" transform="rotate(-90 386.5 177.6)" fill="#B45309" font-weight="700">0.292</text>
+        </g>
+        <line x1="44" y1="240" x2="400" y2="240" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+        <g class="anim-fade" fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+          <text x="82" y="258"><tspan font-style="italic">m</tspan>=1</text><text x="152" y="258"><tspan font-style="italic">m</tspan>=2</text>
+          <text x="222" y="258"><tspan font-style="italic">m</tspan>=3</text><text x="292" y="258"><tspan font-style="italic">m</tspan>=4</text>
+          <text x="362" y="258"><tspan font-style="italic">m</tspan>=6</text>
+        </g>
+        <g class="anim-fade">
+          <rect x="46" y="276" width="18" height="11" rx="1.5" fill="#9CA3AF"/>
+          <text x="69" y="285" fill="#64748B" font-size="10">pretrained</text>
+          <rect x="140" y="276" width="18" height="11" rx="1.5" fill="#3B82F6"/>
+          <text x="163" y="285" fill="#64748B" font-size="10">REINFORCE + KL</text>
+          <rect x="272" y="276" width="18" height="11" rx="1.5" fill="#F59E0B"/>
+          <text x="295" y="285" fill="#64748B" font-size="10">expert iteration</text>
+        </g>
+      </svg>
+      <p class="note" style="font-size:.82rem;margin-top:.5rem">Root-level validity: share of sampled generations that
+        parse all the way to the root. Validity verifier, final round.</p>
+    </div>
+    <div class="reveal d2">
+      <ul class="tight" style="margin-top:0">
+        <li>Recovers \(m{=}1\) fully (0.999): the anchored harm was the <em>variant</em>, not the class.</li>
+        <li>Nearly <span class="hl">doubles</span> root validity at \(m{=}4\) (\(0.25\to0.45\)) and \(m{=}6\) (\(0.15\to0.29\)).</li>
+        <li>No collapse; \(<0.9\) nats above floor.</li>
+        <li>The flywheel spins: winners fed back at \(m{=}6\) go \(89\%\to99\%\) root-valid.</li>
+      </ul>
+      <div class="block exampleblock">
+        <div class="bt">So</div>
+        <div class="bb">Whatever this class can do, this arm does more of it than policy gradients.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: the dissociation (hero figure) -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Pass rate doubles. The model learns no new rule.</h2>
+  <div class="cols">
+    <div class="diagram reveal d1" data-parallax=".05">
+      <svg viewBox="28 0 364 312" role="img" aria-label="Two pyramids labeled 'round 1' and 'round 6' for m=6 under expert iteration, separated by a large approximately-equal sign. Both are pale above the bottom band, both carry the same crimson dashed basis boundary at the top of L0, and the bottom band of round 6 is fainter than round 1. Captions read 'boundary unmoved' and 'no band lights up; the bottom even fades'.">
+        <text x="220" y="26" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700" class="anim-fade">what the model knows (<tspan font-style="italic">m</tspan>=6, expert iteration)</text>
+    <defs><clipPath id="q1"><polygon points="88,250 140,75 192,250"/></clipPath><clipPath id="q2"><polygon points="248,250 300,75 352,250"/></clipPath></defs>
+      <g clip-path="url(#q1)" class="anim-fade" style="transition-delay:0s">
+        <rect x="74" y="220.83" width="132" height="29.17" fill="#9AC1CF"/>
+        <rect x="74" y="191.67" width="132" height="29.17" fill="#D7E2EB"/>
+        <rect x="74" y="162.5" width="132" height="29.17" fill="#DAE3EC"/>
+        <rect x="74" y="133.33" width="132" height="29.17" fill="#DEE6EE"/>
+        <rect x="74" y="104.17" width="132" height="29.17" fill="#DEE6EE"/>
+        <rect x="74" y="75" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="74" y="75" width="132" height="29.17" fill="url(#nosig)"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="74" y1="220.83" x2="206" y2="220.83"/><line x1="74" y1="191.67" x2="206" y2="191.67"/><line x1="74" y1="162.5" x2="206" y2="162.5"/><line x1="74" y1="133.33" x2="206" y2="133.33"/><line x1="74" y1="104.17" x2="206" y2="104.17"/></g>
+      </g>
+      <g clip-path="url(#q1)"><line x1="74" y1="220.83" x2="206" y2="220.83" stroke="#E11D48" stroke-width="2.2" stroke-dasharray="5 3.4" class="anim-fade" style="transition-delay:.6s"/></g>
+      <polygon points="88,250 140,75 192,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="140" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade">round 1</text>
+      <g clip-path="url(#q2)" class="anim-fade" style="transition-delay:0.1s">
+        <rect x="234" y="220.83" width="132" height="29.17" fill="#C2D7E2"/>
+        <rect x="234" y="191.67" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="234" y="162.5" width="132" height="29.17" fill="#DCE5ED"/>
+        <rect x="234" y="133.33" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="234" y="104.17" width="132" height="29.17" fill="#E0E7EF"/>
+        <rect x="234" y="75" width="132" height="29.17" fill="#E2E8F0"/>
+        <rect x="234" y="75" width="132" height="29.17" fill="url(#nosig)"/>
+        <g stroke="#fff" stroke-width="1.4"><line x1="234" y1="220.83" x2="366" y2="220.83"/><line x1="234" y1="191.67" x2="366" y2="191.67"/><line x1="234" y1="162.5" x2="366" y2="162.5"/><line x1="234" y1="133.33" x2="366" y2="133.33"/><line x1="234" y1="104.17" x2="366" y2="104.17"/></g>
+      </g>
+      <g clip-path="url(#q2)"><line x1="234" y1="220.83" x2="366" y2="220.83" stroke="#E11D48" stroke-width="2.2" stroke-dasharray="5 3.4" class="anim-fade" style="transition-delay:.6s"/></g>
+      <polygon points="248,250 300,75 352,250" fill="none" stroke="#1E3A5F" stroke-opacity=".45" stroke-width="1.2" class="anim-fade"/>
+      <text x="300" y="62" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700" class="anim-fade">round 6</text>
+        <g class="anim-fade" fill="#64748B" font-size="12" font-weight="700" text-anchor="end">
+          <text x="76" y="239.4">L0</text><text x="76" y="210.2">L1</text><text x="76" y="181.1">L2</text>
+          <text x="76" y="151.9">L3</text><text x="76" y="122.7">L4</text><text x="76" y="93.6">L5</text>
+        </g>
+        <text x="220" y="171.5" text-anchor="middle" fill="#1E3A5F" font-size="26" font-weight="700" class="anim-fade">&#8776;</text>
+        <text x="220" y="276" text-anchor="middle" fill="#E11D48" font-size="12" font-weight="700" class="anim-fade">boundary unmoved</text>
+        <text x="220" y="293" text-anchor="middle" fill="#64748B" font-size="10.5" class="anim-fade">no band lights up; the bottom even fades</text>
+      </svg>
+    </div>
+    <div class="diagram reveal d2" data-parallax=".05">
+      <svg viewBox="0 0 480 348" role="img" aria-label="Two stacked line charts across six rounds of expert iteration at m=6. The top chart, in amber, shows root-level validity of the sampled policy climbing from 0.14 to 0.29 and is annotated 'times 2'. The bottom chart shows loss above the Bayes floor at the unlearned levels: two nearly flat slate lines for L3 and L4 that drift slightly upward toward dashed gray 'chance' references rather than downward.">
+        <text x="56" y="22" fill="#B45309" font-size="11" class="anim-fade">root-level validity of the sampled policy</text>
+        <line x1="56" y1="140" x2="56" y2="34" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+        <line x1="56" y1="140" x2="400" y2="140" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+        <g class="anim-fade" fill="#64748B" font-size="10" text-anchor="end">
+          <text x="50" y="123">0.14</text><text x="50" y="48">0.29</text>
+        </g>
+        <polyline points="70,119 130,103 190,73.5 250,74 310,48.5 370,44" fill="none" stroke="#F59E0B" stroke-width="2.2" stroke-linejoin="round" pathLength="1" class="anim-draw"/>
+        <g fill="#F59E0B" class="anim-fade">
+          <circle cx="70" cy="119" r="3.4"/><circle cx="130" cy="103" r="3.4"/><circle cx="190" cy="73.5" r="3.4"/>
+          <circle cx="250" cy="74" r="3.4"/><circle cx="310" cy="48.5" r="3.4"/><circle cx="370" cy="44" r="3.4"/>
+        </g>
+        <text x="384" y="48" fill="#B45309" font-size="13" font-weight="700" class="anim-fade">&times;2</text>
+
+        <text x="56" y="176" fill="#1E3A5F" font-size="11" class="anim-fade">loss above the Bayes floor at the unlearned levels</text>
+        <line x1="56" y1="300" x2="56" y2="184" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+        <line x1="56" y1="300" x2="400" y2="300" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+        <g class="anim-fade" fill="#64748B" font-size="10" text-anchor="end">
+          <text x="50" y="290">0.95</text><text x="50" y="190">1.10</text>
+        </g>
+        <g class="anim-fade" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4 3">
+          <line x1="64" y1="258.7" x2="386" y2="258.7"/><line x1="64" y1="218" x2="386" y2="218"/>
+        </g>
+        <g class="anim-fade" fill="#64748B" font-size="10">
+          <text x="394" y="262">chance, L3</text><text x="394" y="221.5">chance, L4</text>
+        </g>
+        <polyline points="70,273.3 130,273.3 190,266.7 250,266.7 310,266.7 370,260" fill="none" stroke="#64748B" stroke-width="2.2" stroke-linejoin="round" pathLength="1" class="anim-draw"/>
+        <polyline points="70,233.3 130,233.3 190,233.3 250,233.3 310,233.3 370,226.7" fill="none" stroke="#1E3A5F" stroke-width="2.2" stroke-linejoin="round" pathLength="1" class="anim-draw"/>
+        <g class="anim-fade">
+          <g fill="#64748B"><circle cx="70" cy="273.3" r="3.2"/><circle cx="130" cy="273.3" r="3.2"/><circle cx="190" cy="266.7" r="3.2"/><circle cx="250" cy="266.7" r="3.2"/><circle cx="310" cy="266.7" r="3.2"/><circle cx="370" cy="260" r="3.2"/></g>
+          <g fill="#1E3A5F"><circle cx="70" cy="233.3" r="3.2"/><circle cx="130" cy="233.3" r="3.2"/><circle cx="190" cy="233.3" r="3.2"/><circle cx="250" cy="233.3" r="3.2"/><circle cx="310" cy="233.3" r="3.2"/><circle cx="370" cy="233.3" r="3.2"/></g>
+          <text x="50" y="277" text-anchor="end" fill="#64748B" font-size="10.5" font-weight="700">L3</text>
+          <text x="50" y="237" text-anchor="end" fill="#1E3A5F" font-size="10.5" font-weight="700">L4</text>
+        </g>
+        <g class="anim-fade" fill="#64748B" font-size="10.5" text-anchor="middle">
+          <text x="70" y="316">1</text><text x="130" y="316">2</text><text x="190" y="316">3</text>
+          <text x="250" y="316">4</text><text x="310" y="316">5</text><text x="370" y="316">6</text>
+          <text x="220" y="336">round</text>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="block reveal d3">
+    <div class="bt">The dissociation</div>
+    <div class="bb">Performance doubled on a metric that <em>requires</em> deep structure; no deep structure was learned.
+      Mass moved between trajectories the basis could already produce (\(\eta^2\) unchanged; \(m{=}4\) identical).</div>
+  </div>
+</article>
+
+<!-- Slide: the price steepens with m -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">The more right answers, the steeper the price</h2>
+  <div class="cols">
+    <div class="reveal d1">
+      <p class="note left" style="margin:0 0 .4rem;color:var(--mainblue);font-weight:600;text-align:center">
+        Canonical verifier: exact-match gain from six rounds of EI</p>
+      <div class="diagram" data-parallax=".05">
+        <svg viewBox="0 0 400 226" role="img" aria-label="A blue bar chart of exact-match gain from six rounds of expert iteration. The bars are +0.007 at m=1, +0.019 at m=2, +0.011 at m=3, and +0.002 at both m=4 and m=6. A note under m=1 reads 'already at the ceiling'; a note on the right reads 'to 0, tracking the headroom bound'.">
+          <line x1="26" y1="160" x2="26" y2="46" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+          <g fill="#3B82F6">
+            <rect x="38" y="123.16" width="44" height="36.84" rx="1.5" class="anim-grow" style="transform-origin:60px 160px"/>
+            <rect x="106" y="60" width="44" height="100" rx="1.5" class="anim-grow" style="transform-origin:128px 160px;--gd:.07s"/>
+            <rect x="174" y="102.11" width="44" height="57.89" rx="1.5" class="anim-grow" style="transform-origin:196px 160px;--gd:.14s"/>
+            <rect x="242" y="149.47" width="44" height="10.53" rx="1.5" class="anim-grow" style="transform-origin:264px 160px;--gd:.21s"/>
+            <rect x="310" y="149.47" width="44" height="10.53" rx="1.5" class="anim-grow" style="transform-origin:332px 160px;--gd:.28s"/>
+          </g>
+          <g class="anim-fade" fill="#1E3A5F" font-size="11.5" font-weight="700" text-anchor="middle">
+            <text x="60" y="117">+0.007</text><text x="128" y="54">+0.019</text><text x="196" y="96">+0.011</text>
+            <text x="264" y="143">+0.002</text><text x="332" y="143">+0.002</text>
+          </g>
+          <line x1="26" y1="160" x2="380" y2="160" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+          <g class="anim-fade" fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+            <text x="60" y="178"><tspan font-style="italic">m</tspan>=1</text><text x="128" y="178"><tspan font-style="italic">m</tspan>=2</text>
+            <text x="196" y="178"><tspan font-style="italic">m</tspan>=3</text><text x="264" y="178"><tspan font-style="italic">m</tspan>=4</text>
+            <text x="332" y="178"><tspan font-style="italic">m</tspan>=6</text>
+          </g>
+          <text x="66" y="200" text-anchor="middle" fill="#64748B" font-size="10.5" class="anim-fade">already at the ceiling</text>
+          <text x="298" y="200" text-anchor="middle" fill="#B45309" font-size="10.5" font-weight="700" class="anim-fade">&rarr; 0, tracking the</text>
+          <text x="298" y="214" text-anchor="middle" fill="#B45309" font-size="10.5" font-weight="700" class="anim-fade">headroom bound</text>
+        </svg>
+      </div>
+    </div>
+    <div class="reveal d2">
+      <p class="note left" style="margin:0 0 .4rem;color:var(--fwddark);font-weight:600;text-align:center">
+        Validity verifier: share of pretrained knowledge erased by six rounds of EI</p>
+      <div class="diagram" data-parallax=".05">
+        <svg viewBox="0 0 400 226" role="img" aria-label="A bar chart of the share of pretrained knowledge erased by six rounds of expert iteration, shaded from pale to deep crimson as the value rises: 13% at m=1, 7% at m=2, 19% at m=3, 50% at m=4 and 61% at m=6. A note under m=1 reads 'grammar perfect (1.000), distribution distorted'.">
+          <line x1="26" y1="160" x2="26" y2="46" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
+          <g stroke="#E11D48" stroke-width="0.8">
+            <rect x="38" y="136.56" width="44" height="23.44" rx="1.5" fill="#E2CEDA" class="anim-grow" style="transform-origin:60px 160px"/>
+            <rect x="106" y="147.38" width="44" height="12.62" rx="1.5" fill="#E2DAE4" class="anim-grow" style="transform-origin:128px 160px;--gd:.07s"/>
+            <rect x="174" y="125.74" width="44" height="34.26" rx="1.5" fill="#E2C1D0" class="anim-grow" style="transform-origin:196px 160px;--gd:.14s"/>
+            <rect x="242" y="69.84" width="44" height="90.16" rx="1.5" fill="#E2839C" class="anim-grow" style="transform-origin:264px 160px;--gd:.21s"/>
+            <rect x="310" y="50" width="44" height="110" rx="1.5" fill="#E16C8A" class="anim-grow" style="transform-origin:332px 160px;--gd:.28s"/>
+          </g>
+          <g class="anim-fade" fill="#BE123C" font-size="11.5" font-weight="700" text-anchor="middle">
+            <text x="60" y="130.1">13%</text><text x="128" y="140.9">7%</text><text x="196" y="119.2">19%</text>
+            <text x="264" y="63.3">50%</text><text x="332" y="43.5">61%</text>
+          </g>
+          <line x1="26" y1="160" x2="380" y2="160" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
+          <g class="anim-fade" fill="#1E3A5F" font-size="12.5" font-weight="700" text-anchor="middle">
+            <text x="60" y="178"><tspan font-style="italic">m</tspan>=1</text><text x="128" y="178"><tspan font-style="italic">m</tspan>=2</text>
+            <text x="196" y="178"><tspan font-style="italic">m</tspan>=3</text><text x="264" y="178"><tspan font-style="italic">m</tspan>=4</text>
+            <text x="332" y="178"><tspan font-style="italic">m</tspan>=6</text>
+          </g>
+          <text x="67" y="200" text-anchor="middle" fill="#64748B" font-size="10.5" class="anim-fade">grammar perfect (1.000),</text>
+          <text x="67" y="214" text-anchor="middle" fill="#64748B" font-size="10.5" class="anim-fade">distribution distorted</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="block basisblock reveal d3">
+    <div class="bt">Same mechanism, same budget</div>
+    <div class="bb">As synonymy rises, reward buys <em>less</em> on the one-answer verifier and erases <em>more</em>
+      of the pretrained distribution on the many-answer one &mdash; &ldquo;more fried as tasks get more
+      sophisticated,&rdquo; in the best-behaved member of the class.</div>
+  </div>
+</article>
+
+<!-- ══════════════════ § 05 WHAT IT MEANS ══════════════════ -->
+<section class="band" data-observe style="--p:1">
+  <div class="reveal"><div class="sec-num">SECTION 05</div><h2>What it means</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<!-- Slide: selection within the basis -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">Reward optimization is selection within the basis</h2>
+  <div class="cols left-wide">
+    <div class="diagram reveal d1" data-parallax=".06">
+      <svg viewBox="0 0 440 254" role="img" aria-label="Two identical cyan rounded boxes labeled 'before' and 'after', each holding a scatter of dots that stand for the trajectories the basis can produce. In the 'before' box three dots are amber (they pass the verifier) and the rest gray. An amber arrow labeled 'reward optimization' points from the first box to the second, where seven dots are amber and larger and the gray dots have faded. Four gray crosses sit above the boxes, annotated 'needs a rule the basis lacks — unreachable either way'. A caption reads 'same outline before and after — only the mass moved'.">
+        <text x="220" y="16" text-anchor="middle" fill="#9CA3AF" font-size="10.5" class="anim-fade">&#10007; needs a rule the basis lacks &mdash; unreachable either way</text>
+        <g class="anim-fade" fill="#9CA3AF" font-size="13" text-anchor="middle">
+          <text x="55" y="38">&#10007;</text><text x="140" y="38">&#10007;</text><text x="305" y="38">&#10007;</text><text x="390" y="38">&#10007;</text>
+        </g>
+        <text x="95" y="60" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700" class="anim-fade">before</text>
+        <text x="345" y="60" text-anchor="middle" fill="#1E3A5F" font-size="12.5" font-weight="700" class="anim-fade">after</text>
+        <rect x="20" y="70" width="150" height="120" rx="18" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.4" class="anim-fade"/>
+        <rect x="270" y="70" width="150" height="120" rx="18" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.4" class="anim-fade"/>
+        <g class="anim-fade" fill="#9CA3AF">
+          <circle cx="43.5" cy="165" r="3"/><circle cx="71.6" cy="95" r="3"/><circle cx="109" cy="170" r="3"/><circle cx="141.9" cy="110" r="3"/>
+          <circle cx="57.5" cy="130" r="3"/><circle cx="127.8" cy="145" r="3"/><circle cx="90.3" cy="90" r="3"/><circle cx="151.3" cy="165" r="3"/>
+          <circle cx="95" cy="135" r="3"/><circle cx="38.8" cy="95" r="3"/><circle cx="118.5" cy="95" r="3"/><circle cx="76.3" cy="160" r="3"/>
+        </g>
+        <g class="anim-fade" fill="#F59E0B">
+          <circle cx="62.2" cy="170" r="3.6"/><circle cx="137.2" cy="90" r="3.6"/><circle cx="99.7" cy="110" r="3.6"/>
+        </g>
+        <g class="anim-fade" fill="#9CA3AF" fill-opacity=".55">
+          <circle cx="293.5" cy="165" r="2.2"/><circle cx="321.6" cy="95" r="2.2"/><circle cx="359" cy="170" r="2.2"/><circle cx="391.9" cy="110" r="2.2"/>
+          <circle cx="307.5" cy="130" r="2.2"/><circle cx="377.8" cy="145" r="2.2"/><circle cx="340.3" cy="90" r="2.2"/><circle cx="401.3" cy="165" r="2.2"/>
+          <circle cx="345" cy="135" r="2.2"/><circle cx="288.8" cy="95" r="2.2"/><circle cx="368.5" cy="95" r="2.2"/><circle cx="326.3" cy="160" r="2.2"/>
+        </g>
+        <g class="anim-fade" fill="#F59E0B">
+          <circle cx="312.2" cy="170" r="4.4"/><circle cx="387.2" cy="90" r="4.4"/><circle cx="349.7" cy="110" r="4.4"/>
+          <circle cx="302.8" cy="115" r="4.4"/><circle cx="391.9" cy="150" r="4.4"/><circle cx="335.7" cy="145" r="4.4"/><circle cx="363.8" cy="125" r="4.4"/>
+        </g>
+        <line x1="183" y1="130" x2="256" y2="130" stroke="#D97706" stroke-width="1.8" marker-end="url(#ah-amber-dk)" pathLength="1" class="anim-draw"/>
+        <text x="220" y="104" text-anchor="middle" fill="#B45309" font-size="10.5" font-weight="700" class="anim-fade">reward</text>
+        <text x="220" y="117" text-anchor="middle" fill="#B45309" font-size="10.5" font-weight="700" class="anim-fade">optimization</text>
+        <g class="anim-fade">
+          <rect x="53" y="206" width="20" height="13" rx="3" fill="none" stroke="#0E7490" stroke-width="1.3"/>
+          <text x="79" y="216" fill="#0E7490" font-size="10.5">what the basis can produce</text>
+          <circle cx="285" cy="212" r="4" fill="#F59E0B"/>
+          <text x="295" y="216" fill="#B45309" font-size="10.5">passes the verifier</text>
+        </g>
+        <text x="220" y="240" text-anchor="middle" fill="#64748B" font-size="10.5" class="anim-fade">same outline before and after &mdash; only the mass moved</text>
+      </svg>
+    </div>
+    <div class="reveal d2">
+      <p style="margin-top:0">Across <span class="basis">3 mechanisms \(\times\) 5 \(m\) \(\times\) 2 verifiers</span>,
+        deep-rule knowledge stayed where pretraining left it. Everything else varied:</p>
+      <ul class="tight">
+        <li>REINFORCE <span class="red">burned</span> it (9&ndash;14 nats);</li>
+        <li>the anchor <span class="blue">froze</span> it (\(\approx\)0 gain);</li>
+        <li>EI gained by <span class="hl">selection and sharpening</span> within it.</li>
+      </ul>
+      <div class="block">
+        <div class="bt">In language terms</div>
+        <div class="bb">Pass rates up; rules still unknown; the distribution paid.
+          Only a known generating process can tell these apart.</div>
+      </div>
+    </div>
+  </div>
+</article>
+
+<!-- Slide: the implication -->
+<article class="panel" data-observe>
+  <h2 class="frame-title reveal">If the boundary is to move, something other than reward has to move it</h2>
+  <div class="diagram wide reveal d1" data-parallax=".04">
+    <svg viewBox="0 7 760 125" role="img" aria-label="A horizontal axis of m from 1 to 8, labeled 'm: how many ways to be right'. A green brace spans the low end, from m=1 to just past m=3, labeled 'games · code · math'. A crimson brace spans the high end, from beyond m=4 to m=8, labeled 'creative writing · original thinking'.">
+      <path d="M40,52 L40,46 L153,46 L157,40 L161,46 L275,46 L275,52" fill="none" stroke="#14532D" stroke-width="1.3" pathLength="1" class="anim-draw"/>
+      <text x="157" y="30" text-anchor="middle" fill="#14532D" font-size="12.5" font-weight="700" class="anim-fade">games &middot; code &middot; math</text>
+      <path d="M411,52 L411,46 L561,46 L565,40 L569,46 L720,46 L720,52" fill="none" stroke="#E11D48" stroke-width="1.3" pathLength="1" class="anim-draw"/>
+      <text x="565" y="30" text-anchor="middle" fill="#E11D48" font-size="12.5" font-weight="700" class="anim-fade">creative writing &middot; original thinking</text>
+      <line x1="40" y1="70" x2="720" y2="70" stroke="#64748B" stroke-width="2.2" pathLength="1" class="anim-draw"/>
+      <g class="anim-fade">
+        <g stroke="#64748B" stroke-width="1.2">
+          <line x1="40" y1="63" x2="40" y2="77"/><line x1="145" y1="63" x2="145" y2="77"/><line x1="244" y1="63" x2="244" y2="77"/>
+          <line x1="324" y1="63" x2="324" y2="77"/><line x1="467" y1="63" x2="467" y2="77"/><line x1="720" y1="63" x2="720" y2="77"/>
+        </g>
+        <g fill="#1E3A5F" font-size="11.5" font-weight="700" text-anchor="middle">
+          <text x="40" y="94"><tspan font-style="italic">m</tspan>=1</text><text x="145" y="94"><tspan font-style="italic">m</tspan>=2</text>
+          <text x="244" y="94"><tspan font-style="italic">m</tspan>=3</text><text x="324" y="94"><tspan font-style="italic">m</tspan>=4</text>
+          <text x="467" y="94"><tspan font-style="italic">m</tspan>=6</text><text x="720" y="94"><tspan font-style="italic">m</tspan>=8</text>
+        </g>
+        <text x="380" y="116" text-anchor="middle" fill="#64748B" font-size="11"><tspan font-style="italic">m</tspan>: how many ways to be right</text>
+      </g>
+    </svg>
+  </div>
+  <div class="cols reveal d2">
+    <p style="margin-top:.6rem"><strong>Not all language tasks are created equal.</strong> Code and math have few right
+      answers; creative writing and original thinking are inherently synonymous. Unsurprisingly, language-model RL
+      works on the former and not on the latter.</p>
+    <p style="margin-top:.6rem">The one channel that <em>could</em> teach a missing rule is the pretraining-shaped one:
+      SFT on selected samples is more data. At the RL-matched budget it did not, while reward doubled.</p>
+  </div>
+  <div class="block reveal d3">
+    <div class="bt">Takeaway</div>
+    <div class="bb">Continual learning that <em>expands</em> what a model can do needs a mechanism that moves the
+      basis boundary. Vanilla policy reward is, structurally, not it.</div>
+  </div>
+</article>
+
+<!-- ══════════════════ OUTRO ══════════════════ -->
+<footer class="outro" data-observe>
+  <div class="reveal"><h2>Summary</h2></div>
+  <div class="scards reveal d2">
+    <div class="sc"><div class="n">Bounded</div><div class="s">one-answer verifiers empty out: headroom 0.096 &rarr; 0, by exact computation</div></div>
+    <div class="sc"><div class="n">Immobile</div><div class="s">3 mechanisms &times; 5 \(m\) &times; 2 verifiers: the basis boundary never moved</div></div>
+    <div class="sc"><div class="n">Dissociated</div><div class="s">pass rate &times;2 at \(m{=}6\) with zero new rules learned</div></div>
+    <div class="sc"><div class="n">Costlier with \(m\)</div><div class="s">share of pretrained knowledge erased: 7% &rarr; 61% (\(m{=}2\to6\))</div></div>
+  </div>
+  <p class="closing reveal d3">
+    Reward optimization selects among the answers a model can already give.
+    When there are many right answers, that is all it can do &mdash;
+    and it gets more expensive the more of them there are.
+  </p>
+  <p class="byline reveal d4">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</footer>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash; <a href="https://twitter.com/0xjasper">Twitter</a> <a href="https://github.com/jagilley">Github</a></p>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var observed = document.querySelectorAll('[data-observe]');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in-view'); io.unobserve(e.target); } });
+    }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+    observed.forEach(function(el){ io.observe(el); });
+  } else { observed.forEach(function(el){ el.classList.add('in-view'); }); }
+
+  var bar = document.querySelector('.scroll-progress');
+  var paraEls = reduce ? [] : Array.prototype.slice.call(document.querySelectorAll('[data-parallax]'));
+  var ticking = false;
+  function update(){
+    var doc = document.documentElement, max = doc.scrollHeight - doc.clientHeight;
+    if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? doc.scrollTop / max : 0) + ')';
+    if (paraEls.length){
+      var vh = window.innerHeight;
+      for (var i=0;i<paraEls.length;i++){
+        var el = paraEls[i], r = el.getBoundingClientRect();
+        if (r.bottom < -80 || r.top > vh + 80) continue;
+        var off = (r.top + r.height/2 - vh/2) / vh;
+        var f = parseFloat(el.getAttribute('data-parallax')) || 0.08;
+        el.style.transform = 'translateY(' + (off * f * -80).toFixed(1) + 'px)';
+      }
+    }
+    ticking = false;
+  }
+  function onScroll(){ if (!ticking){ ticking = true; requestAnimationFrame(update); } }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  window.addEventListener('resize', onScroll, { passive:true });
+  update();
+})();
+</script>
+
+</body>
+</html>
