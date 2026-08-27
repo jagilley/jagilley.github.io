@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Reward optimization selects within the basis pretraining built — and pays more for it the more ways there are to be right. Exact bounds and three RL mechanisms on a generative model with known ground truth." />
+  <meta name="description" content="Reward optimization chooses among the answers pretraining already taught, and the more ways there are to be right, the more that choosing costs. Exact bounds and three RL mechanisms on a generative model with known ground truth." />
   <title>RL Is Not Enough When There Are Many Right Answers | Jasper Gilley</title>
 
   <meta property="og:url" content="https://jagilley.github.io/rl-is-not-enough.html" />
   <meta property="og:type" content="article" />
   <meta property="og:title" content="RL Is Not Enough When There Are Many Right Answers" />
-  <meta property="og:description" content="Reward optimization selects within the basis pretraining built — and pays more for it the more ways there are to be right." />
+  <meta property="og:description" content="Reward optimization chooses among the answers pretraining already taught, and the more ways there are to be right, the more that choosing costs." />
   <meta property="og:site_name" content="Jasper Gilley" />
   <meta property="article:author" content="Jasper Gilley" />
   <meta property="og:image" content="https://jagilley.github.io/resources/rl-is-not-enough-og.png" />
@@ -192,11 +192,11 @@
 <!-- ══════════════════ HERO ══════════════════ -->
 <header class="hero" data-observe>
   <div class="reveal">
-    <h1>RL is not enough<br>when there are many right answers</h1>
-    <p class="sub">Reward optimization selects within the basis pretraining built &mdash; and pays more for it the more ways there are to be right</p>
+    <h1>RL fries the models' brains on complex domains</h1>
+    <p class="sub">Reward optimization chooses among the answers pretraining already taught, and the more ways there are to be right, the more that choosing costs</p>
   </div>
   <nav class="paperlinks reveal d1" aria-label="Post resources">
-    <a href="https://drive.google.com/file/d/1pf1m6_X0EKCCsJnG8x9mPyuUWbBNbmyV/view?usp=sharing" target="_blank" rel="noopener">
+    <a href="https://colab.research.google.com/drive/1pf1m6_X0EKCCsJnG8x9mPyuUWbBNbmyV" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h4M2 10h4M2 14h4M2 18h4"/><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M15 2v20"/></svg>
       Colab
     </a>
@@ -227,7 +227,7 @@
 </header>
 
 <p class="lead">
-  RL from a blank slate conquers games; on language we pretrain first and use reward only to finish.
+  RL from a blank slate conquers games. On language we pretrain first and use reward only to fine-tune at the end.
   Here is what reward optimization actually does to a model whose generating process we know exactly &mdash;
   three mechanisms, five levels of synonymy, two verifiers, and a boundary that never moves.
   <span class="scroll-cue">Scroll</span>
@@ -244,13 +244,14 @@
   <h2 class="frame-title reveal">Games yield to RL from scratch. Language does not.</h2>
   <div class="cols">
     <div class="reveal d1">
-      <p style="margin-top:0">RL from a blank slate conquers games; on language we <span class="basis">pretrain</span> first
-        and use reward only to finish. The obvious difference: <span class="hl">how many right answers</span>
-        each state admits.</p>
+      <p style="margin-top:0">RL from a blank slate conquers games. On language we <span class="basis">pretrain</span> first
+        and use reward only to fine-tune at the end. One major difference between the two:
+        <span class="hl">how many right answers</span> each state admits.</p>
       <div class="block">
         <div class="bt">The sharper question</div>
-        <div class="bb">Does reward optimization <em>create</em> capability in the basis pretraining built &mdash;
-          or only rearrange and degrade what is already there?</div>
+        <div class="bb">Call the set of rules pretraining actually taught the model its <span class="basis">basis</span>:
+          everything it can produce at all. Does reward optimization <em>add</em> to the basis, or only rearrange
+          and degrade what is already there?</div>
       </div>
     </div>
     <div class="diagram reveal d2" data-parallax=".07">
@@ -302,11 +303,12 @@
   <h2 class="frame-title reveal">A dial for &ldquo;how many ways to say the same thing&rdquo;</h2>
   <div class="cols right-wide">
     <div class="reveal d1">
-      <p style="margin-top:0">The <span class="basis">Random Hierarchy Model</span>: every feature expands, by one of
-        <span class="hl">\(m\)</span> interchangeable rules, into 2 children; 6 levels down to 64 tokens.</p>
-      <p>\(m\) \(=\) how many surface forms each meaning has. \(m{=}1\): the whole language is
-        <strong>8 sequences</strong> &mdash; a game. \(m{=}8\): uniform &mdash; noise.</p>
-      <p>Sweep \(m\in\{1,2,3,4,6\}\); tree shape, sequence length, model and rollout budget all fixed.</p>
+      <p style="margin-top:0">The <span class="basis">Random Hierarchy Model</span>: a grammar over 8 symbols. Each
+        symbol rewrites into 2 children by one of <span class="hl">\(m\)</span> rules, and every rule is a different
+        way of saying the same thing. Six levels down, a sequence of 64 tokens.</p>
+      <p>\(m{=}1\): one way to say everything, so the whole language is <strong>8 sequences</strong>. A game.
+        \(m{=}8\): every pairing of children is some rule, so every sequence is grammatical. Noise.</p>
+      <p>Sweep \(m\in\{1,2,3,4,6\}\) with tree shape, sequence length, model and rollout budget all fixed.</p>
       <p class="dim" style="font-size:.92rem">Cagnetta et al., <em>Phys. Rev. X</em>, 2024.</p>
     </div>
     <div class="diagram reveal d2" data-parallax=".06">
@@ -406,27 +408,28 @@
   </div>
   <div class="vcards reveal d2">
     <div class="vcard exact">
-      <span class="vt" style="color:var(--mainblue)">exact</span> &mdash; matches the one sampled ground-truth suffix, token by token.
+      <span class="vt" style="color:var(--mainblue)">exact</span> &mdash; matches the suffix of the original sequence the prefix was cut from, token by token.
       <span class="vs">A <strong>canonical-answer</strong> verifier: a synonym counts as <em>wrong</em>.</span>
     </div>
     <div class="vcard parse">
-      <span class="vt" style="color:var(--fwddark)">parse</span> &mdash; any grammatical continuation, graded by how far up the tree prefix\(+\)suffix parses.
-      <span class="vs">A <strong>validity</strong> verifier: a synonym counts as <em>right</em>.</span>
+      <span class="vt" style="color:var(--fwddark)">parse</span> &mdash; any grammatical continuation. Score: the fraction of tree levels at which prefix\(+\)suffix parses.
+      <span class="vs">A <strong>validity</strong> verifier: a synonym counts as <em>right</em>.
+        &ldquo;Root-valid&rdquo; means grammatical all the way up.</span>
     </div>
   </div>
   <div class="block basisblock reveal d3">
     <div class="bt">Start every mechanism from the same place</div>
-    <div class="bb">Each \(m\) is pretrained <em>to plateau</em>; every mechanism starts from that checkpoint.
-      The claim is about what reward does to a <em>given</em> basis.</div>
+    <div class="bb">A separate model for each \(m\), pretrained until its loss plateaus. Every mechanism below
+      starts from that checkpoint, so the question is always what reward does to a <em>given</em> basis.</div>
   </div>
 </article>
 
 <!-- Slide: the ladder -->
 <article class="panel" data-observe>
-  <h2 class="frame-title reveal">Three mechanisms, one budget, ending at the class limit</h2>
+  <h2 class="frame-title reveal">Three mechanisms, one budget, ending at the cleanest one</h2>
   <div class="cols left-wide">
     <div class="diagram reveal d1" data-parallax=".07">
-      <svg viewBox="0 0 420 250" role="img" aria-label="A ladder of three stacked rungs, top to bottom: 'REINFORCE — no anchor, pure policy gradient'; '+ KL anchor — to the frozen pretrained policy'; and, highlighted in amber, 'Expert iteration — best-of-16 to SFT on winners, times 6'. To their right a list reads 'same checkpoint, same 384K rollouts, both verifiers, five values of m', and a long amber arrow runs down the right-hand edge labeled 'stronger'.">
+      <svg viewBox="0 0 420 250" role="img" aria-label="A ladder of three stacked rungs, top to bottom: 'REINFORCE — no anchor, pure policy gradient'; '+ KL anchor — to the frozen pretrained policy'; and, highlighted in amber, 'Expert iteration — 6 rounds: sample 16 per prompt, keep the best, fine-tune on it'. To their right a list reads 'same checkpoint, same 384K rollouts, both verifiers, five values of m', and a long amber arrow runs down the right-hand edge labeled 'stronger'.">
         <g class="anim-fade">
           <rect x="14" y="16" width="230" height="54" rx="6" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3"/>
           <text x="129" y="38" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700">REINFORCE</text>
@@ -434,9 +437,10 @@
           <rect x="14" y="90" width="230" height="54" rx="6" fill="#ECFEFF" stroke="#0E7490" stroke-width="1.3"/>
           <text x="129" y="112" text-anchor="middle" fill="#1E3A5F" font-size="13" font-weight="700">+ KL anchor</text>
           <text x="129" y="130" text-anchor="middle" fill="#334155" font-size="11">to the frozen pretrained policy</text>
-          <rect x="14" y="164" width="230" height="54" rx="6" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
-          <text x="129" y="186" text-anchor="middle" fill="#B45309" font-size="13" font-weight="700">Expert iteration</text>
-          <text x="129" y="204" text-anchor="middle" fill="#334155" font-size="11">best-of-16 &rarr; SFT on winners, &times;6</text>
+          <rect x="14" y="164" width="230" height="60" rx="6" fill="#FFFBEB" stroke="#D97706" stroke-width="1.5"/>
+          <text x="129" y="185" text-anchor="middle" fill="#B45309" font-size="13" font-weight="700">Expert iteration</text>
+          <text x="129" y="201" text-anchor="middle" fill="#334155" font-size="11">6 rounds: sample 16 per prompt,</text>
+          <text x="129" y="215" text-anchor="middle" fill="#334155" font-size="11">keep the best, fine-tune on it</text>
         </g>
         <g class="anim-fade" fill="#64748B" font-size="11">
           <text x="262" y="86">same checkpoint</text>
@@ -451,13 +455,13 @@
     <div class="reveal d2">
       <div class="block basisblock" style="margin-top:0">
         <div class="bt">Two kinds of result</div>
-        <div class="bb"><span class="basis">Bounds</span>: exact Bayes limits on the known tree.
-          <span class="hl">Attainment</span>: what each mechanism captures, at what cost.</div>
+        <div class="bb"><span class="basis">Bounds</span>: the best any optimizer could do, computed exactly on the
+          known tree. <span class="hl">Attainment</span>: what each mechanism actually captures, and at what cost.</div>
       </div>
       <div class="block">
         <div class="bt">Why end at expert iteration</div>
-        <div class="bb">The limit of the class every policy gradient approximates &mdash; if <em>it</em> can&rsquo;t move
-          the boundary, &ldquo;your variant was weak&rdquo; is off the table.</div>
+        <div class="bb">Sample, keep what the verifier passes, fine-tune on it. Every policy-gradient method is a
+          noisy version of that loop. If the clean version cannot teach the model a new rule, no noisier variant will.</div>
       </div>
     </div>
   </div>
@@ -474,7 +478,7 @@
   <h2 class="frame-title reveal">Demand one canonical answer, and there is nothing to optimize toward</h2>
   <div class="cols left-wide">
     <div class="diagram reveal d1" data-parallax=".06">
-      <svg viewBox="0 0 430 332" role="img" aria-label="A bar chart of exact-match accuracy for m=1, 2, 3, 4 and 6. Each bar has a pale gray lower section rising from a dashed 'uniform guess 1/8' line to the blind floor, and an amber cap on top for the prefix-conditional headroom. The amber cap is 0.096 tall at m=1 and collapses to 0.005, 0.0005 and approximately zero at larger m.">
+      <svg viewBox="0 0 430 332" role="img" aria-label="A bar chart of exact-match accuracy for m=1, 2, 3, 4 and 6. Each bar has a pale gray lower section rising from a dashed 'uniform guess, 1 of 8 symbols' line to the blind floor, and an amber cap on top for the extra accuracy that comes from reading the prefix. The amber cap is 0.096 tall at m=1 and collapses to 0.005, 0.0005 and approximately zero at larger m.">
         <line x1="34" y1="252" x2="34" y2="34" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
         <g transform="rotate(-90 18 142)"><text x="18" y="142" text-anchor="middle" fill="#64748B" font-size="11" class="anim-fade">exact-match accuracy</text></g>
         <g class="anim-grow" style="transform-origin:74px 220.75px"><rect x="50" y="65.5" width="48" height="155.25" rx="1.5" fill="#E2E8F0"/></g>
@@ -488,7 +492,7 @@
           <rect x="194" y="191.25" width="48" height="0.25" fill="#F59E0B"/>
         </g>
         <line x1="34" y1="220.75" x2="412" y2="220.75" stroke="#9CA3AF" stroke-width="0.9" stroke-dasharray="3 3" class="anim-fade"/>
-        <text x="410" y="236" text-anchor="end" fill="#64748B" font-size="11" class="anim-fade">uniform guess 1/8</text>
+        <text x="410" y="236" text-anchor="end" fill="#64748B" font-size="11" class="anim-fade">uniform guess, 1 of 8 symbols</text>
         <line x1="34" y1="252" x2="412" y2="252" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
         <g class="anim-fade" fill="#B45309" font-size="11.5" font-weight="700" text-anchor="middle">
           <text x="74" y="34.5">0.096</text><text x="146" y="175">0.005</text><text x="218" y="184">0.0005</text>
@@ -501,20 +505,24 @@
         </g>
         <g class="anim-fade">
           <rect x="36" y="286" width="22" height="14" rx="1.5" fill="#E2E8F0"/>
-          <text x="64" y="297" fill="#64748B" font-size="11">position marginals &mdash; no structure needed</text>
+          <text x="64" y="297" fill="#64748B" font-size="11">guessable without reading the prefix</text>
           <rect x="36" y="308" width="22" height="14" rx="1.5" fill="#F59E0B"/>
-          <text x="64" y="319" fill="#64748B" font-size="11">prefix-conditional headroom &mdash; the part that needs understanding</text>
+          <text x="64" y="319" fill="#64748B" font-size="11">the extra from reading the prefix: the <tspan font-weight="700">headroom</tspan></text>
         </g>
       </svg>
+      <p class="note" style="font-size:.82rem;margin-top:.5rem">Even at \(m{=}1\) the ceiling is 0.842, not 1: two
+        root rules can share a left half, so the prefix does not always pin the root.</p>
     </div>
     <div class="reveal d2">
-      <p style="margin-top:0">Computed exactly by belief propagation &mdash; <em>no optimizer can beat it</em>.
-        Deep hierarchies mix: beyond \(m{=}1\) the canonical-answer reward carries
-        <span class="hl">no semantic content</span>; only sharpening remains (\(0.19\to0.28\) at \(m{=}2\)).</p>
+      <p style="margin-top:0">Computed exactly on the known tree, so <em>no optimizer can beat it</em>.
+        Past \(m{=}1\) the prefix barely helps: 32 tokens in, the suffix is nearly independent of it, and the
+        canonical-answer reward has <span class="hl">nothing left to teach</span>.</p>
+      <p>What remains is <span class="basis">sharpening</span>: always emitting the most likely answer instead of
+        sampling one. That lifts accuracy without any new knowledge (\(0.19\to0.28\) at \(m{=}2\)).</p>
       <div class="block basisblock">
         <div class="bt">The validity verifier runs the other way</div>
-        <div class="bb">More synonyms, more grammatical strings, <em>denser</em> reward.
-          &ldquo;Complexity&rdquo; belongs to the verifier \(\times\) domain pair.</div>
+        <div class="bb">More synonyms means more grammatical strings, so its reward gets <em>denser</em> on the same
+          knob. How hard a domain is for RL depends on the verifier you pair it with.</div>
       </div>
     </div>
   </div>
@@ -522,9 +530,9 @@
 
 <!-- Slide: the pretrained basis -->
 <article class="panel" data-observe>
-  <h2 class="frame-title reveal">Pretraining builds a basis with a boundary &mdash; and it sinks as \(m\) grows</h2>
+  <h2 class="frame-title reveal">Pretraining builds the basis, and its boundary sinks as \(m\) grows</h2>
   <div class="diagram wide reveal d1" data-parallax=".05">
-    <svg viewBox="0 0 860 356" role="img" aria-label="Five pyramids side by side, one for each value of m: 1, 2, 3, 4 and 6. Each pyramid is divided into six horizontal bands, L0 at the bottom to L5 at the apex, colored from pale slate (at chance) to deep cyan (learned). At m=1, 2 and 3 every band is deep cyan. At m=4 the colour drains above L0 and the top two bands are hatched gray for 'nothing to predict'; a crimson dashed basis boundary cuts across at the top of L1. At m=6 only L0 holds faint colour and the boundary sits at the top of L0. Labels under each pyramid give the learned fraction and the plateau step count; a legend at the bottom shows the pale-to-cyan scale and the hatch pattern.">
+    <svg viewBox="0 0 880 356" role="img" aria-label="Five pyramids side by side, one for each value of m: 1, 2, 3, 4 and 6. Each pyramid is divided into six horizontal bands, L0 at the bottom to L5 at the apex, colored from pale slate (at chance) to deep cyan (learned). At m=1, 2 and 3 every band is deep cyan. At m=4 the colour drains above L0 and the top two bands are hatched gray for 'nothing to predict'; a crimson dashed basis boundary cuts across at the top of L1. At m=6 only L0 holds faint colour and the boundary sits at the top of L0. Labels under each pyramid give the learned fraction and the plateau step count; a legend at the bottom shows the pale-to-cyan scale and the hatch pattern.">
     <defs><clipPath id="p1"><polygon points="98,250 150,75 202,250"/></clipPath><clipPath id="p2"><polygon points="223,250 275,75 327,250"/></clipPath><clipPath id="p3"><polygon points="348,250 400,75 452,250"/></clipPath><clipPath id="p4"><polygon points="473,250 525,75 577,250"/></clipPath><clipPath id="p5"><polygon points="598,250 650,75 702,250"/></clipPath></defs>
       <g clip-path="url(#p1)" class="anim-fade" style="transition-delay:0s">
         <rect x="84" y="220.83" width="132" height="29.17" fill="#0E7490"/>
@@ -608,8 +616,8 @@
       </g>
       <g class="anim-fade">
         <text x="726" y="214" fill="#E11D48" font-size="12.5" font-weight="700">basis boundary</text>
-        <text x="726" y="231" fill="#E11D48" font-size="10.5">the ladder starts</text>
-        <text x="726" y="244" fill="#E11D48" font-size="10.5">from here</text>
+        <text x="726" y="231" fill="#E11D48" font-size="10.5">no rule learned above it;</text>
+        <text x="726" y="244" fill="#E11D48" font-size="10.5">the ladder starts here</text>
         <path d="M718,211 Q702,213.5 689,220.3" fill="none" stroke="#E11D48" stroke-width="1.4" marker-end="url(#ah-crimson)"/>
       </g>
       <g class="anim-fade">
@@ -620,12 +628,13 @@
         <text x="44" y="344" fill="#64748B" font-size="10.5">at chance</text>
         <text x="194" y="344" text-anchor="end" fill="#64748B" font-size="10.5">learned</text>
         <rect x="244" y="310" width="40" height="18" fill="url(#nosig)" stroke="#1E3A5F" stroke-opacity=".25" stroke-width="0.7"/>
-        <text x="294" y="323" fill="#64748B" font-size="10.5">nothing to predict there either (root-crossing positions mix)</text>
+        <text x="294" y="323" fill="#64748B" font-size="10.5">nothing to predict there: the suffix no longer depends on the prefix</text>
       </g>
     </svg>
   </div>
-  <p class="note">Same 2.7M-parameter model at every \(m\), trained to plateau. Colour \(=\) share of each level&rsquo;s
-    learnable structure actually learned (next-token loss vs. the Bayes floor).</p>
+  <p class="note">Same 2.7M-parameter model at every \(m\), trained to plateau. Colour \(=\) how much of what is
+    learnable at that level the model learned, read off how far its next-token loss sits above the best achievable
+    (the Bayes floor). That gap, in nats, is the &ldquo;excess&rdquo; quoted from here on.</p>
 </article>
 
 <!-- ══════════════════ § 04 WHAT EACH MECHANISM ATTAINS ══════════════════ -->
@@ -686,15 +695,18 @@
       </svg>
     </div>
     <div class="reveal d2">
-      <p style="margin-top:0">10&ndash;14 nats above the floor &mdash; far <em>worse than uniform guessing</em> &mdash;
-        at every \(m\), with entropy collapsed (greedy \(\equiv\) sampled).</p>
+      <p style="margin-top:0">At every \(m\) the model ends 10&ndash;14 nats above the floor,
+        <em>worse than uniform guessing</em>, and its policy has collapsed to one answer per prompt
+        (greedy \(\equiv\) sampled).</p>
       <ul class="tight">
         <li>\(m{=}1\) was already solved (0.849 vs. ceiling 0.842); REINFORCE dragged it to <span class="hl">0.388</span>.</li>
-        <li>Layer features stop tracking the hierarchy (\(\eta^2\) \(0.65\to0.14\)).</li>
+        <li>Its layer features stop lining up with the hierarchy levels (\(\eta^2\), how cleanly they separate by
+          level: \(0.65\to0.14\)).</li>
       </ul>
       <div class="block">
         <div class="bt">Diagnosis</div>
-        <div class="bb">Self-destruction, not absent signal: the reward was climbing when it crashed.</div>
+        <div class="bb">The reward was climbing when it crashed. The signal was there; the optimizer destroyed the
+          model that was reading it.</div>
       </div>
     </div>
   </div>
@@ -716,14 +728,14 @@
 <!-- Slide: the KL anchor -->
 <article class="panel" data-observe>
   <h2 class="frame-title reveal">Anchor it to the pretrained policy, and there is almost nothing to gain</h2>
-  <p class="reveal d1" style="margin-top:0">Anchored REINFORCE, 384K rollouts: the destruction is cured
-    (\(10\)&ndash;\(14 \to 0.05\)&ndash;\(0.8\) nats above floor, no collapse). What is left, sampled-policy accuracy:</p>
+  <p class="reveal d1" style="margin-top:0">Add a KL penalty toward the frozen pretrained policy and the destruction
+    is cured: \(0.05\)&ndash;\(0.8\) nats above floor, no collapse. What is left, as sampled-policy accuracy:</p>
   <div class="reveal d2">
     <table>
       <thead><tr>
         <th class="num">\(m\)</th>
         <th><span style="color:var(--mainblue)">exact</span>: pretrained \(\to\) RL</th>
-        <th>calibrated ref. (\(\sum P^2\))</th>
+        <th>calibrated sampler<sup>*</sup></th>
         <th><span style="color:var(--fwddark)">parse</span>: pretrained \(\to\) RL</th>
         <th class="num">nats above floor</th>
       </tr></thead>
@@ -735,15 +747,17 @@
         <tr><td class="num">6</td><td>0.130 &rarr; 0.133</td><td>0.130</td><td>0.731 &rarr; 0.743</td><td class="num">0.79</td></tr>
       </tbody>
     </table>
+    <p class="note" style="font-size:.78rem;margin-top:.5rem"><sup>*</sup>the accuracy a model gets by sampling from
+      the true answer distribution rather than picking its single best guess.</p>
   </div>
   <div class="cols reveal d3">
-    <p style="margin-top:.4rem"><span class="blue">Canonical</span>: zero gain at every \(m\ge2\) &mdash; the policy sits at its
-      calibrated reference, as the bound requires. At \(m{=}1\) it now <em>holds</em> the ceiling.</p>
+    <p style="margin-top:.4rem"><span class="blue">Canonical</span>: zero gain at every \(m\ge2\). The policy sits
+      exactly where a calibrated sampler would, as the bound says it must. At \(m{=}1\) it now <em>holds</em> the ceiling.</p>
     <p style="margin-top:.4rem"><span class="fwd">Validity</span>: a \(+0.006\) to \(+0.017\) polish at \(m\ge2\).</p>
   </div>
   <div class="block reveal d4">
-    <div class="bt">Stasis, not learning</div>
-    <div class="bb">Stabilizing RL turns destruction into stasis &mdash; not into learning.</div>
+    <div class="bt">What the anchor buys</div>
+    <div class="bb">The anchor stops the damage. It does not start any learning.</div>
   </div>
 </article>
 
@@ -816,14 +830,15 @@
     </div>
     <div class="reveal d2">
       <ul class="tight" style="margin-top:0">
-        <li>Recovers \(m{=}1\) fully (0.999): the anchored harm was the <em>variant</em>, not the class.</li>
+        <li>Recovers \(m{=}1\) fully (0.999); the anchored run&rsquo;s damage there was a quirk of that variant.</li>
         <li>Nearly <span class="hl">doubles</span> root validity at \(m{=}4\) (\(0.25\to0.45\)) and \(m{=}6\) (\(0.15\to0.29\)).</li>
         <li>No collapse; \(<0.9\) nats above floor.</li>
         <li>The flywheel spins: winners fed back at \(m{=}6\) go \(89\%\to99\%\) root-valid.</li>
       </ul>
       <div class="block exampleblock">
         <div class="bt">So</div>
-        <div class="bb">Whatever this class can do, this arm does more of it than policy gradients.</div>
+        <div class="bb">Whatever selecting and fine-tuning on winners can do, this is the arm that does the most
+          of it.</div>
       </div>
     </div>
   </div>
@@ -831,7 +846,7 @@
 
 <!-- Slide: the dissociation (hero figure) -->
 <article class="panel" data-observe>
-  <h2 class="frame-title reveal">Pass rate doubles. The model learns no new rule.</h2>
+  <h2 class="frame-title reveal">Pass rate doubles, but the model learns no new rule.</h2>
   <div class="cols">
     <div class="diagram reveal d1" data-parallax=".05">
       <svg viewBox="28 0 364 312" role="img" aria-label="Two pyramids labeled 'round 1' and 'round 6' for m=6 under expert iteration, separated by a large approximately-equal sign. Both are pale above the bottom band, both carry the same crimson dashed basis boundary at the top of L0, and the bottom band of round 6 is fainter than round 1. Captions read 'boundary unmoved' and 'no band lights up; the bottom even fades'.">
@@ -887,7 +902,7 @@
         </g>
         <text x="384" y="48" fill="#B45309" font-size="13" font-weight="700" class="anim-fade">&times;2</text>
 
-        <text x="56" y="176" fill="#1E3A5F" font-size="11" class="anim-fade">loss above the Bayes floor at the unlearned levels</text>
+        <text x="56" y="176" fill="#1E3A5F" font-size="11" class="anim-fade">loss above the Bayes floor at the unlearned levels (higher is worse)</text>
         <line x1="56" y1="300" x2="56" y2="184" stroke="#64748B" stroke-width="1" marker-end="url(#ah-gray)" class="anim-fade"/>
         <line x1="56" y1="300" x2="400" y2="300" stroke="#64748B" stroke-width="0.9" class="anim-fade"/>
         <g class="anim-fade" fill="#64748B" font-size="10" text-anchor="end">
@@ -917,8 +932,9 @@
   </div>
   <div class="block reveal d3">
     <div class="bt">The dissociation</div>
-    <div class="bb">Performance doubled on a metric that <em>requires</em> deep structure; no deep structure was learned.
-      Mass moved between trajectories the basis could already produce (\(\eta^2\) unchanged; \(m{=}4\) identical).</div>
+    <div class="bb">Root validity doubled, and root validity <em>requires</em> the deep rules. Yet no deep rule was
+      learned: probability mass moved between sequences the basis could already produce
+      (\(\eta^2\) unchanged; \(m{=}4\) shows the same).</div>
   </div>
 </article>
 
@@ -984,11 +1000,13 @@
       </div>
     </div>
   </div>
-  <div class="block basisblock reveal d3">
+  <p class="note reveal d3" style="font-size:.8rem">erased \(=\) 1 \(-\) (learned after EI) \(/\) (learned before),
+    with &ldquo;learned&rdquo; the pyramid&rsquo;s colour scale read over the whole sequence.</p>
+  <div class="block basisblock reveal d4">
     <div class="bt">Same mechanism, same budget</div>
     <div class="bb">As synonymy rises, reward buys <em>less</em> on the one-answer verifier and erases <em>more</em>
-      of the pretrained distribution on the many-answer one &mdash; &ldquo;more fried as tasks get more
-      sophisticated,&rdquo; in the best-behaved member of the class.</div>
+      of the pretrained distribution on the many-answer one. The model gets more fried as the task gets more
+      sophisticated, even under the best-behaved mechanism in the class.</div>
   </div>
 </article>
 
@@ -1051,8 +1069,8 @@
       </ul>
       <div class="block">
         <div class="bt">In language terms</div>
-        <div class="bb">Pass rates up; rules still unknown; the distribution paid.
-          Only a known generating process can tell these apart.</div>
+        <div class="bb">Pass rates go up, the model still does not know the rules, and the distribution pays for it.
+          Only a known generating process lets you tell those three apart.</div>
       </div>
     </div>
   </div>
@@ -1083,16 +1101,19 @@
     </svg>
   </div>
   <div class="cols reveal d2">
-    <p style="margin-top:.6rem"><strong>Not all language tasks are created equal.</strong> Code and math have few right
-      answers; creative writing and original thinking are inherently synonymous. Unsurprisingly, language-model RL
-      works on the former and not on the latter.</p>
-    <p style="margin-top:.6rem">The one channel that <em>could</em> teach a missing rule is the pretraining-shaped one:
-      SFT on selected samples is more data. At the RL-matched budget it did not, while reward doubled.</p>
+    <p style="margin-top:.6rem"><strong>Not all language tasks are created equal.</strong> Code and math sit at the
+      left of this dial, creative writing and original thinking at the right, and language-model RL works on the
+      former and not on the latter.</p>
+    <p style="margin-top:.6rem">The one channel that <em>could</em> teach a missing rule is the one that looks like
+      pretraining: fine-tuning on selected samples is more data. At this budget it taught none, while the reward
+      doubled.</p>
   </div>
   <div class="block reveal d3">
     <div class="bt">Takeaway</div>
     <div class="bb">Continual learning that <em>expands</em> what a model can do needs a mechanism that moves the
-      basis boundary. Vanilla policy reward is, structurally, not it.</div>
+      basis boundary. Vanilla policy reward is, structurally, not it. The natural objection is that RL on real
+      language behaves differently. Said explicitly, that objection is a bet: for RL to carry continual learning,
+      it would have to gain capabilities on language that it does not gain on this compositional grammar.</div>
   </div>
 </article>
 
@@ -1107,10 +1128,14 @@
   </div>
   <p class="closing reveal d3">
     Reward optimization selects among the answers a model can already give.
-    When there are many right answers, that is all it can do &mdash;
+    When there are many right answers, that is all it can do,
     and it gets more expensive the more of them there are.
   </p>
-  <p class="byline reveal d4">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+  <p class="closing reveal d4" style="color:var(--grayout);font-size:.9rem;margin-top:1rem">
+    For RL to carry continual learning, it would have to gain capabilities on language
+    that it does not gain on this compositional grammar.
+  </p>
+  <p class="byline reveal d5">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
 </footer>
 
 <div class="post-footer">
