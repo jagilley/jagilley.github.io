@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A transcript of my conversation on the Interlude podcast: the cerebellum as a forward model, Zipfian grokking, why browser agents should use vision over the DOM, and what humans are evolutionarily designed for." />
+  <title>Building the AI Cerebellum (Interlude podcast) | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/interlude-podcast.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Building the AI Cerebellum (Interlude podcast)" />
+  <meta property="og:description" content="A transcript of my conversation on the Interlude podcast: the cerebellum as a forward model, Zipfian grokking, why browser agents should use vision over the DOM, and what humans are evolutionarily designed for." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:published_time" content="2026-09-01" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/interlude-podcast-og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://jagilley.github.io/resources/interlude-podcast-og.jpg" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <link rel="canonical" href="https://jagilley.github.io/interlude-podcast.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    body {
+      background-color: #f0f0f0;
+      color: #333;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-size: 1.1rem;
+    }
+    a {
+      color: #0366d6;
+    }
+    h1 {
+      color: #111;
+      text-align: center;
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid #ccc;
+      margin: 2rem 0;
+    }
+    .archive-link {
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .author {
+      text-align: center;
+    }
+    .post-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 0.5rem;
+    }
+    .post-footer .author {
+      text-align: right;
+      margin: 0;
+    }
+    .post-footer .author a {
+      margin-left: 0.75rem;
+    }
+    .abstract {
+      background-color: #e8e8e8;
+      border-left: 4px solid #888;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    /* --- listen/watch links --- */
+    .listen {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.6rem;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .listen a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #e8e8e8;
+      color: #333;
+      text-decoration: none;
+      font-size: 0.95rem;
+      line-height: 1;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .listen a:hover {
+      background-color: #dedede;
+      border-color: #999;
+    }
+    .listen svg {
+      width: 17px;
+      height: 17px;
+      flex: none;
+    }
+
+    /* --- cold open epigraph --- */
+    .coldopen {
+      margin: 2rem 0;
+      padding: 0 0 0 1.5rem;
+      border-left: 3px solid #bbb;
+      color: #555;
+      font-style: italic;
+    }
+    .coldopen .label {
+      display: block;
+      font-style: normal;
+      font-variant: small-caps;
+      letter-spacing: 0.06em;
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 0.5rem;
+    }
+
+    /* --- contents --- */
+    .toc {
+      margin: 0;
+      padding-left: 1.2rem;
+      font-size: 1rem;
+      column-count: 2;
+      column-gap: 2rem;
+    }
+    .toc li {
+      margin-bottom: 0.35rem;
+      break-inside: avoid;
+    }
+    @media (max-width: 760px) {
+      .toc { column-count: 1; }
+    }
+
+    /* --- transcript --- */
+    h2 {
+      margin-top: 2.75rem;
+      color: #111;
+    }
+    p.q, p.a {
+      margin: 0 0 1.1rem;
+    }
+    p.turn {
+      margin-top: 1.7rem;
+    }
+    h2 + p.turn {
+      margin-top: 0;
+    }
+    p.q {
+      color: #666;
+    }
+    p.q .who {
+      color: #555;
+    }
+    p.a .who {
+      color: #111;
+    }
+    .who {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+<h1>
+    Building the AI Cerebellum
+</h1>
+<p class="author">
+Jasper Gilley<br>
+San Francisco, California<br>
+September 2026<br>
+</p>
+
+<ul class="listen">
+  <li><a href="https://www.youtube.com/watch?v=WDvWLaGjJGs">
+    <svg viewBox="-1.2 -1.2 26.4 26.4" fill="#FF0000" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+    Watch on YouTube</a></li>
+  <li><a href="https://open.spotify.com/episode/2E8jKY4S41Nz732YjS1W8n?si=tijsaSqVSo29fAX7LCUENA&amp;utm_source=copy-link">
+    <svg viewBox="0 0 24 24" fill="#1DB954" aria-hidden="true"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+    Listen on Spotify</a></li>
+  <li><a href="https://podcasts.apple.com/us/podcast/the-interlude-show/id6788888804?i=1000787115629">
+    <svg viewBox="-0.57 -0.57 25.14 25.14" fill="#9933CC" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+    Listen on Apple Podcasts</a></li>
+</ul>
+
+<hr class="divider">
+
+<p class="abstract">
+  I went on <a href="https://podcasts.apple.com/us/podcast/the-interlude-show/id6788888804">The Interlude Show</a> to talk with Jake and Vatsal about what I&rsquo;ve been working on in my research. We covered the cerebellum as a forward model over cortical states and what that suggests for machine introspection, <a href="zipfian-grokking.html">Zipfian grokking</a>, why browser agents should read the web with vision rather than the DOM, whether Jevons&rsquo; paradox saves software engineering, and what humans were evolutionarily designed for. What follows is a transcript of our conversation.
+</p>
+
+<blockquote class="coldopen">
+  <span class="label">Cold open</span>
+  There are certain parts of the brain, the most notable of which is the cerebellum, which looks a little bit like a generalized world model that can talk to the cortex in ways that we don&rsquo;t necessarily understand super well. And for this particular interplay of these systems, I&rsquo;m interested in the idea that this allows us to experience the shadow of our own neural computation. There&rsquo;s a theory by a guy named <a href="https://en.wikipedia.org/wiki/Masao_Ito">Masao Ito</a>, a Japanese neuroscientist who died a couple of years ago, who thought of the cerebellum as a generalized thought-forward prediction model. You can look at the sum of the parts as a system that has good interpretability because of the interplay between the different brain regions that goes on. And this is something that I find interesting.
+</blockquote>
+
+<hr class="divider">
+
+<h3>Contents</h3>
+
+<ul class="toc">
+  <li><a href="#research-at-south-park-commons">Research at South Park Commons</a></li>
+  <li><a href="#the-forward-self-modeling-paper">The forward self-modeling paper</a></li>
+  <li><a href="#where-the-interest-came-from">Where the interest came from</a></li>
+  <li><a href="#zipfian-grokking">Zipfian grokking</a></li>
+  <li><a href="#vision-over-the-dom">Vision over the DOM</a></li>
+  <li><a href="#agents-that-look-human">Agents that look human</a></li>
+  <li><a href="#recovering-from-the-weird-web">Recovering from the weird web</a></li>
+  <li><a href="#the-future-of-software-engineering">The future of software engineering</a></li>
+  <li><a href="#jevons-paradox-and-the-demand-for-software">Jevons paradox and the demand for software</a></li>
+  <li><a href="#creativity-as-the-human-niche">Creativity as the human niche</a></li>
+  <li><a href="#what-humans-are-evolutionarily-designed-for">What humans are evolutionarily designed for</a></li>
+  <li><a href="#the-future-of-post-training">The future of post-training</a></li>
+</ul>
+
+<hr class="divider">
+
+<p class="q turn"><span class="who">Jake:</span> Welcome to Interlude, where we talk about the pre-AI and post-AI world. I&rsquo;m Jake, one of the co-hosts of this podcast.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> I&rsquo;m Vatsal, one of the co-hosts of the Interlude podcast. Today we are interviewing Jasper. Jasper is a member at <a href="https://www.southparkcommons.com/">South Park Commons</a>, researching new types of AI architectures inspired by how the brain works, touching on how humans learn sample-efficiently, are capable of introspection, and learn robust motor skills. Before that, he was at <a href="https://yutori.com">Yutori</a>, working on web agents that effectively emulate human users. Jasper and I met at a South Park Commons park hang, and all three of us are part of the same community, so we&rsquo;re very excited to have you here.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Thanks for having me, guys.</p>
+
+<h2 id="research-at-south-park-commons">Research at South Park Commons</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> So we&rsquo;ll dive right into the questions. Tell us, what are you exploring at South Park Commons?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> When I first got bitten by the research bug about nine months ago, I started looking into model representations, and how models form representations that generalize from data that inherently doesn&rsquo;t generalize in and of itself. So I started looking into specific questions around model introspection, how generalizable representations form, and ideas around interpretability, and started going from there into learning a lot more about how the brain works, based on my own curiosity.</p>
+
+<p class="a">There are a lot of interesting parts of the brain that feel like they don&rsquo;t really have a place in the standard architectures that we currently train models with, and so that was really interesting to me. I got nerd-sniped by that a little bit. Since then, I&rsquo;ve been working a bit more on some of the things that behaviorally we do that the models don&rsquo;t, one of the biggest of which is motor control &mdash; that&rsquo;s a specific thing that I&rsquo;ve spent a lot of time focusing on recently. So that&rsquo;s the kind of thing I&rsquo;m looking into.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Just to clarify: so this is mostly focused on ML interpretability. How do you tie in your interest in how the human brain works with interpretability? How do both of them tie together?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Right now &mdash; I think I started a little bit with interpretability, but one interesting property that the brain has that I think the models don&rsquo;t is that we seem to be really good at a sort of loose automatic interpretability, in ways that the models find it difficult to do. We can&rsquo;t dissect our own thinking perfectly, but we can dissect our own thinking reasonably well. And for the models, you have to do post-hoc, intensive, expensive interpretability techniques that break down the model&rsquo;s process in ways that would just be completely infeasible for the brain to do. So I was thinking, there&rsquo;s got to be a better way to think about how we can do interpretability, based on how biological learners do something that looks a little bit like interpretability. That&rsquo;s the intersection there.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Can you give us an example?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> So for example, there are certain parts of the brain, the most notable of which is the cerebellum, which looks a little bit like a generalized world model that can talk to the cortex in ways that we don&rsquo;t necessarily understand super well. And for this particular interplay of these systems, I&rsquo;m interested in the idea that this allows us to experience the shadow of our own neural computation. There&rsquo;s a theory by a guy named Masao Ito, a Japanese neuroscientist who died a couple of years ago, who thought of the cerebellum as a generalized thought-forward prediction model. And this, for example, is a form of &mdash; you can look at the sum of the parts as a system that has good interpretability because of the interplay between the different brain regions that goes on. And this is something that I find interesting.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So we&rsquo;re able to dissect our own thinking whenever we make any sorts of actions. But with models, you have to do a lot of post-hoc processing to be able to do that. And that&rsquo;s the sort of difference that you noticed?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Exactly, yeah. And that&rsquo;s because the models don&rsquo;t really have a true analog for action in the sense that we take. We can imagine the consequences of our actions in the real world in a grounded way, specifically because the cerebellum provides a sort of online correction to our actions. This is how we don&rsquo;t need to make constant adjustments to our actions &mdash; we can just smoothly execute movements based on the world modeling that the cerebellum is constantly providing.</p>
+
+<p class="a">And so it&rsquo;s a little bit of a lesser known theory, but I think a very interesting theory, that the cerebellum also does this in a generalized sense for people&rsquo;s neural representations.</p>
+
+<h2 id="the-forward-self-modeling-paper">The forward self-modeling paper</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> I think something I read in one of your blogs was about the forward models, and that reminds me &mdash; you&rsquo;re talking about how we try to understand the actions that we take and learn from them in our brains, but that particular article was trying to peek into the model layer, right? So could you maybe talk about that paper a little bit, and what you were looking into?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> So this paper, the <a href="forward-self-models.html">forward self-modeling paper</a>, was explicitly inspired by the idea that the cerebellum is a forward predictor over cortical states &mdash; so, the activation analog.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Could you explain that?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah. The idea in the paper is that you take a standard transformer and you learn to predict the later layer activations based on the earlier layer activations that the transformer has. And in the process of doing this, the meta-model that you&rsquo;re training, that lives alongside the main model, is deliberately smaller than the amount of parameters that it is modeling in the main model. And because of this, it learns a compressed basis of the computation that the main model is undergoing. So it doesn&rsquo;t get everything perfect that the main model does, but it gets the coarse details right.</p>
+
+<p class="a">And that means that when you get to the end, you have the predicted activations versus the actual activations that the main model computed. The difference between those is an interpretable residual that reflects the complexity that the main model computed that the forward model &mdash; which is a compressed version of the main model &mdash; didn&rsquo;t expect to see show up. So it&rsquo;s a kind of grounded novelty signal, or computational difficulty signal.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So I&rsquo;m just going to repeat what you said, and I might dilute what you said a little bit, just maybe simplify it, just to make sure we&rsquo;re on the same page. Essentially what you&rsquo;re doing is you have a big model and you have a smaller model. If I understand correctly, while the inference on the big model is happening, you use the small model beforehand to predict what the big model is going to do &mdash; like you mentioned, which layers in the network will be activated. So you&rsquo;re going to predict how the big model is going to think, essentially. And that is similar to how the human brain works. Is that a sort of correct interpretation of it? Check me if I&rsquo;m wrong.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Definitely, yeah. So the forward model and the main model are predicting the same objects. They&rsquo;re both based on the activations that the main model is working with, and so when you get to the downstream layer, the main model has predicted a set of activations and the forward model has also predicted a set of activations. So you can directly compare those two quantities.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Okay, let&rsquo;s do an analogy with the brain first. So imagine I&rsquo;m playing chess, all right? So if I&rsquo;m playing chess and I make a move &mdash; I think about making a move and I think, okay, this is the optimal move. In my brain, how would my forward model work in that example?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah. So in the real brain it&rsquo;s a little bit more complicated, because it doesn&rsquo;t work just based on your actual activations. It takes two inputs: both your actual activations, and what&rsquo;s called the efference copy. That&rsquo;s a separate neural signal that your brain fires when it&rsquo;s about to take an action with your muscles. And so the real cerebellum takes both inputs and then produces the expected output based on, what do I think will occur if I do this?</p>
+
+<p class="a">And so in the chess example, you might be looking at the board state and observe your situation, and then what you would do is, your brain would fire off an efference copy saying, here&rsquo;s this action that I am theoretically about to take, what do I expect the outcome from this to be? And this is a simplified version, because the original usage of this was actually online motor control in real time, as opposed to discrete movements &mdash; but the analogy is a good one and it applies either way.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> And this is what inspired your feed-forward models as well. And if, for example, now you&rsquo;ve got a model that was trained to play chess, now your &mdash; I forget the term &mdash; your smaller model in this case will essentially be able to, like a world model would, simulate what&rsquo;s going to happen if you move the pawn to e4. It&rsquo;s going to simulate that, and then your big model is going to simulate that but with a lot more parameters, and then you can sort of compare the output in both cases. Is that correct?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> There&rsquo;s a couple of subtleties here. So in the case of the big model, I think the interesting properties theoretically might happen not because the big model is doing better than the small model, but because it is able to offload that world modeling computation to the small model, such that in principle you might get a more modular design architecture, something like that.</p>
+
+<p class="a">There&rsquo;s also the subtlety that in the real human brain &mdash; and actually all mammalian brains &mdash; the cerebellum is actually a very ancient part of our brain. There&rsquo;s a complex wiring where the cerebellum injects its predictions into the middle of your cortex layers. And so your cortex, because it is a looped system that has both backwards and forwards components, is able to probably experience the outputs of the cerebellum as essentially an auxiliary sensory signal.</p>
+
+<p class="a">And for this reason, my working theory is that the cortex has the ability to get a grounded experience of what it expects to happen in various domains, such that &mdash; the canonical example is, you can&rsquo;t tickle yourself, because your cerebellum is predicting what&rsquo;s going to happen and it actually cancels out the signal of the predicted sensory input from the actual sensory input that you get. So that&rsquo;s the interplay that I think theoretically might happen, and on the sensory side and the motor control side there is already good evidence that this is the case.</p>
+
+<h2 id="where-the-interest-came-from">Where the interest came from</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> I&rsquo;m curious &mdash; taking a step back, how did you get interested in analyzing the brain and how it works, and in AI? Where did that interest even come from in the beginning?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah, it came purely from an AI perspective. I have a CS degree. I&rsquo;m by no means a neuroscience person, but I got interested in looking at the brain as inspiration for where we might look to solve the deficits of current AI models.</p>
+
+<p class="a">I also have a lot of interest in evolutionary biology and paleontology. So it&rsquo;s especially interesting for me to look at that not as a present problem of how do we get the brain as it exists currently, but also how did the human brain exist in prior phases of human evolution? How does the human brain compare to other animals? The mammal brain is very, very complex in all cases, and the differences between our brains and cetacean brains &mdash; whales &mdash; or other primates are in many cases quite subtle, and the differences show up not where you would most expect them.</p>
+
+<p class="a">So thinking about that from a functional biology standpoint is really interesting to me, as well as thinking about it purely from a how-can-we-build-better-AI-architectures standpoint.</p>
+
+<h2 id="zipfian-grokking">Zipfian grokking</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> That makes sense. Going back, before you started at South Park Commons, you presented at the demo fair about <a href="zipfian-grokking.html">Zipfian grokking</a>. I found the talk pretty interesting &mdash; I watched it on X. Could you maybe explain that a little bit, and why it&rsquo;s important?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> So for reference, for those who may not know the grokking task, the basic idea is you just take modular arithmetic &mdash; so A plus B mod C &mdash; and you compute a list of rules for a particular modulus, and you train a model to predict the output of that given two inputs with a particular modulus set.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So just to clarify, if you&rsquo;re doing A plus B mod 10, let&rsquo;s say, your output will only ever be between those 10 numbers.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Exactly.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So your output set is constrained. And then I imagine your input set is also &mdash; oh, it&rsquo;s not constrained. Okay.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah. And the basic grokking task, which was originally described in an <a href="https://arxiv.org/abs/2201.02177">OpenAI paper</a> from around 2021, is that if you train a model on just a particular list of data points, it won&rsquo;t generalize for a really long time. It&rsquo;ll just memorize the particular examples that you have. And for a long time it&rsquo;ll look like nothing is happening &mdash; it will get 0% accuracy on examples it hasn&rsquo;t seen. And then at some point, really late into training, if you just train it for long enough, it&rsquo;ll all of a sudden generalize to held-out examples that it hasn&rsquo;t seen before.</p>
+
+<p class="a">This is often given as an example of a problem where we really, really understand what is going on at a representational level, in ways that we don&rsquo;t really for much more complex models like LLMs. And so I got into this problem as a way of thinking about, all right, this is the one example we know where we really understand what is going on under the hood, so how can we maybe modify this setup such that it has properties that resemble those of a frontier LLM a little bit better?</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So just to clarify, you&rsquo;re training a model to predict what A plus B mod 10 will be, given A plus B, but the model doesn&rsquo;t actually have access to any sort of arithmetic or programs, so it&rsquo;s not able to do that &mdash; you&rsquo;re just training an MLP, a multi-layer perceptron, to perhaps do this thing? So that&rsquo;s what the problem of grokking is?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> That&rsquo;s exactly right. And it&rsquo;s an interesting problem because, like you said, it doesn&rsquo;t have the ability to use functions, cosines, or anything like that. But what happens under the hood during grokking is that it actually re-derives this analytically known solution that involves trigonometry. And it uses that in weight space to generalize to examples that it&rsquo;s never seen before, just because this is analytically known to be a way of describing the rules underlying modular arithmetic.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> But the set that you train it on &mdash; if you just test it again on the train set itself, it&rsquo;s always high on accuracy on the train set, but on the test set, as you mentioned, it&rsquo;s zero at first and then suddenly fully accurate.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Exactly. And the reasoning for that is it has to specifically develop that trigonometric representation under the hood that describes modular arithmetic in the maximally compact way. So it has to start with a long description length solution &mdash; a bunch of memorized examples has a long description length. But what I find interesting about this is that the trigonometric solution has a really short description length; it&rsquo;s a minimum description length of a handful of bits. And in the process of that, you need to use weight decay in order to find this solution.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So giving it a prior. Weight decay?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah, weight decay is just a prior that you can give to your model that says, the larger the weights, this is something that I will penalize you for. So you can use the weights to learn a description of function space, but the larger it is, the more you get penalized for it. As a result, it eventually finds the minimum description length trigonometric solution, and that is grokking.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Okay. And then where does the Zipfian piece come from?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah, so the Zipfian piece comes specifically from &mdash; I had the insight that a lot of real-world data sets are biased according to Zipf&rsquo;s law, which says that there&rsquo;s a really heavy-tailed distribution of data. The most common data is very common, and then there&rsquo;s a long tail of less common data. As opposed to in a traditional grokking setup, where all data is equal.</p>
+
+<p class="a">And in some sense, all of the data in modular arithmetic optimally points to the correct solution, because you&rsquo;re giving the model a bias saying, hey, each of these modular arithmetic examples that I&rsquo;ve given you, each of them points equally to the trigonometric solution &mdash; which is true, because the trigonometric solution is equally valid for all of them.</p>
+
+<p class="a">So that inspired the idea of, what happens if you were to put more of these modular arithmetic examples in the train set than others? What if you were to weight each example according to a Zipfian distribution? And what happens is that it learns the correct solution under pressure from weight decay, but then it accumulates a bias such that the trigonometric solution under Zipfian pressure actually goes away, and it forgets the correct solution it&rsquo;s learned.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So grokking doesn&rsquo;t work under a Zipfian distribution? I didn&rsquo;t really follow on why.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah. So Zipfian grokking has the unique properties that it does &mdash; specifically, that it discovers the trigonometric solution and forgets it. Accuracy goes right back down. Then it rediscovers the trigonometric solution, then forgets it again. It&rsquo;s an infinite oscillator. And the reason this occurs is because weight decay, which is the force that says I want you to find the smallest possible solution, is effective in proportion to the size of the weights in the model. So once it has found the trigonometric solution, it has reached the minimum description length solution to the grokking task.</p>
+
+<p class="a">The problem is that weight decay is now, because of the Zipfian distribution, not the only force acting on the model. There&rsquo;s also a force that says, these particular modular arithmetic examples that I weighted highly, I want you to really make sure that you get those right. And because the model is computing trigonometry in weight space, it&rsquo;s not exactly 100% mathematically perfect. There are small errors that are, for all intents and purposes, meaningless, but they get magnified when you start really upweighting particular modular arithmetic examples.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> How do you exactly upweight these examples while modeling?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> You just have an auxiliary loss term that says, for this train example you really have to get this one right, and these other ones are not that important. And the result is that it oscillates infinitely, because once it forgets the trigonometric solution after these memorization corrections, the weights are large again. So now weight decay can have an effect on the weights of the model again, re-derives the trigonometric solution, and the cycle continues.</p>
+
+<h2 id="vision-over-the-dom">Vision over the DOM</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> So I want to pivot to your experience at Yutori. I actually used to work at a browser agents company, so I&rsquo;m a little bit familiar with the space and was excited to ask you some questions. We took a more deterministic approach where we relied more on XPath interactions with the browser, and then used LLMs for recovery. But I&rsquo;m curious: what was Yutori&rsquo;s approach? I know you used vision over the DOM. And what kinds of use cases were Yutori&rsquo;s agents best suited for?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> This is something that&rsquo;s near and dear to my heart. Even before working at Yutori, I loved working on browser agents for my own hobbyist purposes. I as well started working on this in the GPT-4 era, when it was like, oh my God, we have language models that can look at the DOM and take concrete actions. But at Yutori specifically, we were really interested in getting agents that are reliable, agents that emulate human users as effectively as possible, and agents that are cheap.</p>
+
+<p class="a">And we found that, for a couple of reasons, vision just tends to work best, especially on cost. But if you&rsquo;re willing to eat the modeling costs of developing multimodal models, vision tends to work best for long-horizon rollouts too. It&rsquo;s more token-efficient and honestly is probably more reliable at scale, largely because humans use the web in a multimodal fashion.</p>
+
+<p class="a">So for example, one thing I did was take a bunch of web pages and run them through an embedding model as their DOM, and run them through an embedding model when rendered visually. And one really interesting thing that fell out was that the variance in the embeddings was way, way higher over the DOM embeddings than over the vision embeddings. Which makes sense when you think about it. There are a lot of different ways you can implement a web page on the back end, but it all boils down to how it renders to the user. And if you think about it, that&rsquo;s also why humans would use the web visually rather than using the DOM: it&rsquo;s designed for quick consumption.</p>
+
+<p class="a">We want it to be in a domain that is well-constructed and narrow, as opposed to ill-defined and precise but broader in distribution. So for cost reasons, and because of that lower variance, we found that vision agents tend to generalize better to unseen websites.</p>
+
+<h2 id="agents-that-look-human">Agents that look human</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> Something interesting about the DOM too is that some websites would have JavaScript that checks for interactions with the JavaScript, and so they would catch us as bots. And so we actually used the OS cursor to interact with the web page as a way to seem more human.</p>
+
+<p class="q">You said you wanted these agents to browse the internet as if they were more human-like. I&rsquo;m curious what that means &mdash; what kinds of techniques did you deploy there?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah, it definitely can mean that: if you consume the web page via the DOM, you&rsquo;re not necessarily getting the version that humans will see. So even something as simple as clicking on elements that only would be clicked on by a human, not tripping honeypots like that &mdash; that&rsquo;s an example of it.</p>
+
+<p class="a">Another thing this can mean is largely on the infrastructure side: are you sending traffic to the website from data center IPs or residential IPs? And there&rsquo;s a lot of device tracking that goes into web pages these days. There&rsquo;s an interesting website you can go to where it will show you all of the device-based profiling that websites can do based on the device you&rsquo;re using. It&rsquo;s surprisingly a lot. And this means that if you&rsquo;re trying to use, for example, a hosted cloud browser service, it&rsquo;s pretty much an impossible game of cat and mouse to emulate that perfectly.</p>
+
+<p class="a">So one of the things I did at Yutori was working on stuff just like this: how do we make sure that our cloud browser agents are sending traffic from machines that look like real humans would be using them, coming from real-human-looking IP addresses, stuff like that. Which is a fun cat-and-mouse game that can never really be solved perfectly, but I find it interesting to play that game for a while.</p>
+
+<h2 id="recovering-from-the-weird-web">Recovering from the weird web</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> No, for sure. I definitely resonate. I&rsquo;ve had to play the same game too, and a lot of fun stuff got uncovered.</p>
+
+<p class="q">I guess this is my last question about this topic. A lot of people have the perception, when you&rsquo;re building browser agents, that the internet has a lot of weird edge cases that pop up when you interact with it. So things like random pop-ups come up, web pages will vastly change their UI and stuff. How did you deal with recovering from that? Because that hits into the reliability aspect of browser agents.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> That comes down to a combination of factors, I guess, starting from a point of just being comfortable using long horizons. You can buy recoverability just by operating over long horizons, but that also requires doing actions in a token-efficient manner, which goes back to the vision question: how do you run, I don&rsquo;t know, a 50-click interaction with a web page in a way that both retains what you did previously, such that you have reliability, but doesn&rsquo;t blow up your token budget? And as far as I&rsquo;m aware, one of the best ways you can do that is using vision, which is a couple hundred tokens per interaction, rather than using the DOM and needing to throw out a bunch of content at each interaction step, such that you might be a little bit more likely to run into traps, or run in circles of forgetting you took prior actions, getting ungrounded, that kind of thing. So it all comes back down to that, in my experience.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Did you rely on foundation models for your vision models, or did you end up post-training your own?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yutori does post-training on top of Qwen models. I wasn&rsquo;t on the modeling team, so I was doing more of the infrastructure and harness surrounding the model. But there are a lot of really good foundations that are being laid by open model companies these days, obviously. And there are still a lot of things you can do on top of that if you put a lot of effort into thinking through how you want to construct your harness. Having the right sorts of problems &mdash; knowing what sorts of problems people are deploying these models for &mdash; can often be a really big boost in terms of being able to construct synthetic data effectively to target those use cases.</p>
+
+<p class="a">And that&rsquo;s, in some sense, what Yutori&rsquo;s secret sauce is, as far as my perspective on it goes: having an insight into what people use the models for, and being able to wrap those insights into the training process such that the models can be deployed at a Pareto-beating accuracy and cost.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> This is kind of a destructive thought, but if someone were training a browser agent to just work on the visual &mdash; a model that would just look at the visual and then make decisions based on that rather than the DOM &mdash; I&rsquo;d want to create adversarial examples where something looks like a button but isn&rsquo;t really a button. And I would want to create a synthetic dataset of all those adversarial examples. I just wonder how good the model would perform on those.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I think you could definitely construct them. I feel like there&rsquo;s a bad design competition I&rsquo;ve seen on Reddit where it&rsquo;s all kinds of wacky web interaction stuff that is kind of cursed. I think the main issue that comes to mind that you would run into is that you would probably horribly confuse your human users as well. And so you could design an uninteractable website, but I imagine it would be equally uninteractable to humans and to vision-based web agents.</p>
+
+<h2 id="the-future-of-software-engineering">The future of software engineering</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> All right, so switching topics a bit &mdash; a little more high level. What are your thoughts on the future of software engineering? The reason behind this question is that I read your article, &ldquo;<a href="jevons.html">Why Jevons Paradox Won&rsquo;t Save Your Software Engineering Job</a>.&rdquo; It&rsquo;s from last year, and in it you made the following predictions: that in 6 to 12 months, machines will be able to, one, hold more information in working memory than a human; two, use a computer at least as effectively as a human to augment its context when necessary; and three, architect novel systems better than a human. I can grant you the first, but not the second and third with as much confidence. Has your view shifted? What are your predictions now?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I think I would stand behind all three claims personally. Specifically, on holding more information in memory &mdash; I don&rsquo;t know, you can squint and say that the file system is a version of that. And you said you agree with that one anyway.</p>
+
+<p class="a">For where I was thinking on using a computer better than a human, and on the question of architecting novel systems better: what I mean by using a computer better is that I used to use the terminal on my computer a lot more. For instance, a lot of the time I don&rsquo;t bother going into settings anymore. I just open Claude Code on my computer and say, execute some terminal commands to change my computer. That&rsquo;s not an example of UI-based computer use, but I think it&rsquo;s equally valid in some sense. I don&rsquo;t bother using the macOS native search functionality anymore, because it&rsquo;s easier to just tell &mdash; one, that feature sucks, and two, Claude Code is just good at grepping through your file system anyway. So that&rsquo;s half of the equation.</p>
+
+<p class="a">On the second question, I think also for repetitive, visual-based tasks &mdash; take an example of something that&rsquo;s really schleppy that involves clicking through stuff, like HR training at a company or something like that. I would definitely like to think that Claude Code is better at using a computer to complete HR trainings than me. Certainly I don&rsquo;t want my comparative specialization in this life to be taking HR trainings on the computer. So that&rsquo;s the kind of thing I mean: the intersection of those two computer-use abilities. And I would argue that at this point, the models are probably better at that than me.</p>
+
+<p class="a">And then as far as architecting novel systems goes, I really meant that in kind of a SWE-native sense. Given a high-level description of, let&rsquo;s say, some web app you want to build that&rsquo;s slightly novel in some ways &mdash; I would think it would be a bad use of my time to manually implement a web app myself, even a slightly novel one. I don&rsquo;t think there&rsquo;s a universe in which I would not delegate that to Claude. Admittedly, there might be some funky stuff that Claude would need to handle. But honestly, I don&rsquo;t know the details of web architectures that well anymore. I feel like a lot of this stuff would be better done by an auto research loop than by me at this point. So that&rsquo;s what I meant from a SWE perspective for the third question.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So based on your predictions, what do you think will happen to software engineers in 10 years?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I think the part of that last thing that seems not automated right now is generating the description of some novel system &mdash; purely on the description side. To me, that&rsquo;s related to the question of why LLMs can&rsquo;t write well, which is a fundamental thing that I would argue has to do with their cognitive mechanisms, and is probably related to why they can&rsquo;t think of ideas de novo quite as well.</p>
+
+<p class="a">For now, it seems like the job of technical people and software engineers has just bumped up a level of abstraction, to managing that level, which humans can do pretty well. Admittedly, there are a lot of software engineers from 10 years ago who couldn&rsquo;t really do that, and who were mostly focused on the lower-level implementation stuff. So that&rsquo;s the kind of software engineering that I have argued will be obsolete, and which I imagine is in the process of going out.</p>
+
+<p class="a">But at least until we have models that are more creative in some sense &mdash; whatever that means &mdash; I do think there&rsquo;s still a place, especially at startups, I&rsquo;d imagine, for people who can think creatively and, to the extent that is necessary, supervise the models doing the actual building. But I think there&rsquo;s probably no way of getting around either human interaction or creativity in the workplace for the next n number of years, to my estimation.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So you don&rsquo;t believe in full-scale automation?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I believe in automation of what we defined software engineering as five to ten years ago. I think we&rsquo;re already most of the way there. These days, if I have to edit a string in a code base, I&rsquo;m not going to command-F and search for that string. I&rsquo;ll just tell Claude to do it. And I don&rsquo;t think I&rsquo;ve touched code in the past six months, to be honest.</p>
+
+<h2 id="jevons-paradox-and-the-demand-for-software">Jevons paradox and the demand for software</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> Maybe we can also &mdash; in this article that you&rsquo;ve written, you talked about Jevons paradox. And you&rsquo;d given this example, an agriculture example. You said that in the 1900s there were farmers, and a big part of the economy was farming. And then there was a lot of technological progress that improved the food output per farmer. But the demand is inelastic, so people still need that same amount of food. Now farmers, since they&rsquo;re very technically able, are able to do other jobs, and farming is mechanized, and only two percent of employment is farming. That&rsquo;s the sort of progression you saw when you had this technological revolution in agriculture, and I guess you can compare that to a technological revolution within tech, in a way. So that&rsquo;s where my question was inspired from &mdash; automation or augmentation. Do you think that, I don&rsquo;t know, 50 years from now only two percent of people will be doing software engineering, and the rest will be able to do higher-abstraction, different things that I&rsquo;m not even able to predict right now?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> That&rsquo;s what I would imagine, yeah. For clarity, I do think that we&rsquo;re a long, long ways away from being able to observe that. Just because, for example, when the first mechanized farming implements came about, my impression is that the demand for food would still have been so great relative to what could be supplied that there was a long period &mdash; I would imagine, and I would probably want to look this up first &mdash; of increased output without necessarily a corresponding decrease in employment.</p>
+
+<p class="a">But obviously we eventually got to the point of a corresponding decrease in employment. And I think that we&rsquo;re in a similar place right now with software, where there&rsquo;s starting to be a dramatic increase in output, but the demand for software is so far pretty elastic, so I don&rsquo;t think we&rsquo;ve really explored the curve to the point where it gets inelastic and software is no longer worth investing in producing more of. So in terms of what people spend their time doing, we&rsquo;ve probably already started to explore the place where software demand was inelastic. But as far as actual production of software, I imagine that we have quite a ways to go before we start exploring the space where this is no longer an important thing for anyone, human or machine, to be thinking about that hard.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So why do you think the demand for software is elastic? Is it price sensitivity &mdash; if there were a price increase, would you imagine people not desiring software as much, or if there were a price decrease, people would really try to use a lot of software? Why do you think that is?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> My mental model of software is as something along the lines of an exoskeleton of intelligence, where it&rsquo;s this ossified artifact that intelligent entities can create that presents the ability to rerun specific artifacts of that intelligence really cheaply.</p>
+
+<p class="a">And to the extent that the demand for cheaply executable intelligence is very elastic, I think that&rsquo;s probably reflected in demand for software &mdash; that it&rsquo;s just a fundamental thing that has a lot of demand for it. And if you apply the rough analogy of, I don&rsquo;t know, DNA in nature &mdash; I&rsquo;m sure it&rsquo;s not a perfect analogy &mdash; but there&rsquo;s to some extent elastic demand for DNA insofar as there is free energy to be soaked up from the sun, right?</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Oh, I see. Okay.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Rough analogy, but I think that&rsquo;s my mental model for why the demand for software is a broader section of the demand for intelligence, and therefore pretty elastic for a while, as far as we can tell.</p>
+
+<h2 id="creativity-as-the-human-niche">Creativity as the human niche</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> I guess on that note, beyond software, what are your views for humanity in general? Where do you think the future of humanity will be going?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> For the time being, I think we&rsquo;re actually in a little bit of a desirable position, such that, as far as I view it, we&rsquo;ve invented machines that do the schleppy parts of cognition without the creative parts of cognition. And so for the time being, it feels like we have this awesome window where it&rsquo;s okay to be a creativity machine, and that&rsquo;s where a lot of the value hopefully accrues to. That feels like where we&rsquo;re at from a technological development standpoint, at least for the next maybe five to ten years &mdash; we&rsquo;ll see.</p>
+
+<p class="a">I do think &mdash; and this is something that I&rsquo;m working on &mdash; I want to understand why humans have this thing that we call creativity and the machines don&rsquo;t, and I&rsquo;m looking into the neuroscience and neuro-AI explanations for how this could occur. So it&rsquo;s hard to say the timelines on which we&rsquo;ll be able to get meaningful machine creativity in the sense that we would define it from a human. And when that happens, which I&rsquo;m sure we will get there at some point, it&rsquo;s hard to say what exactly we humans will pivot to. But I feel like one thing that is pretty comfortably established throughout time is that we humans are pretty narcissistic and we really like talking. And so I&rsquo;m sure we&rsquo;ll use the creative systems to augment our own creativity and become truer versions of our creative selves, or something along those lines, that will still be &mdash; we&rsquo;ll still view it as meaningful, I&rsquo;m sure, even if in some abstract objective sense it wouldn&rsquo;t have been considered meaningful 50 years ago, maybe.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Do you feel like AI will &mdash; it sounds like you think AI will always be used to augment our creativity. Do you feel like it can almost replace it? For example, you might have AI filmmaking tools, or video generation. Do you think it can get to a point where it even takes over, or even becomes better than humans at that?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I&rsquo;m sure that it will, but I feel like we&rsquo;ll just stop caring, probably. For example, in the Industrial Revolution, we used to have to rely on horses to get around, and then cars came around and they were better than horses. And we used to have to rely upon human manual labor to do physical manufacturing tasks, and that is to some extent going the way of the dodo bird as well. And was physical manufacturing ever a thing that we should have hung our hat on as a species? Probably not, I would say. I&rsquo;m sure that there were people &mdash; but also, were there people who cared about that? But also, we tend to do a good job of caring about vanity metrics. Why do we go to the gym? Certainly not because it&rsquo;s economically productive to be a physically fit person, if you live in San Francisco at least. But we still do it because, I don&rsquo;t know, we&rsquo;re evolutionarily designed to need to go to the gym and it&rsquo;s fun to feel good, I guess. And I imagine there will be similar things going on: why do we learn math and go to the gym? Probably the same reason we will continue to be creative in the future, even if it&rsquo;s not strictly necessary and we can get further with our creativity with machine aid than otherwise.</p>
+
+<h2 id="what-humans-are-evolutionarily-designed-for">What humans are evolutionarily designed for</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> On that note, I&rsquo;m quoting one of your articles. You said, quote: &ldquo;The fact of the matter is humans were not evolutionarily designed to do symbolic reasoning, and we happen to have invented a machine that is more or less designed to do just that.&rdquo; And now you&rsquo;ve just described to me that you think in the future creativity will be something like gymming &mdash; something that&rsquo;s not necessary but we&rsquo;ll still continue doing. So what are humans evolutionarily designed for? And how do you envision that sort of future coming along? Because if I think of that sort of future where so many things are just optional &mdash; I think Yuval Noah Harari had this vision of the future where everyone&rsquo;s just lazy and not doing anything. So when you say that, that&rsquo;s what I imagine. I just wanted to get your thoughts on that.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> I think you can take a couple of views of what humans are designed for evolutionarily. The trivial view is that we&rsquo;re designed to reproduce and survive into the next generation, because that is the physical mechanism that brought us here, obviously. But I think that&rsquo;s also a little bit reductive, in the sense that comparing LLMs to next-token prediction machines is reductive. That is obviously trivially true, but it&rsquo;s not necessarily a good descriptor of what brought us here, or what is unique, or anything like that.</p>
+
+<p class="a">I think maybe a more human-centric vision is to look at what happened on the evolutionary timescale since our most common ancestor with the genus Pan, which includes chimpanzees and bonobos. One thing that has been hypothesized as a significant factor influencing human evolution during this time period was a shift in the primary sources of predation and natural environmental dangers, going from the natural environment to other humans. So for example, we have found fossils of early hominins like Paranthropus and Australopithecus that were frequently preyed upon by things like eagles on the African savanna, leopards, hyenas, that kind of thing. And as we go more recent in the fossil record, that starts dying out as humans become apex predators, in a sense.</p>
+
+<p class="a">We start moving into this environment where there is presumably really strong selection acting on humans&rsquo; ability to survive in groups of other humans, because we became apex predators &mdash; but we also became apex predators not in an individualist sense but in a collective sense. Could I re-implement all of the software in a car? Absolutely not. But humans collectively have built this. And in the same sense, humans collectively were very good at hunting large game and surviving in the environment, but only by working together and communicating and augmenting our natural capabilities with tools.</p>
+
+<p class="a">And so I think in some sense, from a human-centric point of view, one of the best answers I can give for what we&rsquo;re evolutionarily designed for is surviving and thriving in this environment where the most important thing you can do for survival is hanging out with other humans, forming alliances, cooperating with others to survive in the natural environment. And I think this speaks a little bit to why we are so good at generalizing to unseen scenarios and adapting really quickly. We&rsquo;re really good at picking up on social cues.</p>
+
+<p class="a">And this is to some extent related to some of the neuroscience stuff, because one really interesting thing that I find is that the parts of the brain that are specifically enlarged in modern human evolution &mdash; so Homo sapiens compared to earlier hominins like Neanderthals, Denisovans, and Homo erectus &mdash; are specifically the parts of our brain that are most involved in social cognition and theory of mind. The default mode network, the precuneus and the cerebellum are three things that are highly implicated in those capabilities and that are specifically enlarged in humans relative to the most common other hominins with which we share an ancestor. So that&rsquo;s my answer for what we&rsquo;re designed for, to some extent: surviving and thriving and generalizing in groups of other humans.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> So is the next step to design models that are able to interact with each other and have a very high desire and need for social interaction?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Maybe. I feel like it would probably fall out considering that there&rsquo;s convergence between what we found to work well in environments of navigating interaction with other intelligent entities and the sorts of things that might be necessary for cognitive flexibility in these environments. So it certainly seems plausible, yeah.</p>
+
+<h2 id="the-future-of-post-training">The future of post-training</h2>
+
+<p class="q turn"><span class="who">Vatsal:</span> So we&rsquo;ve talked about the future of AI and humanity, and we also went a long way back into the past to take inspiration from. We&rsquo;ve talked about really long-horizon topics, and we originally started by talking about intelligence and ML interpretability. I want to come back to the medium to short term now, and come back to intelligence.</p>
+
+<p class="q">There&rsquo;s a whole field of post-training, which is about augmenting current large language models to be really good at certain domain-specific tasks. What do you think about the future of post-training? And when I say future, I mean the next 10 to 20 years. Do you think post-training is still going to be a thing? Or do you believe that models themselves will become so good that you won&rsquo;t need to have them specialize in one thing or the other?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> So for the purpose of grounding a little bit, let&rsquo;s define post-training as the things I think of most commonly: stuff like RLVR, like instruction tuning; even something like a data curriculum would fall under what I would think of as canonical post-training tasks. A lot of these feel to me like the sorts of things that humans tend to do in &mdash; not the default mode network, but in our task-oriented parts of our brain. The prefrontal cortex is really good at planning abstractly and synthesizing information in order to do so. A lot of this feels a little bit to me like the kind of thing where there are analogs to what humans do that look like post-training.</p>
+
+<p class="a">So let&rsquo;s say you&rsquo;re studying for a test. There are analogs to post-training insofar as you might be able to take a test, see how you did, and then generalize back from your score into: okay, what do I need to study further? So, something like data curation. You might be able to do some kind of form of credit assignment based on what was I thinking on this particular question that led to me getting this wrong.</p>
+
+<p class="a">But I do find that the way post-training is done, to my knowledge, at the frontier tends to be a little bit different from how humans would go about this. Typically, if I&rsquo;m working on a long-horizon rollout type problem and I got the answer wrong, I would wind it back in my head to think: okay, what did I do from steps one through four? I was pretty confident in these steps, let&rsquo;s say, and I wasn&rsquo;t confident in steps five and seven. I would be able to retroactively introspect on my own thought process that led to the incorrect answer, and be able to do credit assignment in a way that is localized to, let&rsquo;s say, steps five and seven, which I think may be more likely to have gone wrong.</p>
+
+<p class="a">Right now we can&rsquo;t really do this in a true introspective sense in the models, because chain of thought is somewhat close to a kind of record of the thought process, but there have been a couple of interesting papers recently that have shown that this is not necessarily faithful to what the models are actually computing in latents in order to produce each token. And I would argue that in order to get a first-class sense of what the models are thinking, there needs to be a signal with <a href="confabulation-test.html">privileged introspective capabilities</a>, such that for any given token, at the token level, we can say what went into producing this token, and how can we do credit assignment in a way that is specifically localized to the qualitative nature of the computation that went into it.</p>
+
+<p class="a">And that&rsquo;s something that I&rsquo;m really interested in this forward self-models program as doing, because &mdash; remember I mentioned the residual, the difference between the predicted and the actual activations &mdash; this is, in some sense, an introspective signal. A model that can sense its own residual, sense what a compressed version of itself might have predicted: in some sense you can use that to say, what did I compute here that was novel? What did I compute here that I&rsquo;m relatively confident in? And how does this relate to the likely results of the positive or negative signal that I got?</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> I guess you could also get your reward earlier, because you have your small one that&rsquo;s already sort of predicted which layers are going to be activated and has an output. So you get your reward, in a way, before the inference for the big model is completed?</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Yeah. And there&rsquo;s all sorts of really interesting places where the human cerebellum is deeply connected to the actual dopaminergic signaling side of our brain. So it&rsquo;s plausible that when you get this novelty signal in your brain, there&rsquo;s immediate tagging of that with positive or negative dopaminergic signaling as: this is a good sort of novelty, or this is a bad sort of novelty. And I find that to be suggestively interesting about the methods of our cognition.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Well, thank you so much. It was really great having you here, Jasper.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Thanks so much for having me, guys.</p>
+
+<p class="q turn"><span class="who">Vatsal:</span> Yeah, thank you so much. I guess that concludes the episode. And until next time.</p>
+
+<p class="a turn"><span class="who">Jasper:</span> Cool. Thank you.</p>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash;
+    <a href="https://twitter.com/0xjasper">Twitter</a>
+    <a href="https://github.com/jagilley">Github</a>
+  </p>
+</div>
+
+</body>
+</html>
