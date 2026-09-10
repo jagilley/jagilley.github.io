@@ -194,7 +194,12 @@ naive top-of-page screenshot of the live file looks blank below the fold. To che
 layout, render the isolation harness (animations forced to final state) — see
 `references/isolate_and_render.js`. To confirm the JS itself runs, render the live
 file and check the hero (which reveals immediately, in-viewport). Split tall
-renders with `sips -c <h> <w> --cropOffset <y> <x> in.png --out seg.png`.
+renders with PIL (`Image.open(p).crop((0,y0,w,y1))`; `sips --cropOffset` is
+unreliable, and headless Chrome enforces a ~500×288 minimum window, so render tall
+and crop rather than shrinking the window). A full-page layout check is one
+1180×9600 render of a scratch copy with the reduced-motion rules appended as a
+plain `<style>`; the no-JS check is the same trick with the `<noscript>` block
+unwrapped — stripping `<script>` tags alone leaves `<noscript>` inactive.
 
 ## Reference files
 
@@ -204,3 +209,7 @@ renders with `sips -c <h> <w> --cropOffset <y> <x> in.png --out seg.png`.
   2×-renderable harness (+ splice-back snippet) for the QA loop.
 - `references/overlap-qa.md` — the mandatory subagent QA loop: the 4-class rubric
   (collision / occlusion / clipping / proportion) and the per-SVG prompt template.
+- `references/splice_back.js` — puts the agents' corrected SVGs back into the deck
+  (matches on the saved originals; reports which indices changed).
+- `references/crop_renders.py` — trims the 2× harness renders to their content
+  for your own confirmation pass; also documents the device-pixel mapping.

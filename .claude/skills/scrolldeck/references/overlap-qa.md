@@ -48,9 +48,11 @@ element). Balance can only be judged against intent, not against the pixels alon
    Edit the `<svg>` in its `svg-N.html` → re-render, until a render is clean
    (cap ~5 iterations). Agents edit **only** the `<svg>…</svg>`, never the wrapper.
 4. Read each agent's final render yourself to confirm (don't just trust "clean").
-5. Splice the fixed SVGs back into the deck (splice snippet is in
-   `isolate_and_render.js`), then render the **whole page** once more and eyeball
-   it in context.
+5. Splice the fixed SVGs back into the deck with
+   `node splice_back.js <deck.html> <outdir>` (it reports which indices changed),
+   then render the **whole page** once more and eyeball it in context. Before
+   reading the agents' renders yourself, `python3 crop_renders.py <outdir>` trims
+   each 1800×2800 PNG to its content.
 
 ## Per-SVG prompt template
 
@@ -67,8 +69,12 @@ below)". Name the specific things most likely to be wrong.>
 
 RENDER (run after every edit; the harness forces the final, fully-visible state):
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 --window-size=900,1400 --screenshot="<ABS>/render-N.png" --virtual-time-budget=3000 "file://<ABS>/svg-N.html"
-Then Read the PNG (rendered 2×; SVG coords are viewBox units). Zoom suspect
-regions:  sips -c <H> <W> --cropOffset <Y> <X> <png> --out /tmp/z.png
+Then Read the PNG (rendered 2×; the diagram sits at the TOP of a tall 1800×2800
+image). Device-pixel mapping: the SVG's top-left corner is at (160, 80) and it is
+1480 px wide, so 1 viewBox unit = 1480 / viewBoxWidth px. Zoom suspect regions
+with PIL (sips --cropOffset is unreliable), writing to a filename unique to THIS
+diagram so parallel agents never clobber each other's crops:
+  python3 -c "from PIL import Image; Image.open('<png>').crop((X0,Y0,X1,Y1)).save('<ABS>/zoom-N-a.png')"
 
 Hunt ALL FOUR failure classes, not just collisions:
   1. Collision  — glyphs overlapping text/lines/arrowheads/box edges.
@@ -90,6 +96,18 @@ iterations used, and the exact coordinate change(s) you made.
 
 ## Gotchas the harness exists to expose
 
+- **Scratch-file collisions.** Ten agents share one harness directory; any agent
+  that zooms into `/tmp/z.png` or `z.png` will sooner or later Read another
+  agent's crop and "fix" a phantom. Give every agent a per-diagram zoom filename
+  (the template above does).
+- **Chrome's minimum window.** Headless Chrome silently enforces a minimum
+  window of roughly 500×288 CSS px and may render at 1× below it, so don't try
+  to fit the window to a small diagram — keep `--window-size=900,1400` and crop.
+- **Simulating no-JS.** Stripping `<script>` tags does *not* activate
+  `<noscript>` styles (those only apply when the browser has scripting off), so a
+  script-stripped copy renders blank panels — that is not a defect. To check the
+  fallback, unwrap `<noscript><style>…</style></noscript>` into a plain `<style>`
+  in a scratch copy and render that.
 - **Missing arrowheads.** Markers are defined once in a document-level `<svg><defs>`
   and referenced by `url(#ah-*)`. The harness copies that block in; if you author
   SVGs without it, isolated renders lose every arrowhead. (In the live page it
