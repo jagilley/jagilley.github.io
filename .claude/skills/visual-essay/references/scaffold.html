@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       VISUAL ESSAY SCAFFOLD — the CURRENT SKIN's skeleton (see references/conventions.md;
+       the look is expected to be overhauled). Copy this file, rename it, fill the
+       TODOs, replace the EXAMPLE figures. The parts that are process rather than
+       look, and should survive a restyling: the data-scrolly= marker, the no-js
+       switch, the shared JS (helpers, observer, scrolly registry), the noscript
+       fallback pattern, and the reduced-motion / noscript overrides.
+
+       Figure types shown below, one working example each:
+         A  static figure   — an inline SVG (hand-authored or script-generated; goes
+                              through the scrolldeck Overlap-QA loop)
+         B  scrolly         — a sticky stage (SVG) scrubbed by scroll progress p
+         C  canvas sequence — a sticky stage (<canvas>) redrawn at every p
+         D  widget          — sliders/drag; recomputes from DATA on every input
+         E  live figure     — an SVG chart the page's JS builds from DATA
+       Every script-built figure gets a <noscript><img class="fb"> fallback captured
+       from the page itself (see SKILL.md step 10).
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <meta charset="utf-8" />
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="TODO one-sentence description." />
+  <title>TODO Title | Jasper Gilley</title>
+
+  <meta property="og:url" content="https://jagilley.github.io/TODO.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="TODO Title" />
+  <meta property="og:description" content="TODO." />
+  <meta property="og:site_name" content="Jasper Gilley" />
+  <meta property="article:author" content="Jasper Gilley" />
+  <meta property="og:image" content="https://jagilley.github.io/resources/TODO-og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="TODO describe the share card." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@0xjasper" />
+  <meta name="twitter:image" content="https://jagilley.github.io/resources/TODO-og.png" />
+  <link rel="canonical" href="https://jagilley.github.io/TODO.html" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+
+  <link rel="stylesheet" href="https://latex.now.sh/style.css">
+  <style>
+    :root{
+      /* ── Signature accent: ONE hue that owns the chrome and the essay's recovered
+           structure (see the scrolldeck palette rules). Replace violet with the
+           essay's own. Then the categorical set: fixed colours for the essay's
+           recurring objects, used identically in every figure and the hero. ── */
+      --accent:#7C3AED; --accent700:#6D28D9; --accent800:#5B21B6; --accent400:#A78BFA; --accent300:#C4B5FD; --accent200:#DDD6FE; --accent100:#EDE9FE; --accent50:#F5F3FF;
+      --catA:#3B82F6; --catAt:#1D4ED8; --catAb:#DBEAFE;
+      --catB:#F97316; --catBt:#C2410C; --catBb:#FFEDD5;
+      --catC:#059669; --catCt:#047857; --catCb:#D1FAE5;
+      --warmred:#EF4444; --red700:#B91C1C; --red50:#FEF2F2;
+      --mainblue:#3B82F6; --maindark:#1E3A5F; --grayout:#9CA3AF; --streamgray:#64748B; --amber:#F59E0B;
+      --slate50:#F8FAFC; --slate100:#F1F5F9; --slate200:#E2E8F0; --slate300:#CBD5E1; --slate700:#334155; --slate800:#1E293B;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,Roboto,sans-serif;
+      --measure:46rem;
+    }
+    html{ scroll-behavior:smooth; }
+    body{ background:#f0f0f0; color:#333; max-width:1120px; margin:0 auto; padding:2rem 1.5rem 4rem; font-size:1.1rem; overflow-x:hidden; }
+    a{ color:#0366d6; }
+    .archive-link{ margin-bottom:1.5rem; display:inline-block; }
+
+    .scroll-progress{ position:fixed; top:0; left:0; right:0; height:3px; z-index:50; background:var(--accent); transform:scaleX(0); transform-origin:0 50%; transition:transform .08s linear; }
+
+    /* ── bookends (scrolldeck) ── */
+    .hero{ background:var(--slate800); color:#fff; border-radius:18px; padding:3.6rem 2rem 3rem; text-align:center; margin:.5rem 0 0; position:relative; overflow:hidden; }
+    .hero::after{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% -10%, rgba(124,58,237,.38), transparent 60%); pointer-events:none; }  /* the accent, as rgba */
+    .hero .kicker{ font-family:var(--sans); letter-spacing:.22em; text-transform:uppercase; font-size:.72rem; color:var(--accent300); font-weight:700; }
+    .hero h1{ color:#fff; font-size:clamp(1.9rem,5.6vw,3.2rem); margin:.6rem auto .2rem; line-height:1.08; text-wrap:balance; hyphens:manual; max-width:18ch; }
+    .hero .sub{ color:var(--slate200); font-size:1.1rem; max-width:52ch; margin:1rem auto 0; line-height:1.5; hyphens:manual; }
+    .hero .byline{ color:var(--grayout); font-family:var(--sans); font-size:.9rem; margin-top:1.8rem; }
+    .hero svg{ display:block; margin:2.2rem auto 1.2rem; max-width:min(640px,96%); height:auto; position:relative; }
+    .lead{ font-family:var(--sans); color:var(--slate700); font-size:1rem; text-align:center; max-width:62ch; margin:1.75rem auto 0; line-height:1.6; hyphens:manual; }
+    .scroll-cue{ display:block; margin-top:1.1rem; color:var(--grayout); font-size:.8rem; letter-spacing:.15em; text-transform:uppercase; }
+    .scroll-cue::after{ content:"\2193"; display:block; font-size:1.2rem; margin-top:.2rem; animation:bob 1.8s ease-in-out infinite; }
+    @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px)} }
+
+    .band{ background:var(--slate800); color:#fff; border-radius:16px; padding:2.4rem 2.2rem; margin:3rem 0 1.5rem; position:relative; overflow:hidden; }
+    .band .sec-num{ font-family:var(--sans); color:var(--accent400); font-weight:700; letter-spacing:.2em; font-size:.78rem; }
+    .band h2{ color:#fff; margin:.35rem 0 0; font-size:clamp(1.6rem,4.5vw,2.1rem); border:none; }
+    .band .sec-progress{ height:3px; background:rgba(255,255,255,.14); border-radius:3px; margin-top:1.3rem; overflow:hidden; }
+    .band .sec-progress i{ display:block; height:100%; background:var(--accent400); border-radius:3px; transform-origin:0 50%; transform:scaleX(0); transition:transform 1.1s cubic-bezier(.22,.61,.36,1) .1s; }
+    .band.in-view .sec-progress i{ transform:scaleX(var(--p,.2)); }
+
+    /* ── the reading column ── */
+    .prose{ max-width:var(--measure); margin:0 auto; }
+    .prose p{ line-height:1.62; margin:1.1rem 0; }
+    .prose p.first{ margin-top:1.6rem; }
+    .prose ol{ line-height:1.6; }
+    .prose .hl{ color:var(--accent700); font-weight:700; }
+    .prose .runin{ font-weight:700; color:#111; }
+    .prose mjx-container[display="true"]{ margin:.9rem 0 !important; max-width:100%; overflow-x:auto; overflow-y:hidden; }  /* wide display math scrolls instead of overflowing on phones */
+    .pull{ font-size:1.2rem; line-height:1.5; color:#111; border-left:4px solid var(--accent); padding:.2rem 0 .2rem 1.1rem; margin:1.6rem 0; }
+    .cols{ display:grid; grid-template-columns:1fr 1fr; gap:1.3rem; align-items:start; margin:1.2rem 0; }
+    @media (max-width:760px){ .cols{ grid-template-columns:1fr; } }
+    .block{ border-radius:9px; overflow:hidden; border:1px solid var(--slate200); margin:0; box-shadow:0 1px 2px rgba(15,23,42,.05); font-size:1rem; }
+    .block > .bt{ background:var(--accent700); color:#fff; font-family:var(--sans); font-weight:600; font-size:.95rem; padding:.5rem .95rem; }
+    .block > .bb{ background:var(--accent50); padding:.95rem 1.1rem; line-height:1.55; } .block > .bb :last-child{ margin-bottom:0; }
+
+    /* ── figure cards ── */
+    .fig{ background:#fff; border:1px solid #e7e7ea; border-radius:16px; padding:1.5rem 1.7rem 1.3rem; margin:2.2rem 0; box-shadow:0 6px 30px rgba(15,23,42,.06); }
+    .fig-cap{ font-family:var(--sans); color:var(--slate700); font-size:.93rem; line-height:1.5; margin:1.1rem auto 0; max-width:72ch; text-align:left; }
+    .fig-cap .fn{ color:var(--accent700); font-weight:700; }   /* the caption's bold title sentence — no figure numbers */
+    .fig-note{ font-family:var(--sans); color:var(--grayout); font-size:.86rem; line-height:1.45; margin:.6rem 0 0; }
+    .fig h4{ font-family:var(--sans); font-size:.9rem; font-weight:700; color:var(--slate800); margin:0 0 .5rem; letter-spacing:.01em; }
+    .fig svg text{ font-family:var(--sans); }
+    .diagram{ text-align:center; } .diagram svg{ max-width:100%; height:auto; } .diagram.wide svg{ width:100%; }
+    .fb{ display:none; } html.no-js .fb{ display:block; width:100%; height:auto; border-radius:8px; }   /* noscript fallback image */
+
+    /* ── scrolly: a sticky stage over invisible step spacers; the caption strip shows the active step ── */
+    .scrolly{ padding:0; }
+    .scrolly .stage{ position:sticky; top:14px; height:min(80vh,720px); display:flex; flex-direction:column; border-radius:15px; overflow:hidden; background:#fff; z-index:1; }
+    .scrolly .stage-body{ flex:1 1 auto; min-height:0; position:relative; }
+    .scrolly .stage-body > svg, .scrolly .stage-body > canvas{ position:absolute; inset:0; width:100%; height:100%; }
+    .scrolly .stage-cap{ flex:0 0 auto; border-top:1px solid var(--slate100); background:#fff; padding:.75rem 1.1rem .85rem; display:flex; gap:.85rem; align-items:flex-start; font-family:var(--sans); font-size:.95rem; line-height:1.45; color:var(--slate700); min-height:3.6rem; }
+    .scrolly .stage-cap .cap-text{ margin:0; text-wrap:pretty; } .scrolly .stage-cap .cap-text b{ color:#111; }
+    .scrolly .cap-dots{ display:flex; flex-direction:column; gap:5px; padding-top:.35rem; flex:none; }
+    .scrolly .cap-dots i{ width:7px; height:7px; border-radius:50%; background:var(--slate200); display:block; transition:background .3s; }
+    .scrolly .cap-dots i.on{ background:var(--accent); }
+    .scrolly .steps{ position:relative; z-index:0; }
+    .scrolly .step{ height:88vh; } .scrolly .step:last-child{ height:60vh; }
+    .scrolly .fig-cap{ padding:0 1.5rem 1.2rem; }
+    @media (max-width:760px){ .scrolly .stage{ height:min(72vh,560px); } .scrolly .step{ height:80vh; } .stage-tools{ transform:scale(.66); transform-origin:top left; } }
+    html.js .scrolly .step{ visibility:hidden; }
+    html.no-js .scrolly .stage{ position:static; height:auto; }
+    html.no-js .scrolly .stage-body{ height:460px; }
+    html.no-js .scrolly .stage-cap{ display:none; }
+    html.no-js .scrolly .step{ height:auto; padding:.4rem 1.4rem; font-family:var(--sans); font-size:.95rem; color:var(--slate700); }
+    html.no-js .scrolly .step::before{ content:"\25B8  "; color:var(--accent); }
+    html.no-js .stage-body > .fb ~ svg, html.no-js .stage-body > .fb ~ canvas, html.no-js .stage-tools{ display:none; }
+    html.no-js .stage-body:has(> .fb){ height:auto; }
+    .stage-tools{ position:absolute; z-index:3; font-family:var(--sans); font-size:.82rem; color:var(--slate700); }
+    .stage-tools.tr{ top:.7rem; right:.8rem; } .stage-tools.tl{ top:.7rem; left:.9rem; }
+    .stage-counter{ position:absolute; top:.8rem; left:1rem; z-index:3; font-family:var(--sans); pointer-events:none; }
+    .stage-counter .n{ font-size:clamp(1.6rem,3.4vw,2.4rem); font-weight:800; color:var(--slate800); letter-spacing:-.02em; line-height:1; font-variant-numeric:tabular-nums; }
+    .stage-counter .l{ font-size:.85rem; color:var(--slate700); margin-top:.3rem; } .stage-counter .l b{ color:var(--accent700); }
+    html.no-js .stage-counter{ display:none; }
+
+    /* ── widgets ── */
+    .seg{ display:inline-flex; border:1px solid var(--slate300); border-radius:999px; overflow:hidden; font-family:var(--sans); font-size:.82rem; }
+    .seg button{ appearance:none; border:0; background:#fff; color:var(--slate700); padding:.32rem .75rem; cursor:pointer; font:inherit; }
+    .seg button[aria-pressed="true"]{ background:var(--accent); color:#fff; }
+    .btn{ appearance:none; border:1px solid var(--slate300); background:#fff; color:var(--slate800); border-radius:999px; padding:.32rem .8rem; font:inherit; font-family:var(--sans); font-size:.82rem; cursor:pointer; }
+    .btn:hover{ border-color:var(--accent); color:var(--accent700); }
+    .chk{ display:inline-flex; align-items:center; gap:.35rem; cursor:pointer; }
+    input[type=range]{ accent-color:var(--accent); width:100%; } input[type=checkbox]{ accent-color:var(--accent); }
+    .w-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:1.4rem; align-items:center; }
+    .w-grid svg{ width:100%; height:auto; display:block; }
+    .w-eq{ font-family:var(--sans); font-size:clamp(1.5rem,3.2vw,2.1rem); font-weight:800; color:var(--slate800); text-align:center; font-variant-numeric:tabular-nums; }
+    .w-eq .a{ color:var(--accent700); } .w-eq .c{ color:#111; background:var(--accent100); border-radius:8px; padding:0 .25em; }
+    .w-ctl{ display:grid; grid-template-columns:auto 1fr auto; gap:.4rem .7rem; align-items:center; font-family:var(--sans); font-size:.9rem; margin:.9rem 0 .4rem; }
+    .w-ctl label{ font-weight:700; color:var(--slate700); } .w-ctl output{ font-variant-numeric:tabular-nums; min-width:2ch; text-align:right; color:var(--accent700); font-weight:700; }
+    @media (max-width:860px){ .w-grid{ grid-template-columns:1fr; } }
+
+    /* ── stats ── */
+    .stats{ display:flex; gap:1rem; flex-wrap:wrap; justify-content:center; margin:1.4rem auto; max-width:60rem; }
+    .stat{ flex:1 1 170px; max-width:250px; border-radius:12px; padding:1rem .9rem; text-align:center; }
+    .stat .n{ font-family:var(--sans); font-weight:800; font-size:1.9rem; line-height:1; letter-spacing:-.01em; }
+    .stat .l{ font-family:var(--sans); font-size:.84rem; color:var(--slate700); margin-top:.45rem; line-height:1.35; }
+    .stat.accent{ background:rgba(124,58,237,.09);} .stat.accent .n{ color:var(--accent700); }
+    .stat.navy{ background:rgba(30,58,95,.08);} .stat.navy .n{ color:var(--maindark); }
+
+    /* ── outro + footer (scrolldeck) ── */
+    .outro{ background:var(--slate800); color:#fff; border-radius:18px; padding:3rem 2rem 2.5rem; text-align:center; margin:3rem 0 0; position:relative; overflow:hidden; }
+    .outro::after{ content:""; position:absolute; inset:0; background:radial-gradient(120% 90% at 50% 110%, rgba(124,58,237,.26), transparent 60%); pointer-events:none; }
+    .outro h2{ color:#fff; border:none; margin:0 0 1.4rem; }
+    .outro .scards{ display:flex; gap:.8rem; flex-wrap:wrap; justify-content:center; }
+    .outro .sc{ flex:1 1 160px; max-width:220px; background:var(--slate700); border-radius:10px; padding:.9rem .8rem; }
+    .outro .sc .n{ font-family:var(--sans); font-weight:800; font-size:1.5rem; color:var(--accent300); }
+    .outro .sc .s{ font-family:var(--sans); font-size:.74rem; color:var(--slate200); margin-top:.3rem; line-height:1.35; hyphens:manual; }
+    .outro .closing{ color:var(--slate200); max-width:62ch; margin:1.9rem auto 0; line-height:1.6; }
+    .outro .byline{ color:var(--grayout); font-family:var(--sans); font-size:.85rem; margin-top:1.4rem; }
+    .outro a{ color:var(--accent300); }
+    .post-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:2rem; padding-top:.5rem; flex-wrap:wrap; gap:.5rem; }
+    .post-footer .author{ text-align:right; margin:0; font-family:var(--sans); font-size:.95rem; } .post-footer .author a{ margin-left:.75rem; }
+
+    /* ── motion primitives (scrolldeck): reveal / draw / grow / fade, staggered with .d1..d5 ── */
+    .anim-draw{ stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset 1.05s cubic-bezier(.22,.61,.36,1) .15s; }
+    .in-view .anim-draw{ stroke-dashoffset:0; }
+    .anim-fade{ opacity:0; transition:opacity .55s ease .45s; } .in-view .anim-fade{ opacity:1; }
+    .anim-grow{ opacity:0; transform:scaleY(.02); transform-origin:bottom; transition:transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-grow{ opacity:1; transform:scaleY(1); }
+    .anim-growx{ opacity:0; transform:scaleX(.02); transform-origin:left; transition:transform .8s cubic-bezier(.22,.61,.36,1) var(--gd,0s), opacity .4s ease var(--gd,0s); }
+    .in-view .anim-growx{ opacity:1; transform:scaleX(1); }
+    .reveal{ opacity:0; transform:translateY(22px); transition:opacity .75s cubic-bezier(.22,.61,.36,1), transform .75s cubic-bezier(.22,.61,.36,1); }
+    .in-view .reveal, .reveal.in-view{ opacity:1; transform:none; }
+    .d1{ transition-delay:.06s; } .d2{ transition-delay:.14s; } .d3{ transition-delay:.22s; } .d4{ transition-delay:.30s; } .d5{ transition-delay:.38s; }
+
+    @media (prefers-reduced-motion: reduce){
+      html{ scroll-behavior:auto; }
+      .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+      .reveal,.anim-grow,.anim-growx{ transform:none !important; }   /* NOT .anim-fade — it may carry a static rotation */
+      .anim-draw{ stroke-dashoffset:0 !important; }
+      .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+      .scroll-cue::after{ animation:none; }
+    }
+  </style>
+  <noscript><style>
+    .reveal,.anim-fade,.anim-grow,.anim-growx{ opacity:1 !important; }
+    .reveal,.anim-grow,.anim-growx{ transform:none !important; }
+    .anim-draw{ stroke-dashoffset:0 !important; }
+    .band .sec-progress i{ transform:scaleX(var(--p,.2)) !important; }
+    .scroll-progress{ display:none; }
+  </style></noscript>
+  <!-- the no-js switch: steps stay visible and stages un-stick until this runs -->
+  <script>document.documentElement.className = document.documentElement.className.replace('no-js','js');</script>
+</head>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<body>
+
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<!-- shared SVG arrowhead markers — one per colour, referenced document-wide by url(#ah-*) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <marker id="ah-white" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+  <marker id="ah-gray" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748B"/></marker>
+  <marker id="ah-grayout" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94A3B8"/></marker>
+  <marker id="ah-accent" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#7C3AED"/></marker>
+  <marker id="ah-accent-lt" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#A78BFA"/></marker>
+  <marker id="ah-catA" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3B82F6"/></marker>
+  <marker id="ah-catB" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#F97316"/></marker>
+  <marker id="ah-catC" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#059669"/></marker>
+</defs></svg>
+
+<a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<header class="hero" data-observe>
+  <div class="reveal">
+    <div class="kicker">A visual essay</div>
+    <h1>TODO Title</h1>
+    <p class="sub">TODO the essay's thesis in one or two sentences.</p>
+  </div>
+  <!-- the hero glyph: a static SVG (often script-generated from DATA); it is also the share card's centrepiece -->
+  <svg class="reveal d2" viewBox="0 0 640 190" role="img" aria-label="TODO describe every element — the QA agents and screen readers depend on it.">
+    <circle cx="110" cy="95" r="72" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="1" class="anim-fade"/>
+    <line x1="110" y1="95" x2="150" y2="40" stroke="#F97316" stroke-width="2.6" stroke-linecap="round" marker-end="url(#ah-catB)" pathLength="1" class="anim-draw"/>
+    <line x1="110" y1="95" x2="60" y2="60" stroke="#3B82F6" stroke-width="2.6" stroke-linecap="round" marker-end="url(#ah-catA)" pathLength="1" class="anim-draw" style="transition-delay:.4s"/>
+    <circle cx="110" cy="95" r="2.4" fill="#fff" class="anim-fade"/>
+    <g class="anim-fade" style="transition-delay:.9s">
+      <text x="250" y="100" fill="#fff" font-size="46" font-weight="800" letter-spacing="-.02em">TODO</text>
+      <line x1="400" y1="84" x2="454" y2="84" stroke="#A78BFA" stroke-width="2.4" marker-end="url(#ah-accent-lt)"/>
+      <text x="468" y="100" fill="#fff" font-size="46" font-weight="800">big</text>
+      <text x="250" y="131" fill="#CBD5E1" font-size="12.5">TODO one-line reading of the glyph</text>
+    </g>
+  </svg>
+  <p class="byline reveal d3">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</header>
+
+<p class="lead">
+  TODO one or two sentences framing the essay.
+  <span class="scroll-cue">Scroll</span>
+</p>
+
+<!-- ══════════════════ § 01 ══════════════════ -->
+<section class="band" data-observe style="--p:.33">
+  <div class="reveal"><div class="sec-num">SECTION 01</div><h2>TODO Section title</h2></div>
+  <div class="sec-progress"><i></i></div>
+</section>
+
+<div class="prose">
+  <p class="first">TODO the essay's prose, verbatim. Inline math \(\theta_a + \theta_b\) and display math
+  \[\cos(\theta_a + \theta_b - \theta_c)\]
+  both typeset with MathJax. Use <span class="runin">Bold lead-ins.</span> where the essay has them and
+  <span class="hl">the accent</span> for its one or two key terms.</p>
+</div>
+
+<!-- ══════ EXAMPLE A: static figure (inline SVG → Overlap-QA loop) ══════ -->
+<figure class="fig" id="figA" data-observe>
+  <div class="diagram wide reveal d1">
+    <svg viewBox="0 0 900 190" role="img" aria-label="Three rounded boxes in a row joined by gray arrows: TODO describe each box, its note text, and the bracket beneath.">
+      <g class="anim-fade">
+        <rect x="16" y="14" width="278" height="92" rx="10" fill="#F8FAFC" stroke="#64748B" stroke-width="1.3"/>
+        <text x="155" y="42" text-anchor="middle" fill="#1E293B" font-size="14" font-weight="700">TODO first</text>
+        <rect x="334" y="14" width="260" height="92" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.4"/>
+        <text x="464" y="42" text-anchor="middle" fill="#5B21B6" font-size="14" font-weight="700">TODO second</text>
+        <rect x="634" y="14" width="250" height="92" rx="10" fill="#F5F3FF" stroke="#7C3AED" stroke-width="1.4"/>
+        <text x="759" y="42" text-anchor="middle" fill="#5B21B6" font-size="14" font-weight="700">TODO third</text>
+      </g>
+      <g stroke="#64748B" stroke-width="1.3" marker-end="url(#ah-gray)">
+        <line x1="296" y1="60" x2="328" y2="60" pathLength="1" class="anim-draw"/><line x1="596" y1="60" x2="628" y2="60" pathLength="1" class="anim-draw"/>
+      </g>
+      <g class="anim-fade" style="transition-delay:.8s">
+        <path d="M340,124 L340,134 L604,134 L609,142 L614,134 L878,134 L878,124" fill="none" stroke="#7C3AED" stroke-width="1.3"/>
+        <text x="609" y="162" text-anchor="middle" fill="#5B21B6" font-size="11.5" font-weight="700">TODO what the bracket says</text>
+      </g>
+    </svg>
+  </div>
+  <p class="fig-cap reveal d2"><span class="fn">TODO the caption's title sentence.</span> TODO the caption, in the essay's words. No figure number.</p>
+</figure>
+
+<!-- ══════ EXAMPLE B: scrolly with an SVG stage scrubbed by p ══════ -->
+<section class="fig scrolly" id="figB" data-scrolly="figB">
+  <div class="stage">
+    <div class="stage-body">
+      <noscript><img class="fb" src="resources/TODO-figB.png" alt="Final state: TODO."></noscript>
+      <svg viewBox="0 0 1000 480" role="img" aria-label="TODO: what the stage shows at the start, what changes as the reader scrolls, and what it shows at the end."></svg>
+    </div>
+    <div class="stage-cap"><div class="cap-dots"></div><p class="cap-text"></p></div>
+  </div>
+  <div class="steps">
+    <div class="step" data-at="0"><b>TODO step one.</b> The caption shown while p is below the next threshold.</div>
+    <div class="step" data-at="0.35"><b>TODO step two.</b> Thresholds must match the stage's own phase boundaries.</div>
+    <div class="step" data-at="0.8"><b>TODO step three.</b> The last step is the final state; the fallback image is a capture of it.</div>
+  </div>
+  <p class="fig-cap"><span class="fn">TODO title sentence.</span> TODO caption.</p>
+</section>
+
+<!-- ══════ EXAMPLE C: canvas sequence with a counter ══════ -->
+<section class="fig scrolly" id="figC" data-scrolly="figC">
+  <div class="stage">
+    <div class="stage-body">
+      <noscript><img class="fb" src="resources/TODO-figC.png" alt="Final state: TODO."></noscript>
+      <canvas id="figC-canvas" aria-hidden="true"></canvas>
+      <div class="stage-counter" aria-live="off"><div class="n">1,200</div><div class="l">dots &middot; <b>the start</b></div></div>
+    </div>
+    <div class="stage-cap"><div class="cap-dots"></div><p class="cap-text"></p></div>
+  </div>
+  <div class="steps">
+    <div class="step" data-at="0"><b>TODO.</b> A sheet of dots, one per thing, drawn to scale.</div>
+    <div class="step" data-at="0.3"><b>TODO.</b> The count falls on a log schedule between recorded milestones; shavings fall away.</div>
+    <div class="step" data-at="0.8"><b>TODO.</b> The survivors fly to their final positions.</div>
+  </div>
+  <p class="fig-cap"><span class="fn">TODO title sentence.</span> TODO caption.</p>
+</section>
+
+<!-- ══════ EXAMPLE D: widget (sliders + live SVG recomputed from DATA) ══════ -->
+<figure class="fig" id="figD" data-observe>
+  <div class="w-grid">
+    <div class="reveal d1">
+      <svg id="figD-svg" viewBox="0 0 400 400" role="img" aria-label="TODO: a ring of positions, a pointer at the chosen input, and the arrow the model computes."></svg>
+    </div>
+    <div class="reveal d2">
+      <div class="w-eq"><span class="a" id="figD-a">7</span> &rarr; <span class="c" id="figD-out">?</span></div>
+      <div class="w-ctl">
+        <label for="figD-range">a</label><input type="range" id="figD-range" min="0" max="23" value="7"><output id="figD-o">7</output>
+      </div>
+      <div style="text-align:center;margin:.2rem 0 .8rem"><button type="button" class="btn" id="figD-rand">random</button></div>
+      <p class="fig-note" id="figD-note"></p>
+    </div>
+  </div>
+  <noscript><img class="fb" src="resources/TODO-figD.png" alt="TODO: the widget at its default state."></noscript>
+  <p class="fig-cap reveal d3"><span class="fn">TODO title sentence.</span> TODO caption. <a href="resources/TODO.svg">A printable companion</a> if the figure has one.</p>
+</figure>
+
+<!-- ══════ EXAMPLE E: live figure (SVG chart built from DATA) ══════ -->
+<figure class="fig" id="figE" data-observe>
+  <div class="diagram wide reveal d1">
+    <svg id="figE-svg" viewBox="0 0 900 300" role="img" aria-label="TODO: a line chart of a recorded series against its index, with the end point labelled."></svg>
+  </div>
+  <noscript><img class="fb" src="resources/TODO-figE.png" alt="TODO."></noscript>
+  <p class="fig-cap reveal d2"><span class="fn">TODO title sentence.</span> TODO caption.</p>
+</figure>
+
+<div class="prose">
+  <div class="cols">
+    <div class="block"><div class="bt">TODO the essay's first enumerated point</div><div class="bb">TODO its text.</div></div>
+    <div class="block"><div class="bt">TODO the second</div><div class="bb">TODO its text.</div></div>
+  </div>
+  <p class="pull">TODO one sentence from the essay worth pulling out.</p>
+</div>
+
+<div class="stats" data-observe>
+  <div class="stat navy reveal d1"><div class="n">TODO</div><div class="l">TODO what the number is</div></div>
+  <div class="stat accent reveal d2"><div class="n">TODO</div><div class="l">TODO</div></div>
+</div>
+
+<!-- ══════════════════ OUTRO ══════════════════ -->
+<footer class="outro" data-observe>
+  <div class="reveal"><h2>Summary</h2></div>
+  <div class="scards reveal d2">
+    <div class="sc"><div class="n">TODO</div><div class="s">TODO one-line takeaway</div></div>
+    <div class="sc"><div class="n">TODO</div><div class="s">TODO</div></div>
+  </div>
+  <p class="closing reveal d3">TODO closing statement.</p>
+  <p class="byline reveal d5">Jasper Gilley &nbsp;&middot;&nbsp; Independent researcher</p>
+</footer>
+
+<div class="post-footer">
+  <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
+  <p class="author">Jasper Gilley &mdash; <a href="https://twitter.com/0xjasper">Twitter</a> <a href="https://github.com/jagilley">Github</a></p>
+</div>
+
+<script>
+/* ── the essay's data, embedded by assemble.py: var DATA = {{DATA}};
+   Everything a figure draws comes from here (see data-pipeline.md). The scaffold ships a toy. ── */
+var DATA = { n: 24, k: 5, series: [0.02,0.05,0.1,0.2,0.35,0.55,0.75,0.9,0.97,1.0] };
+</script>
+<script>
+(function(){
+  'use strict';
+  /* ════════════════ shared helpers ════════════════ */
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent){ var e = document.createElementNS(NS, tag); if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function q(s, r){ return (r || document).querySelector(s); }
+  function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function smooth(t){ t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
+  function wrap(a){ return Math.atan2(Math.sin(a), Math.cos(a)); }
+  function nf(n){ return Math.round(n).toLocaleString('en-US'); }
+  function lcg(seed){ var s = seed >>> 0; return function(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }   /* seeded randomness: layouts must be reproducible between renders */
+  var TAU = 2 * Math.PI, reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ════════════════ reveal observer ════════════════ */
+  var observed = document.querySelectorAll('[data-observe]');
+  if ('IntersectionObserver' in window && !reduce) {
+    var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in-view'); io.unobserve(e.target); } }); }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+    observed.forEach(function(x){ io.observe(x); });
+  } else { observed.forEach(function(x){ x.classList.add('in-view'); }); }
+
+  /* ════════════════ scrolly registry: p = scroll progress through the figure ════════════════ */
+  var scrollies = [];
+  function registerScrolly(id, updater){
+    var root = q('[data-scrolly="' + id + '"]'); if (!root) return null;
+    var it = { root: root, stage: q('.stage', root), steps: Array.prototype.slice.call(root.querySelectorAll('.step')), cap: q('.cap-text', root), dots: q('.cap-dots', root), updater: updater, p: -1, active: -1 };
+    it.steps.forEach(function(){ it.dots.appendChild(document.createElement('i')); });
+    scrollies.push(it); return it;
+  }
+  function measure(it){
+    var r = it.root.getBoundingClientRect(), top = r.top + window.scrollY, stickyTop = parseFloat(getComputedStyle(it.stage).top) || 0;
+    it.top = top - stickyTop; it.track = Math.max(1, it.root.offsetHeight - it.stage.offsetHeight);
+  }
+  function setCaption(it, p){
+    var a = 0; it.steps.forEach(function(s, i){ if (p >= parseFloat(s.getAttribute('data-at') || '0')) a = i; });
+    if (a !== it.active){ it.active = a; it.cap.innerHTML = it.steps[a].innerHTML; Array.prototype.forEach.call(it.dots.children, function(d, i){ d.classList.toggle('on', i === a); }); }
+  }
+  function updateScrollies(force){
+    var y = window.scrollY;
+    for (var i = 0; i < scrollies.length; i++){
+      var it = scrollies[i]; if (it.track === undefined || force) measure(it);
+      var p = clamp((y - it.top) / it.track, 0, 1);
+      if (!force && Math.abs(p - it.p) < 0.0004) continue;
+      it.p = p; try { it.updater(p); } catch (e) { if (window.console) console.error(e); }
+      setCaption(it, p);
+    }
+  }
+  var bar = q('.scroll-progress'), ticking = false;
+  function update(force){
+    var doc = document.documentElement, max = doc.scrollHeight - doc.clientHeight;
+    if (bar) bar.style.transform = 'scaleX(' + (max > 0 ? doc.scrollTop / max : 0) + ')';
+    updateScrollies(force); ticking = false;
+  }
+  function onScroll(){ if (!ticking){ ticking = true; requestAnimationFrame(function(){ update(false); }); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', function(){ requestAnimationFrame(function(){ update(true); }); }, { passive: true });
+  window.addEventListener('load', function(){ update(true); });
+
+  /* ════════════════ EXAMPLE B: SVG stage — a cloud of DATA.n dots settles onto a ring as p rises ════════════════ */
+  (function(){
+    var root = q('[data-scrolly="figB"]'); if (!root) return;
+    var svg = q('svg', root), N = DATA.n, cx = 500, cy = 240, R = 170, rnd = lcg(42), cloud = [], dots = [];
+    for (var t = 0; t < N; t++){ var rr = R * (0.15 + 0.85 * Math.sqrt(rnd())), aa = TAU * rnd(); cloud.push([cx + rr * Math.cos(aa), cy - rr * Math.sin(aa)]); }
+    var ring = el('circle', { cx: cx, cy: cy, r: R, fill: 'none', stroke: '#CBD5E1', 'stroke-width': 1, 'stroke-opacity': 0 }, svg);
+    var g = el('g', { fill: '#7C3AED' }, svg);
+    for (t = 0; t < N; t++) dots.push(el('circle', { r: 5 }, g));
+    var ro = el('text', { x: 24, y: 40, fill: '#1E293B', 'font-size': 14, 'font-weight': 700 }, svg);
+    function update(p){                                   /* idempotent: the stage is a pure function of p */
+      var w = smooth((p - 0.2) / 0.6);
+      for (var t = 0; t < N; t++){ var a = TAU * DATA.k * t / N, tx = cx + R * Math.cos(a), ty = cy - R * Math.sin(a); dots[t].setAttribute('cx', lerp(cloud[t][0], tx, w).toFixed(1)); dots[t].setAttribute('cy', lerp(cloud[t][1], ty, w).toFixed(1)); }
+      ring.setAttribute('stroke-opacity', (0.9 * w).toFixed(2)); ro.textContent = 'progress ' + Math.round(p * 100) + '%';
+    }
+    registerScrolly('figB', update); update(0);
+  })();
+
+  /* ════════════════ EXAMPLE C: canvas sequence — a dot sheet squeezed on a log schedule, with shavings ════════════════ */
+  (function(){
+    var root = q('[data-scrolly="figC"]'); if (!root) return;
+    var body = q('.stage-body', root), cv = q('#figC-canvas', root), ctx = cv.getContext('2d'), counter = q('.stage-counter .n', root), clabel = q('.stage-counter .l', root);
+    var W = 0, H = 0, COLS = 40, ROWS = 30, N = COLS * ROWS, rank = new Float32Array(N), rnd = lcg(7), LAST = 0;
+    var order = []; for (var i = 0; i < N; i++) order.push(i);
+    for (i = N - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), tmp = order[i]; order[i] = order[j]; order[j] = tmp; }
+    for (i = 0; i < N; i++) rank[order[i]] = (i + 0.5) / N;                       /* rank r dies when alive(p) < r·N */
+    var ms = [[0.3, N], [0.6, 120], [0.8, 12]];                                   /* milestones: (p, alive count) */
+    function alive(p){ if (p <= ms[0][0]) return ms[0][1]; for (var k = 1; k < ms.length; k++){ if (p <= ms[k][0]){ var u = (p - ms[k - 1][0]) / (ms[k][0] - ms[k - 1][0]); return Math.exp(lerp(Math.log(ms[k - 1][1]), Math.log(ms[k][1]), u)); } } return ms[ms.length - 1][1]; }
+    function deathP(r){ var c = r * N; if (c >= ms[0][1]) return ms[0][0]; for (var k = 1; k < ms.length; k++){ if (c >= ms[k][1]){ var u = (Math.log(c) - Math.log(ms[k - 1][1])) / (Math.log(ms[k][1]) - Math.log(ms[k - 1][1])); return lerp(ms[k - 1][0], ms[k][0], u); } } return ms[ms.length - 1][0]; }
+    var dp = new Float32Array(N); for (i = 0; i < N; i++) dp[i] = deathP(rank[i]);
+    function resize(){ var r = body.getBoundingClientRect(); W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height)); var dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + 'px'; cv.style.height = H + 'px'; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    function draw(p){
+      if (W === 0) resize();
+      ctx.clearRect(0, 0, W, H);
+      var cell = Math.min(W / (COLS + 8), H / (ROWS + 10)), x0 = (W - COLS * cell) / 2, y0 = (H - ROWS * cell) / 2 + 20, sz = Math.max(1, cell * 0.55);
+      ctx.strokeStyle = 'rgba(100,116,139,.35)'; ctx.strokeRect(x0 - cell / 2, y0 - cell / 2, COLS * cell, ROWS * cell);   /* the outline stays: it is the size reference */
+      ctx.fillStyle = '#475569'; ctx.beginPath();
+      var fallers = [];
+      for (var i = 0; i < N; i++){ var x = x0 + (i % COLS) * cell, y = y0 + Math.floor(i / COLS) * cell; if (p < dp[i]) ctx.rect(x - sz / 2, y - sz / 2, sz, sz); else if (p - dp[i] < 0.06) fallers.push(i); }
+      ctx.fill();
+      for (var k = 0; k < fallers.length; k++){ var f = fallers[k], dt = p - dp[f], x2 = x0 + (f % COLS) * cell, y2 = y0 + Math.floor(f / COLS) * cell + 9000 * dt * dt; ctx.globalAlpha = Math.max(0, 1 - dt / 0.06); ctx.fillRect(x2 - sz / 2, y2 - sz / 2, sz, sz); }   /* shavings */
+      ctx.globalAlpha = 1;
+      counter.textContent = nf(alive(p)); clabel.innerHTML = 'dots &middot; <b>' + (p < 0.3 ? 'the start' : (p < 0.8 ? 'squeezed' : 'the end')) + '</b>';
+    }
+    resize(); window.addEventListener('resize', function(){ resize(); draw(LAST); });
+    registerScrolly('figC', function(p){ LAST = p; draw(p); }); draw(0);
+  })();
+
+  /* ════════════════ EXAMPLE D: widget — a slider sets a; the SVG recomputes from DATA ════════════════ */
+  (function(){
+    var svg = q('#figD-svg'); if (!svg) return;
+    var N = DATA.n, cx = 200, cy = 200, R = 150;
+    el('circle', { cx: cx, cy: cy, r: R, fill: 'none', stroke: '#CBD5E1', 'stroke-width': 1.2 }, svg);
+    for (var j = 0; j < N; j++){ var a = TAU * j / N; var t = el('text', { x: cx + (R + 16) * Math.cos(a), y: cy - (R + 16) * Math.sin(a) + 4, 'text-anchor': 'middle', fill: '#334155', 'font-size': 11 }, svg); t.textContent = j; }
+    var ptr = el('polygon', { points: '0,-5.5 11,0 0,5.5', fill: '#7C3AED' }, svg);      /* radial pointer: translate to the angle, then rotate by the SAME angle */
+    var arrow = el('line', { x1: cx, y1: cy, x2: cx, y2: cy, stroke: '#7C3AED', 'stroke-width': 3, 'stroke-linecap': 'round', 'marker-end': 'url(#ah-accent)' }, svg);
+    el('circle', { cx: cx, cy: cy, r: 4, fill: '#1E293B' }, svg);
+    var A = 7, range = q('#figD-range');
+    function render(){
+      var a = TAU * A / N, out = (A * DATA.k) % N, ao = TAU * out / N;
+      ptr.setAttribute('transform', 'translate(' + cx + ' ' + cy + ') rotate(' + (-a * 180 / Math.PI).toFixed(3) + ') translate(' + (R - 14) + ' 0)');
+      arrow.setAttribute('x2', cx + 110 * Math.cos(ao)); arrow.setAttribute('y2', cy - 110 * Math.sin(ao));
+      q('#figD-a').textContent = A; q('#figD-out').textContent = out; q('#figD-o').textContent = A; range.value = A;
+      q('#figD-note').textContent = 'The arrow points at ' + out + ', which is ' + A + ' × ' + DATA.k + ' mod ' + N + '.';
+    }
+    range.addEventListener('input', function(){ A = +this.value; render(); });
+    q('#figD-rand').addEventListener('click', function(){ A = Math.floor(Math.random() * N); render(); });
+    render();
+  })();
+
+  /* ════════════════ EXAMPLE E: live figure — a recorded series drawn from DATA ════════════════ */
+  (function(){
+    var svg = q('#figE-svg'); if (!svg) return;
+    var S = DATA.series, x0 = 60, x1 = 860, y0 = 250, y1 = 40;
+    function X(i){ return x0 + i / (S.length - 1) * (x1 - x0); } function Y(v){ return y0 - v * (y0 - y1); }
+    el('line', { x1: x0, y1: y0, x2: x1, y2: y0, stroke: '#64748B' }, svg); el('line', { x1: x0, y1: y0, x2: x0, y2: y1 - 8, stroke: '#64748B' }, svg);
+    [0, 0.5, 1].forEach(function(v){ var t = el('text', { x: x0 - 8, y: Y(v) + 4, 'text-anchor': 'end', fill: '#64748B', 'font-size': 11 }, svg); t.textContent = Math.round(v * 100) + '%'; });
+    var pts = S.map(function(v, i){ return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join(' ');
+    el('polyline', { points: pts, fill: 'none', stroke: '#7C3AED', 'stroke-width': 2.4, 'stroke-linejoin': 'round' }, svg);
+    S.forEach(function(v, i){ var c = el('circle', { cx: X(i), cy: Y(v), r: 3.5, fill: '#7C3AED' }, svg); var ti = el('title', {}, c); ti.textContent = 'step ' + i + ': ' + Math.round(v * 100) + '%'; });   /* hover names a point */
+    var end = el('text', { x: X(S.length - 1) - 8, y: Y(S[S.length - 1]) + 20, 'text-anchor': 'end', fill: '#5B21B6', 'font-size': 11.5, 'font-weight': 700 }, svg); end.textContent = Math.round(S[S.length - 1] * 100) + '% at the end';
+    var xl = el('text', { x: (x0 + x1) / 2, y: y0 + 28, 'text-anchor': 'middle', fill: '#64748B', 'font-size': 11.5 }, svg); xl.textContent = 'TODO x-axis caption';
+  })();
+
+  update(true);
+})();
+</script>
+
+</body>
+</html>

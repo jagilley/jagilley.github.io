@@ -201,6 +201,13 @@ and crop rather than shrinking the window). A full-page layout check is one
 plain `<style>`; the no-JS check is the same trick with the `<noscript>` block
 unwrapped — stripping `<script>` tags alone leaves `<noscript>` inactive.
 
+For states a one-shot screenshot cannot reach (a specific scroll position, a
+hover, a toggled control) or when the CDN assets make renders crawl, use the
+visual-essay skill's DevTools harness instead:
+`.claude/skills/visual-essay/references/render.mjs` (+ `qa_copy.py` for local
+assets, `crop_vp.py` for sticky captures). It is a drop-in for the full-page
+check above and the only way to capture a `position:sticky` stage correctly.
+
 ## Reference files
 
 - `references/scaffold.html` — copy-paste skeleton: palette, all CSS classes,

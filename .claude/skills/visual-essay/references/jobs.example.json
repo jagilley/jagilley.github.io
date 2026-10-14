@@ -1,0 +1,75 @@
+{
+  "_comment": "node render.mjs jobs.json — render the qa_copy.py copy of the page, not the repo file. Every path must be absolute. The first job defines window.__sp(id, p), which scrubs the scrolly [data-scrolly=id] to progress p; later jobs reuse it because state carries over within the tab.",
+  "file": "/abs/path/to/qa/<slug>.html",
+  "width": 1180,
+  "height": 900,
+  "dpr": 2,
+  "settle": 800,
+  "jobs": [
+    {
+      "_": "full page with every reveal/draw/grow forced to its final state (an IntersectionObserver page is blank below the fold otherwise)",
+      "out": "/abs/shots/full.png",
+      "prep": "document.head.insertAdjacentHTML('beforeend','<style>.reveal,.anim-fade,.anim-grow,.anim-growx{opacity:1!important}.reveal,.anim-grow,.anim-growx{transform:none!important}.anim-draw{stroke-dashoffset:0!important}.band .sec-progress i{transform:scaleX(var(--p,.2))!important}</style>'); 1",
+      "wait": 800,
+      "clip": "full"
+    },
+    {
+      "_": "the hero, reloaded so the forced-reveal style is gone; vp:true captures the viewport as-is",
+      "out": "/abs/shots/hero.png",
+      "reload": true,
+      "scroll": 0,
+      "wait": 1200,
+      "clip": ".hero",
+      "vp": true
+    },
+    {
+      "_": "a scrolly stage at progress 0.02 — defines __sp first; stages are position:sticky so vp:true is REQUIRED",
+      "out": "/abs/shots/fig1-p0.png",
+      "prep": "window.__sp=function(id,p){var r=document.querySelector('[data-scrolly=\"'+id+'\"]');var st=r.querySelector('.stage');var top=r.getBoundingClientRect().top+window.scrollY-14;var track=r.offsetHeight-st.offsetHeight;window.scrollTo(0,top+track*p);return 1}; __sp('fig1',0.02)",
+      "wait": 600,
+      "clip": "#fig1 .stage",
+      "vp": true
+    },
+    { "out": "/abs/shots/fig1-p5.png", "prep": "__sp('fig1',0.5)", "wait": 600, "clip": "#fig1 .stage", "vp": true },
+    { "out": "/abs/shots/fig1-p1.png", "prep": "__sp('fig1',1)",   "wait": 600, "clip": "#fig1 .stage", "vp": true },
+    {
+      "_": "a non-sticky figure card: scroll it into view (so its reveals fire), wait for the transitions, clip the element",
+      "out": "/abs/shots/fig2.png",
+      "scroll": "#fig2",
+      "scrollOffset": 60,
+      "wait": 1600,
+      "clip": "#fig2"
+    },
+    {
+      "_": "the same card after clicking a segmented-toggle button",
+      "out": "/abs/shots/fig2-toggled.png",
+      "prep": "document.getElementById('f2-ord-count').click(); 1",
+      "wait": 1200,
+      "clip": "#fig2"
+    },
+    {
+      "_": "a hover state: dispatch mouseenter on the labelled element",
+      "out": "/abs/shots/fig3-hover.png",
+      "prep": "__sp('fig3',1); var g=document.querySelector('#fig3-end .wlabel[data-unit=\"31\"][data-role=\"U\"]'); g.dispatchEvent(new MouseEvent('mouseenter',{bubbles:false})); 1",
+      "wait": 1800,
+      "clip": "#fig3 .stage",
+      "vp": true
+    },
+    {
+      "_": "a widget in a second state: set the sliders and fire input events",
+      "out": "/abs/shots/fig4-b.png",
+      "scroll": "#fig4",
+      "scrollOffset": 60,
+      "prep": "var r=document.getElementById('f4-ra'); r.value=60; r.dispatchEvent(new Event('input')); var s=document.getElementById('f4-rb'); s.value=90; s.dispatchEvent(new Event('input')); 1",
+      "wait": 600,
+      "clip": "#fig4"
+    },
+    {
+      "_": "a probe: a prep that returns anything but 1 is printed as 'prep -> ...' (here: does the page overflow its viewport?)",
+      "out": "/abs/shots/probe.png",
+      "prep": "[document.documentElement.scrollWidth, document.documentElement.clientWidth]",
+      "wait": 100,
+      "clip": [0, 0, 100, 100]
+    }
+  ]
+}
