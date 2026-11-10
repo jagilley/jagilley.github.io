@@ -10,1071 +10,1321 @@
 <meta property="og:url" content="https://jagilley.github.io/jaden.html">
 <meta property="og:title" content="For Jaden">
 <meta property="og:description" content="A present. Tap to open.">
-<meta property="og:image" content="https://jagilley.github.io/resources/jaden-og.jpg">
+<meta property="og:image" content="https://jagilley.github.io/resources/jaden/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A wrapped teal present with a pink bow, sitting in a meadow at golden hour.">
+<meta property="og:image:alt" content="A pencil drawing of a wrapped teal present with a pink bow, on warm paper.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://jagilley.github.io/resources/jaden-og.jpg">
-<meta name="theme-color" content="#a7c8ec">
+<meta name="twitter:image" content="https://jagilley.github.io/resources/jaden/og.jpg">
+<meta name="theme-color" content="#f3eee3">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%81%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@1,144,700,100,1&display=swap&text=HapyBirthdJen!" media="print" onload="this.media='all';document.fonts&&document.fonts.load('italic 700 64px Fraunces','HapyBirthdJen!')">
 <style>
-  html, body { margin: 0; height: 100%; overflow: hidden; background: #f3c9a3; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f3eee3; overscroll-behavior: none; }
   body { -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
-  #scene { position: fixed; inset: 0; cursor: pointer; outline: none; overflow: hidden; }
+  #scene { position: fixed; inset: 0; cursor: pointer; outline: none; overflow: hidden; overscroll-behavior: none; touch-action: manipulation; }
   #scene.done { cursor: default; }
-  .layer, #fx { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-  #world { visibility: hidden; }   /* an invisible scene graph: the animations drive it, the canvas paints it */
-  canvas.layer, #fx { pointer-events: none; }
+  #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  #flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; display: none;
-    background: radial-gradient(circle at var(--fx, 50%) var(--fy, 62%), rgba(255,250,232,1) 0, rgba(255,226,206,.75) 18%, rgba(255,190,220,.25) 42%, rgba(255,190,220,0) 70%); }
-  #veil { position: fixed; inset: 0; background: #fff3e2; pointer-events: none; animation: veil 1.8s ease-out .15s forwards; }   /* CSS, so it lifts even if a script fails */
-  @keyframes veil { to { opacity: 0; visibility: hidden; } }
-  @media (prefers-reduced-motion: reduce) { #veil { animation-duration: .4s; } }
-  #replay { position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
-    width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; display: grid; place-items: center;
-    background: rgba(34,16,52,.55); color: #fff8ee; box-shadow: 0 0 0 1.5px rgba(255,248,238,.28); cursor: pointer; opacity: 0; pointer-events: none; visibility: hidden;
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: opacity 1.2s ease, background .3s ease, transform .3s ease, visibility 0s; }
-  #replay.on { opacity: .7; pointer-events: auto; visibility: visible; }
-  #replay:hover { background: rgba(34,16,52,.55); opacity: 1; transform: rotate(-30deg); }
-  #replay:focus-visible { outline: 2px solid #fff8ee; outline-offset: 3px; opacity: 1; }
-
-  /* scene palette: every colour below reads a variable that applyDusk() moves from golden hour to Vice City dusk */
-  .s0 { stop-color: var(--sky0) } .s1 { stop-color: var(--sky1) } .s2 { stop-color: var(--sky2) }
-  .s3 { stop-color: var(--sky3) } .s4 { stop-color: var(--sky4) }
-  .sg { stop-color: var(--sunGlow) }
-  .pH { stop-color: var(--clHi) } .pM { stop-color: var(--clMid) } .pS, .cshS { stop-color: var(--clSh) }
-  .hz { stop-color: var(--haze) } .hf { fill: var(--hillFar) } .hm { fill: var(--hillMid) }
-  .tr { fill: var(--tree) } .trf { fill: var(--treeFar) } .mlS { stop-color: var(--meadowLight) }
-  .m0 { stop-color: var(--meadow0) } .m1 { stop-color: var(--meadow1) } .m2 { stop-color: var(--meadow2) }
-  .gA { fill: var(--grassA) } .gB { fill: var(--grassB) } .gT { fill: var(--grassTip) }
-  .fb .ttl { font-family: Georgia, 'Times New Roman', serif; font-variation-settings: normal; }   /* font never arrived: commit to the fallback */
-  .ttl { font-family: 'Fraunces', Georgia, serif; font-style: italic; font-weight: 700;
-    font-variation-settings: 'SOFT' 100, 'WONK' 1, 'opsz' 144; fill: #fff7ea; }
+  #msg { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); max-width: 80vw; margin: 0;
+    font: italic 19px/1.4 Georgia, 'Times New Roman', serif; color: #3a3532; text-align: center; }
+  #replay { position: fixed; right: max(8px, env(safe-area-inset-right)); bottom: max(8px, env(safe-area-inset-bottom));
+    width: 76px; height: 76px; padding: 0; border: 0; background: transparent; cursor: pointer; visibility: hidden; touch-action: manipulation; }
+  #replay.on { visibility: visible; }
+  #replay canvas { width: 100%; height: 100%; display: block; pointer-events: none; }
+  #replay:focus-visible { outline: 2px dashed #7aa6dc; outline-offset: -6px; border-radius: 50%; }
 </style>
 </head>
 <body>
-<div id="scene" tabindex="0" role="button" aria-label="A wrapped present. Press to open it.">
-<svg id="world" class="layer" xmlns="http://www.w3.org/2000/svg" viewBox="520 300 560 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-<defs>
-  <!-- ── sky & land: every gradient driven by the palette lives in #pal, which holds the colour variables ── -->
-  <g id="pal">
-  <radialGradient id="mlGrad"><stop offset=".25" class="mlS"/><stop offset="1" class="mlS" stop-opacity="0"/></radialGradient>
-  <radialGradient id="mdGrad"><stop offset=".25" class="m2"/><stop offset="1" class="m2" stop-opacity="0"/></radialGradient>
-  <linearGradient id="pS"><stop class="pS"/></linearGradient><linearGradient id="pM"><stop class="pM"/></linearGradient><linearGradient id="pH"><stop class="pH"/></linearGradient>
-  <linearGradient id="skyGrad" gradientUnits="userSpaceOnUse" x1="0" y1="150" x2="0" y2="720">
-    <stop offset="0" class="s0"/><stop offset=".26" class="s1"/><stop offset=".5" class="s2"/><stop offset=".74" class="s3"/><stop offset="1" class="s4"/>
-  </linearGradient>
-  <radialGradient id="sunGlow" gradientUnits="userSpaceOnUse" cx="605" cy="652" r="620">
-    <stop offset="0" class="sg" stop-opacity="1"/><stop offset=".05" class="sg" stop-opacity=".9"/><stop offset=".16" class="sg" stop-opacity=".46"/><stop offset=".42" class="sg" stop-opacity=".14"/><stop offset="1" class="sg" stop-opacity="0"/>
-  </radialGradient>
-  <linearGradient id="hazeGrad" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" class="hz" stop-opacity="0"/><stop offset=".62" class="hz" stop-opacity=".75"/><stop offset="1" class="hz" stop-opacity="0"/>
-  </linearGradient>
-  <linearGradient id="meadowGrad" gradientUnits="userSpaceOnUse" x1="0" y1="705" x2="0" y2="1320">
-    <stop offset="0" class="m0"/><stop offset=".28" class="m1"/><stop offset="1" class="m2"/>
-  </linearGradient>
-  </g>
-  <!-- soft ground shadows as gradients, not blur filters (filters re-render every frame while the camera moves) -->
-  <radialGradient id="shGrad"><stop offset="0" stop-color="#14301a"/><stop offset=".45" stop-color="#14301a" stop-opacity=".7"/><stop offset="1" stop-color="#14301a" stop-opacity="0"/></radialGradient>
-  <radialGradient id="shGradB"><stop offset="0" stop-color="#120a20"/><stop offset=".45" stop-color="#120a20" stop-opacity=".7"/><stop offset="1" stop-color="#120a20" stop-opacity="0"/></radialGradient>
-
-  <!-- ── the present ────────────────────────────────────────── -->
-  <pattern id="wrapPat" patternUnits="userSpaceOnUse" x="652" y="0" width="46" height="46">
-    <path d="M12 5.5 L13.7 10.3 L18.5 12 L13.7 13.7 L12 18.5 L10.3 13.7 L5.5 12 L10.3 10.3Z" fill="#effff8" opacity=".78"/>
-    <circle cx="35" cy="34" r="2.7" fill="#effff8" opacity=".62"/>
-    <circle cx="34.5" cy="11.5" r="1.4" fill="#ffd6df" opacity=".85"/>
-    <circle cx="11.5" cy="34.5" r="1.4" fill="#ffd6df" opacity=".85"/>
-  </pattern>
-  <pattern id="wrapPatTop" patternUnits="userSpaceOnUse" x="652" y="0" width="46" height="46" patternTransform="translate(0 616) scale(1 .5)">
-    <path d="M12 5.5 L13.7 10.3 L18.5 12 L13.7 13.7 L12 18.5 L10.3 13.7 L5.5 12 L10.3 10.3Z" fill="#effff8" opacity=".78"/>
-    <circle cx="35" cy="34" r="2.7" fill="#effff8" opacity=".62"/>
-    <circle cx="34.5" cy="11.5" r="1.4" fill="#ffd6df" opacity=".85"/>
-    <circle cx="11.5" cy="34.5" r="1.4" fill="#ffd6df" opacity=".85"/>
-  </pattern>
-  <linearGradient id="shadeH" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".42" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#042b29" stop-opacity=".3"/>
-  </linearGradient>
-  <linearGradient id="shadeV" x1="0" y1="0" x2="0" y2="1">
-    <stop offset=".5" stop-color="#042b29" stop-opacity="0"/><stop offset="1" stop-color="#042b29" stop-opacity=".24"/>
-  </linearGradient>
-  <linearGradient id="lidShadow" x1="0" y1="0" x2="0" y2="1">
-    <stop offset="0" stop-color="#03302c" stop-opacity=".45"/><stop offset="1" stop-color="#03302c" stop-opacity="0"/>
-  </linearGradient>
-  <linearGradient id="ribbonV" x1="0" y1="0" x2="1" y2="0">
-    <stop offset="0" stop-color="#ffa7ba"/><stop offset=".22" stop-color="#ff7896"/><stop offset=".78" stop-color="#f6688a"/><stop offset="1" stop-color="#d9507a"/>
-  </linearGradient>
-
-  <!-- the wrapped box (no bow): drawn once, reused intact and by every torn shard -->
-  <g id="paperArt">
-    <!-- body -->
-    <rect x="672" y="694" width="256" height="206" rx="3" fill="#2c9f95"/>
-    <rect x="672" y="694" width="256" height="206" rx="3" fill="url(#wrapPat)"/>
-    <rect x="672" y="694" width="256" height="206" rx="3" fill="url(#shadeH)"/>
-    <rect x="672" y="694" width="256" height="206" rx="3" fill="url(#shadeV)"/>
-    <rect x="781" y="694" width="38" height="206" fill="url(#ribbonV)"/>
-    <rect x="672" y="695" width="256" height="20" fill="url(#lidShadow)"/>
-    <rect x="672" y="694" width="256" height="206" rx="3" fill="none" stroke="#134f4a" stroke-width="2.2"/>
-    <path d="M781 696 V900 M819 696 V900" stroke="#a83a5c" stroke-width="1.5" opacity=".75"/>
-    <!-- lid front -->
-    <rect x="656" y="646" width="288" height="50" rx="4" fill="#34aea3"/>
-    <rect x="656" y="646" width="288" height="50" rx="4" fill="url(#wrapPat)"/>
-    <rect x="656" y="646" width="288" height="50" rx="4" fill="url(#shadeH)"/>
-    <rect x="781" y="646" width="38" height="50" fill="url(#ribbonV)"/>
-    <rect x="656" y="646" width="288" height="50" rx="4" fill="none" stroke="#134f4a" stroke-width="2.2"/>
-    <path d="M781 647 V695 M819 647 V695" stroke="#a83a5c" stroke-width="1.5" opacity=".75"/>
-    <!-- lid top (seen from a little above) -->
-    <path d="M656 646 L944 646 L922 616 L678 616 Z" fill="#5cc7bb"/>
-    <path d="M656 646 L944 646 L922 616 L678 616 Z" fill="url(#wrapPatTop)"/>
-    <path d="M663.3 636 L936.7 636 L929.3 626 L670.7 626 Z" fill="#ff8fa8"/>
-    <path d="M781 646 L819 646 L815.5 616 L784.5 616 Z" fill="#ff9db2"/>
-    <path d="M663.3 636 L936.7 636 M670.7 626 L929.3 626 M781 646 L784.5 616 M819 646 L815.5 616" stroke="#c4466c" stroke-width="1.2" opacity=".6"/>
-    <path d="M656 646 L944 646 L922 616 L678 616 Z" fill="none" stroke="#134f4a" stroke-width="2.2" stroke-linejoin="round"/>
-    <path d="M659 648.5 H941" stroke="#b6fff2" stroke-width="1.6" opacity=".55"/>
-    <path d="M674.5 698 V897 M658.5 649 V693 M659 643.5 L679 616.5" stroke="#ffe0b0" stroke-width="2.4" stroke-linecap="round" opacity=".6"/>
-  </g>
-  <!-- paper silhouette in back-of-paper cream, shown when a torn shard flips over -->
-  <path id="paperSil" d="M656 646 L678 616 L922 616 L944 646 L944 696 L928 696 L928 900 L672 900 L672 696 L656 696 Z"/>
-
-  <!-- ── the bowling ball ───────────────────────────────────── -->
-  <radialGradient id="ballGrad" cx=".37" cy=".31" r=".78">
-    <stop offset="0" stop-color="#7d66da"/><stop offset=".34" stop-color="#4b37a3"/><stop offset=".72" stop-color="#281b68"/><stop offset="1" stop-color="#150c3c"/>
-  </radialGradient>
-  <radialGradient id="holeGlow" cy=".2" r=".9"><stop offset="0" stop-color="#fff4cc"/><stop offset=".5" stop-color="#ffc56e"/><stop offset="1" stop-color="#ff8aa8" stop-opacity=".6"/></radialGradient>
-  <radialGradient id="innerGlow" cx=".5" cy=".5" r=".5">
-    <stop offset="0" stop-color="#fffbe8"/><stop offset=".35" stop-color="#ffd88a"/><stop offset=".72" stop-color="#ff7fb0"/><stop offset="1" stop-color="#9d3fb0"/>
-  </radialGradient>
-  <clipPath id="ballClip"><circle cx="800" cy="792" r="108"/></clipPath>
-  <mask id="ballRimMask" maskUnits="userSpaceOnUse" x="680" y="672" width="240" height="240">
-    <circle cx="800" cy="792" r="108" fill="#fff"/><circle cx="795" cy="786" r="108" fill="#000"/>
-  </mask>
-  <mask id="ballSunMask" maskUnits="userSpaceOnUse" x="680" y="672" width="240" height="240">
-    <circle cx="800" cy="792" r="108" fill="#fff"/><circle cx="806.5" cy="793.5" r="108" fill="#000"/>
-  </mask>
-  <mask id="ballShadeMask" maskUnits="userSpaceOnUse" x="680" y="672" width="240" height="240">
-    <rect x="680" y="672" width="240" height="240" fill="#fff"/><circle cx="781" cy="769" r="112" fill="#000"/>
-  </mask>
-  <filter id="swirlBlur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2.6"/></filter>
-  <filter id="sheenBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
-  <filter id="crackGlow" x="-50%" y="-10%" width="200%" height="120%">
-    <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="b"/>
-    <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-  <g id="ballArt">
-    <circle cx="800" cy="792" r="108" fill="url(#ballGrad)"/>
-    <g clip-path="url(#ballClip)">
-      <g filter="url(#swirlBlur)" fill="none" stroke-linecap="round">
-        <path d="M688 744 C730 700 776 768 822 732 S900 690 930 724" stroke="#b77be6" stroke-width="10" opacity=".34"/>
-        <path d="M694 822 C744 782 786 862 848 818 S914 790 934 806" stroke="#ff86c4" stroke-width="6" opacity=".26"/>
-        <path d="M716 874 C766 852 800 884 862 862" stroke="#8f80ff" stroke-width="7" opacity=".24"/>
-      </g>
-    </g>
-    <circle cx="800" cy="792" r="108" fill="#0b0626" opacity=".55" mask="url(#ballShadeMask)"/>
-    <!-- finger holes: middle, ring, thumb -->
-    <g transform="translate(838 737) rotate(20)">
-      <ellipse rx="12" ry="14" fill="#8d7be0" opacity=".38"/><ellipse rx="10.5" ry="12.5" fill="#07031a"/>
-      <path d="M-9.6 4 A10.5 12.5 0 0 0 9.6 4 A9.6 7 0 0 1 -9.6 4Z" fill="#3f2f8c" opacity=".85"/><path class="hglow" d="M-9.6 4 A10.5 12.5 0 0 0 9.6 4 A9.6 7 0 0 1 -9.6 4Z" fill="url(#holeGlow)" opacity="0"/>
-    </g>
-    <g transform="translate(867 757) rotate(32)">
-      <ellipse rx="11.5" ry="13.5" fill="#8d7be0" opacity=".34"/><ellipse rx="10" ry="12" fill="#07031a"/>
-      <path d="M-9.1 3.8 A10 12 0 0 0 9.1 3.8 A9.1 6.6 0 0 1 -9.1 3.8Z" fill="#3a2a84" opacity=".85"/><path class="hglow" d="M-9.1 3.8 A10 12 0 0 0 9.1 3.8 A9.1 6.6 0 0 1 -9.1 3.8Z" fill="url(#holeGlow)" opacity="0"/>
-    </g>
-    <g transform="translate(857 806) rotate(28)">
-      <ellipse rx="13.5" ry="16" fill="#8d7be0" opacity=".3"/><ellipse rx="12" ry="14.5" fill="#07031a"/>
-      <path d="M-11 4.6 A12 14.5 0 0 0 11 4.6 A11 8 0 0 1 -11 4.6Z" fill="#33257c" opacity=".85"/><path class="hglow" d="M-11 4.6 A12 14.5 0 0 0 11 4.6 A11 8 0 0 1 -11 4.6Z" fill="url(#holeGlow)" opacity="0"/>
-    </g>
-    <!-- light -->
-    <ellipse cx="765" cy="748" rx="44" ry="28" transform="rotate(-36 765 748)" fill="#ffffff" opacity=".16" filter="url(#sheenBlur)"/>
-    <ellipse cx="760" cy="742" rx="17" ry="8.5" transform="rotate(-38 760 742)" fill="#ffffff" opacity=".92"/>
-    <circle cx="784" cy="728" r="3.2" fill="#ffffff" opacity=".8"/>
-    <rect x="690" y="682" width="220" height="220" fill="#ffa6c4" opacity=".42" mask="url(#ballRimMask)"/>
-    <rect x="690" y="682" width="220" height="220" fill="#ffcf9a" opacity=".55" mask="url(#ballSunMask)"/>
-    <circle cx="800" cy="792" r="108" fill="none" stroke="#100828" stroke-width="2.4"/>
-  </g>
-
-  <!-- ── light ──────────────────────────────────────────────── -->
-  <radialGradient id="rayGrad" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="1050">
-    <stop offset="0" stop-color="#fff6dc" stop-opacity=".95"/><stop offset=".3" stop-color="#ffe4c4" stop-opacity=".42"/><stop offset="1" stop-color="#ffd2e2" stop-opacity="0"/>
-  </radialGradient>
-  <radialGradient id="logoGlow"><stop offset="0" stop-color="#fff3dc" stop-opacity=".95"/><stop offset=".4" stop-color="#ffb3cf" stop-opacity=".45"/><stop offset="1" stop-color="#ff9ac0" stop-opacity="0"/></radialGradient>
-  <radialGradient id="groundGlow"><stop offset="0" stop-color="#fff2c8" stop-opacity=".95"/><stop offset=".45" stop-color="#ffb17e" stop-opacity=".45"/><stop offset="1" stop-color="#ff8fb5" stop-opacity="0"/></radialGradient>
-  <filter id="logoShadow" x="-20%" y="-20%" width="140%" height="150%">
-    <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#2a0838" flood-opacity=".42"/>
-  </filter>
-  <filter id="ttlFx" x="-6%" y="-30%" width="112%" height="170%" color-interpolation-filters="sRGB">
-    <feMorphology in="SourceAlpha" operator="dilate" radius="3.4" result="d"/>
-    <feFlood flood-color="#4b1659"/><feComposite in2="d" operator="in" result="outline"/>
-    <feGaussianBlur in="d" stdDeviation="7" result="b"/>
-    <feFlood flood-color="#26062f" flood-opacity=".5"/><feComposite in2="b" operator="in"/><feOffset dy="6" result="shadow"/>
-    <feMerge><feMergeNode in="shadow"/><feMergeNode in="outline"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-
-  <!-- GTA VI logo: Wikimedia Commons "Grand Theft Auto VI logo.svg" (public domain trace of the official mark) -->
-<linearGradient id="gta-linearGradient2"><stop style="stop-color:#1c022b;stop-opacity:1" offset="0" id="gta-stop7" /><stop style="stop-color:#1e0031;stop-opacity:1" offset="0.5" id="gta-stop11" /><stop style="stop-color:#2a0d39;stop-opacity:1" offset="1" id="gta-stop9" /></linearGradient><linearGradient id="gta-linearGradient52"><stop style="stop-color:#fab705;stop-opacity:1" offset="0.01670147" id="gta-stop52" /><stop style="stop-color:#ff857e;stop-opacity:1" offset="0.07854906" id="gta-stop57" /><stop style="stop-color:#fe6bd1;stop-opacity:1" offset="0.13452505" id="gta-stop59" /><stop style="stop-color:#fe58c6;stop-opacity:1" offset="0.1821503" id="gta-stop56" /><stop style="stop-color:#ff24a1;stop-opacity:1" offset="0.30871606" id="gta-stop58" /><stop style="stop-color:#ff0080;stop-opacity:1" offset="0.5" id="gta-stop54" /><stop style="stop-color:#a30082;stop-opacity:1" offset="0.75" id="gta-stop55" /><stop style="stop-color:#7f0289;stop-opacity:1" offset="1" id="gta-stop53" /></linearGradient><linearGradient id="gta-linearGradient3"><stop style="stop-color:#f47e59;stop-opacity:0.0767857" offset="0.12353765" id="gta-stop8" /><stop style="stop-color:#ff7f5c;stop-opacity:1" offset="0.21444988" id="gta-stop22" /><stop style="stop-color:#ff6f79;stop-opacity:1" offset="0.30377784" id="gta-stop45" /><stop style="stop-color:#fe658e;stop-opacity:1" offset="0.39171311" id="gta-stop14" /><stop style="stop-color:#ff5998;stop-opacity:1" offset="0.44488865" id="gta-stop40" /><stop style="stop-color:#ff559c;stop-opacity:1" offset="0.49806419" id="gta-stop19" /><stop style="stop-color:#f54aa8;stop-opacity:1" offset="0.54204506" id="gta-stop39" /><stop style="stop-color:#db3dbf;stop-opacity:1" offset="0.64393443" id="gta-stop18" /><stop style="stop-color:#a341c2;stop-opacity:1" offset="0.74066967" id="gta-stop12" /><stop style="stop-color:#7246c2;stop-opacity:1" offset="0.83537346" id="gta-stop17" /><stop style="stop-color:#3449c1;stop-opacity:1" offset="0.96091843" id="gta-stop13" /><stop style="stop-color:#314ac0;stop-opacity:1" offset="1" id="gta-stop5" /></linearGradient><linearGradient id="gta-linearGradient43"><stop style="stop-color:#325fcf;stop-opacity:1" offset="0.00139278" id="gta-stop41" /><stop style="stop-color:#6b5cce;stop-opacity:1" offset="0.09568645" id="gta-stop25" /><stop style="stop-color:#9958cf;stop-opacity:1" offset="0.19671655" id="gta-stop26" /><stop style="stop-color:#c453cf;stop-opacity:1" offset="0.28005463" id="gta-stop42" /><stop style="stop-color:#df51ce;stop-opacity:1" offset="0.35615891" id="gta-stop24" /><stop style="stop-color:#fb66b3;stop-opacity:1" offset="0.4322632" id="gta-stop1" /><stop style="stop-color:#fc67b2;stop-opacity:1" offset="0.50836748" id="gta-stop23" /><stop style="stop-color:#ff7a9f;stop-opacity:1" offset="0.58447176" id="gta-stop44" /><stop style="stop-color:#ff8486;stop-opacity:1" offset="0.70399129" id="gta-stop3" /><stop style="stop-color:#ff8a66;stop-opacity:1" offset="0.81933248" id="gta-stop2" /><stop style="stop-color:#f59450;stop-opacity:1" offset="0.93334311" id="gta-stop4" /><stop style="stop-color:#fe9b55;stop-opacity:1" offset="1" id="gta-stop43" /></linearGradient><linearGradient id="gta-linearGradient35"><stop style="stop-color:#ffc463;stop-opacity:1" offset="0.44632038" id="gta-stop36" /><stop style="stop-color:#ffb648;stop-opacity:1" offset="0.62016588" id="gta-stop15" /><stop style="stop-color:#ff9a44;stop-opacity:1" offset="0.75564671" id="gta-stop6" /><stop style="stop-color:#ff8c68;stop-opacity:1" offset="0.90397877" id="gta-stop38" /><stop style="stop-color:#ff8c68;stop-opacity:0" offset="1" id="gta-stop37" /></linearGradient><linearGradient id="gta-linearGradient27"><stop style="stop-color:#360358;stop-opacity:1" offset="0.00182149" id="gta-stop27" /><stop style="stop-color:#340056;stop-opacity:1" offset="0.25136614" id="gta-stop31" /><stop style="stop-color:#3b005a;stop-opacity:1" offset="0.50091076" id="gta-stop29" /><stop style="stop-color:#6d0077;stop-opacity:1" offset="0.75045538" id="gta-stop30" /><stop style="stop-color:#860085;stop-opacity:1" offset="1" id="gta-stop28" /></linearGradient><linearGradient id="gta-linearGradient28" x1="113.97226" y1="113.91398" x2="113.97226" y2="216.49789" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.1665487,0,0,1.1665487,-274.91001,51.96385)" href="#gta-linearGradient27" /><radialGradient id="gta-radialGradient37" cx="114.37373" cy="229.9136" fx="114.37373" fy="229.9136" r="63.100548" gradientTransform="matrix(0.89499436,0,0,0.73099431,-237.17143,133.81076)" gradientUnits="userSpaceOnUse" href="#gta-linearGradient35" /><linearGradient id="gta-linearGradient40" x1="105.41112" y1="117.41247" x2="105.41112" y2="209.84552" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.1665487,0,0,1.1665487,-274.91001,51.96385)" href="#gta-linearGradient43" /><radialGradient id="gta-radialGradient14" cx="124.51202" cy="211.743" fx="124.51202" fy="211.743" r="61.152588" gradientTransform="matrix(5.1110791,0.17152826,-0.05617801,1.6739532,-756.24186,-84.810497)" gradientUnits="userSpaceOnUse" href="#gta-linearGradient3" /><radialGradient id="gta-radialGradient58" cx="73.021347" cy="121.91252" fx="73.021347" fy="121.91252" r="45.879887" gradientTransform="matrix(1.4383586,1.5953361,-2.5501079,2.2991834,278.88059,-266.85347)" gradientUnits="userSpaceOnUse" href="#gta-linearGradient52" /><linearGradient id="gta-linearGradient9" x1="112.24541" y1="112.0918" x2="112.24541" y2="220.68359" gradientUnits="userSpaceOnUse" gradientTransform="matrix(1.1665487,0,0,1.1665487,-274.91001,51.96385)" href="#gta-linearGradient2" />
-<symbol id="gtaVI" viewBox="0 0 251.35417 194.95614" overflow="visible"><g transform="translate(235.44786,-182.7244)"><g id="gta-g11" transform="matrix(1.5389944,0,0,1.5389944,126.90507,-98.487417)" style=""><path style="fill:url(#gta-linearGradient9);stop-color:#000000" d="m -235.44785,182.72439 61.2233,126.67762 53.94375,-111.61501 v 108.76243 h 48.156593 V 182.72439 h -90.498653 l -11.60169,25.34053 -11.6017,-25.34053 z m 6.776,4.25153 h 40.11606 l 14.33124,31.2963 14.33123,-31.2963 h 83.517592 v 115.32199 h -39.653532 v -113.36712 -0.42605 l -4.03964,-0.92504 -54.15565,112.05475 z" id="gta-path9" /><path style="fill:url(#gta-linearGradient28);stop-color:#000000" d="m -232.05959,184.85006 57.83497,119.66913 56.06929,-116.01417 v 0.42559 115.49334 h 43.905368 V 184.85006 h -87.008368 l -12.96629,28.31857 -12.96628,-28.31857 z" id="gta-path10" /><path id="gta-path26" style="fill:#ffffff;fill-opacity:1" d="m -228.43477,187.12393 54.21015,112.16872 54.21016,-112.16872 h -39.78321 l -14.42695,31.51057 -14.42694,-31.51057 z m 112.55332,0 v 115.02613 h 39.357617 V 187.12393 Z" /><path style="fill:#fd946c;fill-opacity:1" d="m -225.55267,188.93121 51.32742,106.20553 51.32804,-106.20553 h -35.73944 l -15.5886,34.04608 -15.588,-34.04608 z m 111.48029,0 v 111.41097 h 35.739428 V 188.93121 Z" id="gta-path14" /><path style="fill:url(#gta-linearGradient40);fill-opacity:1" d="m -225.55267,188.93121 51.32742,106.20553 51.32804,-106.20553 h -35.73944 l -15.5886,34.04608 -15.588,-34.04608 z m 111.48029,0 v 111.41097 h 35.739428 V 188.93121 Z" id="gta-path40" /><path style="fill:url(#gta-radialGradient37);fill-opacity:1" d="m -225.55267,188.93121 51.32742,106.20553 51.32804,-106.20553 h -35.73944 l -15.5886,34.04608 -15.588,-34.04608 z m 111.48029,0 v 111.41097 h 35.739428 V 188.93121 Z" id="gta-path23" /></g></g></symbol>
-<symbol id="gtaWord" viewBox="0 0 251.35417 194.95614" overflow="visible"><g transform="translate(235.44786,-182.7244)"><g id="gta-g59" transform="matrix(1.9023412,0,0,1.9023412,-307.41771,-36.434375)" style="opacity:1"><path id="gta-path50" style="fill:url(#gta-radialGradient58)" d="m 137.89236,123.69323 v 4.76766 l -2.72123,-0.005 c -1.40633,-0.003 -2.54519,0.73596 -3.35974,1.71737 -0.78284,-0.96331 -1.91476,-1.73115 -3.457,-1.72996 l -22.72621,0.0176 c -1.39064,0.001 -2.51402,0.73486 -3.31192,1.71236 -0.84375,-1.01219 -2.01704,-1.71236 -3.311455,-1.71236 H 76.558634 c -2.507196,0 -5.003827,2.03003 -5.003828,5.00383 v 24.0838 h 12.292789 c 0.469372,0 0.892021,-0.14444 1.320333,-0.26923 v 5.826 h 1.12913 v 7.06055 c 5.5e-5,0.95713 0.334417,1.8027 0.80822,2.5585 -2.773799,0.12043 -4.786788,2.36288 -4.786788,4.96094 v 13.43174 c 0,2.9298 2.458581,4.932 4.931482,4.932 h 22.128878 c 1.77493,0 3.19079,-1.04112 4.05299,-2.42001 0.87202,1.39192 2.30686,2.42001 4.06021,2.42001 h 7.61142 c 1.43888,0 2.6045,-0.75246 3.44321,-1.75235 0.84639,1.00636 2.01986,1.75235 3.44371,1.75235 h 7.51944 c 2.7925,0 5.00176,-2.32041 5.00176,-5.00228 v -13.36146 c 0,-2.58426 -1.89984,-4.51622 -4.06435,-4.85914 v -6.02909 h 5.5702 v 3.36879 c 0,2.74241 2.26139,5.00383 5.00383,5.00383 h 7.28948 c 2.79272,0 5.00383,-2.32179 5.00383,-5.00383 v -15.8085 h -7.37319 v -2.25412 h -20.93493 c -1.32298,0 -2.41247,0.70113 -3.18873,1.64553 -0.81282,-0.95897 -1.93314,-1.6245 -3.1692,-1.62461 l -8.35524,-7.1e-4 c -1.25643,-1.1e-4 -2.44251,0.60548 -3.20674,1.62532 -0.76855,-0.94453 -1.85178,-1.6552 -3.19414,-1.6552 h -2.92967 v -0.5917 h 36.85356 v -27.80863 z m -41.971083,30.99965 c 0.01931,0.0124 0.03763,0.0262 0.05684,0.0388 l -0.07855,0.0362 h -0.0026 z" /><path style="fill:#1d0030;fill-opacity:1" d="m 138.30267,124.10354 v 4.76766 l -2.90109,-0.004 c -1.52411,-0.002 -2.78689,0.8228 -3.58815,1.97285 -0.75777,-1.11648 -1.99369,-1.98769 -3.69046,-1.98639 l -22.25565,0.017 c -1.51204,0.001 -2.76317,0.82389 -3.54713,1.97249 -0.82978,-1.19922 -2.16418,-1.97249 -3.554522,-1.97249 H 76.558634 c -2.28605,0 -4.594034,1.84962 -4.594034,4.59352 v 23.67401 h 11.882995 c 0.611969,0 1.194291,-0.1315 1.730644,-0.35347 v 5.91024 h 1.128613 v 7.47034 c 6.4e-5,1.12196 0.406324,2.12397 1.086627,2.92592 h -0.473228 c -2.674804,0 -4.591967,2.13773 -4.591967,4.59404 v 13.43122 c 0,2.70002 2.269905,4.52168 4.521688,4.52168 h 22.129438 c 1.81509,0 3.32394,-1.10383 4.05044,-2.61178 0.73207,1.52726 2.27035,2.61178 4.06217,2.61178 h 7.61139 c 1.46025,0 2.67212,-0.78552 3.44281,-1.88525 0.778,1.10853 2.00176,1.88525 3.44424,1.88525 h 7.51937 c 2.56492,0 4.59197,-2.13565 4.59197,-4.59196 v -13.3604 c 0,-2.52884 -1.96815,-4.42121 -4.06487,-4.55348 v -6.74558 h 6.39082 v 3.7791 c 0,2.51689 2.07664,4.59404 4.59352,4.59404 h 7.28948 c 2.56492,0 4.59352,-2.13773 4.59352,-4.59404 v -15.39803 h -7.37319 v -2.25412 H 135.3512 c -1.48681,0 -2.74676,0.80951 -3.53777,1.96013 -0.83122,-1.17723 -2.15124,-1.9359 -3.52646,-1.93604 l -7.65135,-7.7e-4 c -1.43119,-1.4e-4 -2.84628,0.67195 -3.55352,1.93682 -0.77853,-1.14702 -2.02422,-1.9701 -3.5315,-1.9701 h -2.99766 v -1.41232 h 36.85357 V 124.1034 Z" id="gta-path51" /><path style="fill:#ffffff;fill-opacity:1" d="m 139.90361,125.70344 v 4.76767 h -4.37855 c -1.75239,0 -2.9931,1.33488 -2.9931,2.99309 v 13.03383 c 0,1.855 1.54587,2.9931 2.9931,2.9931 h 10.28206 v -23.78769 z m -11.87783,4.75371 c -3.19509,0 -4.331,1.21853 -4.331,1.21853 v -1.20457 h -5.90352 v 19.02002 h 5.90352 v -14.31902 h 1.46709 v 14.31902 h 5.90351 v -16.21658 c 0,-1.22434 -1.01612,-2.8174 -3.0396,-2.8174 z m -51.467146,0.014 c -1.447229,0 -2.993099,1.1381 -2.993099,2.99309 v 13.03383 c 0,1.65822 1.240712,2.9931 2.993099,2.9931 h 4.378545 v 1.28881 h -7.371644 v 4.75889 h 10.28206 c 1.658211,0 2.993099,-1.33488 2.993099,-2.9931 v -22.07462 z m 11.748637,0 v 22.09942 h 5.903516 V 142.3066 h 1.468127 v 8.81445 c 0,1.65822 1.334891,2.9931 2.993099,2.9931 h 4.378027 v 19.04584 l 5.903,-4e-5 V 158.8616 h 1.46813 v 14.29835 h 5.90351 v -16.06362 c 0,-1.6582 -1.24071,-2.99309 -2.9931,-2.99309 h -4.37802 v -3.31505 h -7.37061 l -5.2e-4,-8.44703 c -6e-5,-1.00627 -0.4919,-1.89289 -1.24902,-2.43499 0.77479,-0.47505 1.24902,-1.29096 1.24902,-2.31511 v -4.12688 c 0,-1.85499 -1.54587,-2.99309 -2.993099,-2.99309 z m 17.735349,0 c -1.75239,0 -2.9931,1.3349 -2.9931,2.99309 v 2.91921 h 5.90352 v -1.15394 h 1.46813 v 2.35386 h -4.37855 c -1.65821,0 -2.9931,1.33488 -2.9931,2.9931 v 5.9216 c 0,1.855 1.54587,2.9931 2.9931,2.9931 h 10.28206 V 133.4642 c 0,-1.65819 -1.33489,-2.99309 -2.9931,-2.99309 z m -26.573569,4.72684 h 1.468128 v 9.53482 h -1.468128 z m 14.741736,0 h 1.468127 v 2.35024 h -1.468127 z m 44.224693,0.0315 h 1.46813 v 9.53482 h -1.46813 z m -29.48244,7.11223 h 1.46813 v 2.42259 h -1.46813 z m -20.645769,11.77241 v 2.25361 h -1.129646 v 4.72684 h 1.129646 l 5.17e-4,9.07231 c 9.4e-5,1.65821 1.334891,2.9931 2.993099,2.9931 h 7.288961 c 1.752382,0 2.993102,-1.33489 2.993102,-2.9931 v -7.82846 h -5.903519 v 6.0632 h -1.468127 v -7.30705 h 7.371646 v -4.72684 h -7.371646 v -2.25361 z m 47.219339,0 c -1.65821,0 -2.99308,1.33489 -2.9931,2.9931 v 16.05276 h 5.90352 v -8.37261 h 7.37164 v -4.72685 h -7.37164 v -1.18804 h 7.37164 v -4.75836 z m 12.50156,0 v 2.25361 h -1.13016 v 4.72684 h 1.13016 v 9.07231 c 0,1.65821 1.33489,2.9931 2.9931,2.9931 h 7.28896 c 1.75239,0 2.9931,-1.33489 2.9931,-2.9931 v -7.82846 h -5.90351 v 6.0632 h -1.46813 v -7.30705 h 7.37164 v -4.72684 h -7.37164 v -2.25361 z m -27.2159,0.0258 c -1.96035,0 -2.9931,1.58214 -2.9931,2.99309 v 13.16333 c 0,1.58646 1.27713,2.8636 2.8636,2.8636 h 7.41846 c 1.75239,0 2.9931,-1.33489 2.9931,-2.9931 v -2.9192 h -5.90352 v 1.15394 h -1.46812 v -2.35386 h 7.37164 v -8.91471 c 0,-1.85499 -1.54587,-2.99309 -2.9931,-2.99309 z m 2.91042,4.72684 h 1.46812 v 2.42259 h -1.46812 z m -36.401922,15.82487 c -1.752388,0 -2.993099,1.3349 -2.993099,2.9931 v 3.01325 h 5.903516 v -1.18184 h 1.468127 v 2.43758 h -4.44934 c -1.658209,0 -2.922303,1.33488 -2.922303,2.9931 v 6.17017 c 0,1.81121 1.509227,2.9223 2.922303,2.9223 h 10.300663 v -16.35456 c 0,-1.6582 -1.282698,-2.9931 -2.940906,-2.9931 z m 11.718665,0 v 16.35456 c 0,1.65821 1.334887,2.9931 2.993097,2.9931 h 7.28896 c 1.75239,0 2.9931,-1.33489 2.9931,-2.9931 v -16.35456 h -5.90351 v 14.52315 h -1.46813 v -14.52315 z m 15.515327,0 v 1.26452 h -1.13016 v 4.72685 h 1.13016 v 10.36319 c 0,1.65821 1.3349,2.9931 2.9931,2.9931 h 7.28896 c 1.75239,0 2.9931,-1.33489 2.9931,-2.9931 v -9.09505 h -5.90351 v 7.26364 h -1.46813 v -8.53178 h 7.37164 v -4.72685 h -7.37164 v -1.26452 z m 17.66559,0 c -1.96034,0 -2.9931,1.58214 -2.9931,2.9931 v 13.36146 c 0,1.65821 1.33489,2.9931 2.9931,2.9931 h 7.28896 c 1.75239,0 2.9931,-1.33489 2.9931,-2.9931 v -13.36146 c 0,-1.855 -1.54587,-2.9931 -2.9931,-2.9931 z m 2.91042,4.82451 h 1.46813 v 9.69864 h -1.46813 z m -44.899585,7.27605 h 1.468127 v 2.42259 h -1.468127 z" id="gta-path49" /></g></g></symbol>
-</defs>
-
-<!-- ── back to front ────────────────────────────────────────── -->
-<rect x="-3000" y="-2000" width="7600" height="2800" fill="url(#skyGrad)"/>
-<circle cx="605" cy="652" r="620" fill="url(#sunGlow)"/>
-<circle id="sun" cx="605" cy="652" r="38"/>
-<g id="clouds"></g>
-<g id="rays" opacity="0" style="display:none"><g id="raysSpin"></g></g>
-<g id="land">
-<path id="hillFar" class="hf"/>
-<rect x="-3000" y="560" width="7600" height="190" fill="url(#hazeGrad)"/>
-<g id="hillMidG"><path id="hillMid" class="hm"/></g>
-<path id="meadow" fill="url(#meadowGrad)"/>
-<g id="meadowPaint"></g>
-<g id="grassTex"></g>
-</g>
-
-  <ellipse id="bloom" cx="800" cy="792" rx="290" ry="250" fill="url(#logoGlow)" opacity="0"/>
-  <g id="logoBob"><g id="logo" opacity="0">
-    <ellipse id="logoGlowE" cx="800" cy="516" rx="320" ry="270" fill="url(#logoGlow)" opacity=".85"/>
-    <g filter="url(#logoShadow)">
-      <use id="logoVI" href="#gtaVI" x="590" y="353.12" width="420" height="325.76"/>
-      <use id="logoWord" href="#gtaWord" x="590" y="353.12" width="420" height="325.76" opacity="0"/>
-    </g>
-  </g>
-  </g>
-
-<ellipse id="groundGlow" cx="800" cy="900" rx="190" ry="34" fill="url(#groundGlow)" opacity="0"/>
-
-<g id="stage">
-  <g id="presentShadow">
-    <ellipse cx="880" cy="918" rx="270" ry="44" fill="url(#shGrad)" opacity=".3"/>
-    <ellipse cx="808" cy="903" rx="172" ry="20" fill="url(#shGrad)" opacity=".5"/>
-    <ellipse cx="800" cy="900.5" rx="132" ry="4.5" fill="#0f2412" opacity=".38"/>
-  </g>
-  <g id="ballShadow" opacity="0">
-    <ellipse cx="856" cy="912" rx="185" ry="36" fill="url(#shGrad)" opacity=".34"/>
-    <ellipse cx="804" cy="902" rx="100" ry="18" fill="url(#shGradB)" opacity=".6"/>
-    <ellipse cx="800" cy="900" rx="44" ry="3.5" fill="#0a0612" opacity=".45"/>
-  </g>
-  <g id="ball" style="visibility:hidden">
-    <use id="ballWhole" href="#ballArt"/>
-    <g id="halfL" style="display:none"><g clip-path="url(#clipL)"><use href="#ballArt"/></g><ellipse class="inner" cx="797" cy="792" rx="0" ry="102" fill="url(#innerGlow)" stroke="#170c40" stroke-width="2.2"/></g>
-    <g id="halfR" style="display:none"><g clip-path="url(#clipR)"><use href="#ballArt"/></g><ellipse class="inner" cx="797" cy="792" rx="0" ry="102" fill="url(#innerGlow)" stroke="#170c40" stroke-width="2.2"/></g>
-    <g id="crack" fill="none" stroke-linecap="round" stroke-linejoin="round"></g>
-  </g>
-  <g id="presentWrap">
-    <use id="paperIntact" href="#paperArt"/>
-    <g id="bow">
-      <path d="M791 630 L803 635 C797 653 788 672 782 694 L773 686 L765 697 C772 672 782 650 791 630 Z" fill="#f2668a" stroke="#a83a5c" stroke-width="1.6" stroke-linejoin="round"/>
-      <path d="M797 635 L809 630 C821 649 833 669 846 690 L835 686 L831 699 C820 676 808 655 797 635 Z" fill="#e65a80" stroke="#a83a5c" stroke-width="1.6" stroke-linejoin="round"/>
-      <path d="M800 630 C780 603 740 584 728 600 C716 617 752 637 800 632 Z" fill="#ff7795" stroke="#a83a5c" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M797 629 C780 611 752 600 744 608 C739 616 762 628 797 629 Z" fill="#c9466c"/>
-      <path d="M738 601 C748 594 764 597 779 609" fill="none" stroke="#ffc2d0" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-      <path d="M800 630 C823 600 867 589 873 606 C879 623 845 637 800 632 Z" fill="#ff7795" stroke="#a83a5c" stroke-width="1.8" stroke-linejoin="round"/>
-      <path d="M803 629 C823 611 852 603 858 611 C863 619 838 628 803 629 Z" fill="#c9466c"/>
-      <path d="M824 611 C839 601 856 598 863 604" fill="none" stroke="#ffc2d0" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
-      <ellipse cx="800" cy="630" rx="12.5" ry="10.5" fill="#ff86a2" stroke="#a83a5c" stroke-width="1.8"/>
-      <path d="M793 626 Q799 622 806 625" fill="none" stroke="#ffd0db" stroke-width="2" stroke-linecap="round" opacity=".85"/>
-    </g>
-  </g>
-</g>
-<g id="titleBob"><g id="title" filter="url(#ttlFx)" style="visibility:hidden"></g></g>
-</svg>
-<canvas id="fx" class="layer"></canvas>
-<div id="flash"></div>
+<div id="scene" tabindex="0" role="button" aria-label="A present is being drawn in pencil.">
+  <canvas id="cv"></canvas>
+  <p id="msg" hidden></p>
 </div>
 <div id="live" class="sr" aria-live="polite"></div>
-<button id="replay" aria-label="Open it again" title="Again" tabindex="-1">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1"/><path d="M3 4v4.6h4.6"/></svg>
-</button>
-<div id="veil"></div>
+<button id="replay" aria-label="Draw it all again" title="Again" tabindex="-1"><canvas width="152" height="152"></canvas></button>
 
-<script src="resources/gsap-3.12.5.min.js"></script>
+<!-- the core: the renderer, the present and the paper world. Everything else loads while the box is drawn. -->
+<script src="resources/jaden/pencil.js"></script>
+<script src="resources/jaden/box.style.js"></script>
+<script src="resources/jaden/bg.style.js"></script>
 <script>
+/*
+ * "For Jaden", hand-drawn: an exposure-sheet engine.
+ *
+ * Every shot is an exposure sheet: a list of drawings, each a complete pose of the scene held for a whole number of
+ * frames at 24 fps (on 1s, 2s or 3s). Nothing is evaluated between drawings: slow-in and slow-out come from where
+ * the inbetweens sit on a spacing chart; anticipation, squash and stretch, overshoot, multiples and the impact
+ * frame are separate drawings. A held drawing boils through three drawings at 8 fps. Each drawing has its own seed,
+ * a hair of registration error and a slightly different amount of colour. Write-ons advance on 1s.
+ *
+ * Rendering works like cel levels: the paper and background are one cached level per camera and boil seed; the
+ * dusk wash is committed pass by pass onto per-seed wash levels; the ball, its halves, the VI and the wordmark are
+ * sprites (drawn once per seed, multiplied on through a paper-filled silhouette, so they can squash and turn as
+ * blits); the climax drawings are pre-rendered while the ball idles. The canvas changes only when the drawing does.
+ *
+ * QA: window.__jaden.seekShot(name, t) / seek(t) render the exact drawing at any time (?qa=1 stops the clock).
+ * Flags: ?rm=1 reduced motion, ?wo=2 write-ons on 2s, ?logo=official the crisp official logo, ?nocache=1,
+ * ?skip=bg,ball,... (timing), ?dpr=N. Tools: jaden-work/tools/anim/capture.mjs, live.mjs.
+ */
 (() => {
 'use strict';
-if (!window.gsap) return;   // the veil lifts on its own (CSS); without GSAP the scene just stays still
-const NS = 'http://www.w3.org/2000/svg';
 const $ = id => document.getElementById(id);
-const svg = $('world'), defs = svg.querySelector('defs'), scene = $('scene');
+const scene = $('scene'), cv = $('cv'), live = $('live'), replayBtn = $('replay'), msg = $('msg');
+const P = window.Pencil, J = window.JADEN || (window.JADEN = {});
+function fail(text) {   // a visible fallback: a short note; a tap reloads
+  msg.textContent = text; msg.hidden = false; scene.setAttribute('aria-label', text); live.textContent = text;
+  scene.addEventListener('click', () => location.reload(), { once: true });
+}
+if (!P || !J.box || !J.bg) { fail('The drawing didn’t load. Tap to try again.'); return; }
+const ctx = cv.getContext('2d');
 
-const themeMeta = document.querySelector('meta[name="theme-color"]'), live = $('live');
-let VW = scene.clientWidth || innerWidth, VH = scene.clientHeight || innerHeight;   // cached: reading layout mid-frame forces a style flush
-const mk = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
-const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let seed = 20261108;
-const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-const R = (a, b) => a + (b - a) * rnd();
-const f1 = v => Math.round(v * 10) / 10;
+const Q = new URLSearchParams(location.search);
+const QA = Q.has('qa');
+const RM = Q.has('rm') ? Q.get('rm') === '1' : matchMedia('(prefers-reduced-motion: reduce)').matches;
+const WO = Q.get('wo') === '2' ? 2 : 1;            // write-ons advance on 1s (default) or on 2s
+const OFFICIAL = Q.get('logo') === 'official';    // dev flag: the crisp official mark, for comparison
+const NOCACHE = Q.has('nocache');
+const SKIP = new Set((Q.get('skip') || '').split(','));
+const TOUCH = matchMedia('(pointer: coarse)').matches;
+const FPS = 24, COLOR = 0.64;
 
-/* ═══ palette: golden hour (t=0) → Vice City dusk (t=1) ═══════════════ */
-const PAL = {
-  sky0: ['#5e92d8', '#2e2a74'], sky1: ['#a7c8ec', '#6b47a8'], sky2: ['#ecd9ea', '#dc5f9f'],
-  sky3: ['#ffd6b2', '#ff8a6c'], sky4: ['#ffc48c', '#ffb35e'],
-  sunGlow: ['#fff0c8', '#ffc59a'], sunDisk: ['#fff8e6', '#ffe0b4'],
-  clHi: ['#fff9ef', '#ffd9c2'], clMid: ['#f6dcd8', '#f3a0bd'], clSh: ['#b9b3dc', '#8358ad'],
-  haze: ['#fbe4d0', '#f7a4a8'], hillFar: ['#a9b9d3', '#9b79ba'], hillMid: ['#8bab93', '#6e5f95'], tree: ['#6c9277', '#52497f'], treeFar: ['#8ea9a6', '#6f639c'],
-  meadow0: ['#bcd277', '#a8906e'], meadow1: ['#84b25a', '#4f6d5e'], meadow2: ['#4e8749', '#2a3c46'], meadowLight: ['#ecea98', '#ff9e7e'],
-  grassA: ['#4b8a44', '#253f41'], grassB: ['#6eaa55', '#456258'], grassTip: ['#b4da78', '#e89a86'],
+/* ═══ loading: the rest of the cast arrives while the box is drawn (with retry) ═══════════════════ */
+const LATE = { ball: 'ball.style.js', text: 'text.style.js', fx: 'fx.style.js', logoOfficial: 'logo-official.js', logo: 'logo.style.js' };
+const loadState = {};   // key -> 'loading' | true | false
+const loadWaiters = [];
+function loadLate(key, tries) {
+  tries = tries || 0;
+  loadState[key] = 'loading';
+  const s = document.createElement('script');
+  s.src = 'resources/jaden/' + LATE[key] + (tries ? '?retry=' + tries : '');
+  s.async = true;
+  s.onload = () => { loadState[key] = !!J[key]; loadedChanged(); };
+  s.onerror = () => {
+    s.remove();
+    if (tries < 3) setTimeout(() => loadLate(key, tries + 1), 700 * (tries + 1));
+    else { loadState[key] = false; loadedChanged(); }
+  };
+  document.head.appendChild(s);
+}
+function loadedChanged() { for (const w of loadWaiters.splice(0)) w(); onLoaded(); }
+const have = k => loadState[k] === true;
+const settled = k => loadState[k] === true || loadState[k] === false;
+for (const k in LATE) loadLate(k);
+
+/* ═══ small maths ═══════════════════════════════════════════════════════ */
+function hs(s) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  h ^= h >>> 15; h = Math.imul(h, 2246822507); h ^= h >>> 13;
+  return h >>> 0;
+}
+const rnd = (...k) => hs(k.join('|')) / 4294967296;   // deterministic 0..1 from a key
+const sym = (...k) => rnd(...k) * 2 - 1;
+const clamp01 = v => v < 0 ? 0 : v > 1 ? 1 : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+/* ═══ exposure sheets ═══════════════════════════════════════════════════
+ * A row is one drawing: [frames held, pose]. Poses are written as deltas, merged per actor onto the drawing
+ * before. `to()` places inbetweens on a spacing chart. Row options:
+ *   still        no boil even if long          held   boil even if short (a hold split into rows)
+ *   wo           {path: [from, to, step?, max?]} write-ons inside the row (the end value stays written)
+ *   tremble      [a0, a1] the ball shakes on 1s, the amplitude ramping   act / land  hop bookkeeping
+ *   pre          pre-render this drawing during the ball idle (the climax) */
+function merge(a, b) {
+  if (!isObj(b)) return b === undefined ? a : b;
+  const o = isObj(a) ? Object.assign({}, a) : {};
+  for (const k in b) o[k] = isObj(b[k]) && isObj(o[k]) ? merge(o[k], b[k]) : b[k];
+  return o;
+}
+function mix(a, b, u) {
+  if (typeof a === 'number' && typeof b === 'number') return a + (b - a) * u;
+  if (isObj(a) && isObj(b)) { const o = Object.assign({}, a); for (const k in b) o[k] = mix(a[k], b[k], u); return o; }
+  return b;
+}
+function setPath(o, path, v) {   // copy-on-write set of a dotted path
+  const ks = path.split('.'), root = Object.assign({}, o);
+  let cur = root;
+  for (let i = 0; i < ks.length - 1; i++) { cur[ks[i]] = Object.assign({}, cur[ks[i]]); cur = cur[ks[i]]; }
+  cur[ks[ks.length - 1]] = v;
+  return root;
+}
+class Sheet {
+  constructor(base) { this.rows = []; this.cur = base; this.len = 0; }
+  d(n, delta, opt) {            // one drawing, held n frames
+    this.cur = merge(this.cur, delta || {});
+    this.rows.push({ f0: this.len, n, pose: this.cur, opt: opt || {}, i: this.rows.length });
+    this.len += n;
+    if (opt && opt.wo) for (const k in opt.wo) { const w = opt.wo[k]; this.cur = setPath(this.cur, k, w[3] !== undefined ? Math.min(w[3], w[1]) : w[1]); }
+    return this;
+  }
+  to(delta, chart, n) {         // inbetweens toward a key, one per chart entry, each held n frames
+    const A = this.cur, B = merge(A, delta);
+    chart.forEach((u, k) => this.d(Array.isArray(n) ? n[k] : n, mix(A, B, u)));
+    return this;
+  }
+  pad3() { const r = this.rows[this.rows.length - 1], x = (3 - this.len % 3) % 3; r.n += x; this.len += x; return this; }   // next row starts on a boil beat
+  at(f) {
+    const R = this.rows; let lo = 0, hi = R.length - 1;
+    while (lo < hi) { const m = (lo + hi + 1) >> 1; if (R[m].f0 <= f) lo = m; else hi = m - 1; }
+    return R[lo];
+  }
+}
+
+/* ═══ the cast: world units (100 = one ruled line on Jasper's paper), ground at y = 0, figures at x = 0 ═══ */
+const BOX_A = [420, 783];                    // box body bottom-centre
+const BALL_A = [462, 812], BALL_C = [462, 429.2], BALL_R = 403.3;
+const BALL_CW = [0, BALL_C[1] - BALL_A[1]];  // the ball's centre in world units
+const DUST_Y = 832 - BALL_A[1];              // the dust anchor: the ball's ground contact
+const LID_PV = J.box.style.groups.lid.pivot, BOW_PV = J.box.style.groups.bow.pivot;
+const SPLIT_ROT = 0.42, SPLIT_REST = 1.22;   // the halves roll open by SPLIT_ROT * split radians
+const LOGO_H = 1086, LOGO_REST = { x: 0, y: -650, s: 0.55 };
+const LOGO_TOP = LOGO_REST.y - LOGO_H * LOGO_REST.s, LOGO_MID = LOGO_REST.y - LOGO_H * LOGO_REST.s / 2;
+
+// focus boxes in world units. Wide screens fit w x h; portrait keeps width pw (extra height mostly sky); tall
+// phones (aspect < 0.62) use `tall`: width pw with the ground at `ground` of the screen height.
+const CAM = {
+  present: { name: 'present', cx: 0, cy: -520, w: 1600, h: 1500, pw: 1400, bias: 0.62 },
+  tight:   { name: 'tight', cx: 0, cy: -400, w: 1150, h: 1000, pw: 1050, bias: 0.55 },
+  reveal:  { name: 'reveal', cx: 0, cy: -700, w: 1550, h: 1560, pw: 1400, bias: 0.5, tall: { pw: 1300, ground: 0.78, top: 1500 } },   // the hero's framing
+  final:   { name: 'final', cx: 0, cy: -860, w: 1800, h: 2000, pw: 1500, bias: 0.5, tall: { pw: 1300, ground: 0.78, top: 2080 } },   // room for the greeting
 };
-const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-const lerpHex = (a, b, t) => { const A = hex(a), B = hex(b); return 'rgb(' + A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(',') + ')'; };
-const dusk = { t: 0 };
-const lerpRGB = (a, b, t) => { const A = hex(a), B = hex(b); return A.map((v, i) => Math.round(v + (B[i] - v) * t)); };
-let lastTheme = '', COL = null, colT = -1;
-function colours() {   // the palette at the current dusk amount, as [r,g,b] (cached per value)
-  if (colT === dusk.t) return COL;
-  COL = {}; for (const k in PAL) COL[k] = lerpRGB(PAL[k][0], PAL[k][1], dusk.t);
-  colT = dusk.t; return COL;
-}
-const rgba = (c, a = 1) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-function applyDusk() {
-  const th = rgba(colours().sky1); if (th !== lastTheme) { themeMeta.setAttribute('content', th); lastTheme = th; }
-}
-const say = t => { live.textContent = t; };
-// the intro veil fades by CSS (so it lifts even if this script dies); once faded it is removed outright, because a
-// finished fill:forwards animation can flash back to its opaque start when the compositor rebuilds layers
-(() => { const v = $('veil'); const drop = () => v.isConnected && v.remove(); v.addEventListener('animationend', drop); setTimeout(drop, 2600); })();
-applyDusk();
+const BOX0 = { x: 0, y: 0, rot: 0, sx: 1, sy: 1, lid: { x: 0, y: 0, rot: 0, on: 1, fly: 0 }, bow: { x: 0, y: 0, rot: 0, free: 0, on: 1 },
+  ground: { a: 1, s: 1 }, rim: 0, lidShadow: 1, build: { line: 1, construct: 1, color: 1, shadow: 1 }, mult: null };
+const BALL0 = { x: 0, y: 0, rot: 0, s: 1, sx: 1, sy: 1, on: 1, ground: { a: 1, s: 1 }, crack: 0, split: 0, hop: 0, holes: 0, impact: 0, inBox: 0, front: 0 };
+const WORD0 = { on: 1, x: 0, y: 0, scale: 1, sx: 1, sy: 1 };
+const LOGO0 = { x: LOGO_REST.x, y: LOGO_REST.y, s: LOGO_REST.s, sx: 1, sy: 1, word: WORD0, ghosts: null };
+const TEXT0 = { draw: 1, accent: 1 };
+const BG0 = { r: 1, d: 1, dusk: 0 };       // roughs and details sketched in (0..1), dusk-wash beats laid (0..DUSK_N)
+const SCENE0 = { cam: CAM.present, shake: [0, 0], bg: BG0, box: null, ball: null, logo: null, text: null, fx: [], impact: 0, rest: 0, replay: 0 };
+const REST = { cam: CAM.final, shake: [0, 0], ball: merge(BALL0, { split: SPLIT_REST }), logo: LOGO0, rest: 1 };
+const REST_R = Object.assign({}, REST, { cam: CAM.reveal });
 
-/* ═══ camera: a focus box that always fits, extra world shown on the long axis ═══ */
-const CAM0 = { x: 800, y: 652, w: 560, h: 700 };
-const CAM1 = { x: 800, y: 536, w: 600, h: 940 };
-const cam = { x: 800, y: 470, w: 560, h: 760 };
-const shakeOff = { x: 0, y: 0 };
-let vb = { x: 0, y: 0, w: 1, h: 1 };
-let titleW = 0;
-function applyCam() {
+const BGJ = J.bg;
+const DUSK_N = BGJ.layout && BGJ.layout.duskBeats ? BGJ.layout.duskBeats.length : 40;   // dusk-wash beats on 3s
+const BOX_WRITE = 51, TEXT_WRITE = 150;
+
+/* ═══ the storyboard ═══════════════════════════════════════════════════ */
+function trailAt(k, i, prev, cur, pv, half) {   // a drawn trail anchored on a flying part's trailing edge, +x along travel
+  const dx = cur.x - prev.x, dy = cur.y - prev.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  const c = Math.cos(cur.rot || 0), sn = Math.sin(cur.rot || 0);
+  const ext = Math.abs(ux * c + uy * sn) * half[0] + Math.abs(-ux * sn + uy * c) * half[1];
+  const cx = pv[0] - BOX_A[0] + cur.x, cy = pv[1] - BOX_A[1] + cur.y;
+  return { k, i, x: cx - ux * ext, y: cy - uy * ext, rot: Math.atan2(uy, ux), back: 1 };
+}
+
+function sketchSheet() {
+  const s = new Sheet(merge(SCENE0, { bg: { r: 0, d: 0 } }));
+  if (RM) {
+    s.d(6); s.d(7, { bg: { r: 1 } });
+    s.d(7, { box: merge(BOX0, { build: { color: 0, shadow: 0 } }) });
+    s.d(7, { box: { build: { color: 1, shadow: 1 } } });
+    return s.d(8, { bg: { d: 1 } });
+  }
+  s.d(8);                                                              // blank paper, a breath
+  s.d(21, {}, { wo: { 'bg.r': [0, 1] } });                             // the horizon from the middle out, then the hills
+  s.d(3, { box: merge(BOX0, { build: { line: 0, construct: 0, color: 0, shadow: 0 } }) });
+  s.d(BOX_WRITE, {}, { wo: { 'box.build.line': [0, 1] } });            // Jasper's lines, in his stroke order, on 1s
+  s.d(15, {}, { wo: { 'box.build.construct': [0, 1, 2] } });           // blue construction, its own layer, on 2s
+  s.d(39, {}, { wo: { 'box.build.color': [0, 1, 2] } });               // marker passes, laid one or two per drawing
+  s.d(15, {}, { wo: { 'box.build.shadow': [0, 1, 2] } });              // red boundaries, hatching, kage, ground
+  s.d(33, {}, { wo: { 'bg.d': [0, 1, 2] } });                          // then the background details, as a coda
+  return s.d(6);
+}
+
+function hop(s) {   // ballistic: quick off the ground, slow over the top (on 3s), quick down; the bow follows through
+  s.d(2, { box: { sx: 1.04, sy: 0.94, bow: { rot: 0.03 } } }, { act: 1 });
+  s.d(2, { box: { sx: 1.09, sy: 0.88, bow: { rot: 0.07 } } }, { act: 1 });
+  s.d(2, { box: { y: -60, sx: 0.93, sy: 1.1, rot: -0.02, bow: { rot: 0.13 }, ground: { s: 0.88, a: 0.82 } } }, { act: 1 });
+  s.d(2, { box: { y: -101, sx: 0.97, sy: 1.05, rot: -0.033, bow: { rot: 0.1 }, ground: { s: 0.77, a: 0.7 } } }, { act: 1 });
+  s.d(3, { box: { y: -116, sx: 1, sy: 1, rot: -0.03, bow: { rot: 0.02 }, ground: { s: 0.74, a: 0.66 } } }, { act: 1 });
+  s.d(3, { box: { y: -106, rot: -0.012, bow: { rot: -0.07 } } }, { act: 1, still: 1 });
+  s.d(2, { box: { y: -70, sx: 0.97, sy: 1.05, rot: 0.01, bow: { rot: -0.1 }, ground: { s: 0.8, a: 0.72 } } }, { act: 1 });
+  s.d(2, { box: { y: 0, sx: 1.12, sy: 0.85, rot: 0, bow: { rot: -0.17 }, ground: { s: 1.06, a: 1 } } }, { land: 1 });
+  s.d(2, { box: { sx: 0.96, sy: 1.05, lid: { y: -7 }, bow: { rot: 0.13 } } });                 // rebound, the lid lifts a hair
+  s.d(3, { box: { sx: 1.025, sy: 0.975, lid: { y: 0 }, bow: { rot: -0.07 } } });
+  s.d(3, { box: { sx: 1, sy: 1, bow: { rot: 0.03 } } });
+  s.d(3, { box: { bow: { rot: 0 } } });
+}
+function wiggle(s, d) {   // a shuffle on the spot: rock one way, the other, settle; the bow lags
+  s.d(2, { box: { rot: -0.03 * d, sx: 1.02, sy: 0.98, bow: { rot: 0.05 * d } } }, { act: 1 });
+  s.d(2, { box: { rot: 0.045 * d, y: -5, sx: 0.99, sy: 1.01, bow: { rot: -0.09 * d } } }, { act: 1 });
+  s.d(2, { box: { rot: -0.035 * d, y: 0, bow: { rot: 0.08 * d } } }, { act: 1 });
+  s.d(2, { box: { rot: 0.02 * d, sx: 1.015, sy: 0.985, bow: { rot: -0.05 * d } } }, { land: 1 });
+  s.d(3, { box: { rot: -0.008 * d, sx: 1, sy: 1, bow: { rot: 0.025 * d } } });
+  s.d(3, { box: { rot: 0, bow: { rot: 0 } } });
+}
+function presentSheet() {   // the present waits: holds that boil, a hop a second after it is drawn, then at irregular gaps
+  const s = new Sheet(merge(SCENE0, { box: BOX0 }));
+  if (RM) return s.d(72);
+  s.d(24); hop(s);
+  s.d(57); wiggle(s, 1);
+  s.d(78); hop(s);
+  s.d(51); wiggle(s, -1);
+  return s.d(69);
+}
+
+function openSheet() {
+  const s = new Sheet(merge(SCENE0, { box: merge(BOX0, { bow: { free: 1 } }) }));
+  if (RM) {
+    s.d(8, { box: { lid: { on: 0 }, bow: { on: 0 }, rim: 1, lidShadow: 0 } });
+    return s.d(10, { box: null, ball: BALL0 });
+  }
+  // anticipation: the box gathers itself and bulges; something too big is inside
+  s.d(2, { box: { sx: 1.08, sy: 0.92 } });
+  s.d(2, { box: { sx: 1.16, sy: 0.86, lid: { y: 3 }, bow: { rot: -0.08 } } });
+  s.d(2, { box: { sx: 1.25, sy: 0.82, lid: { y: 5 }, bow: { rot: -0.12 } } });
+  // pop: lid and bow off on two long arcs (ghost re-drawings on the pop, drawn trails behind on the next two)
+  const LP = [{ x: 0, y: 0, rot: 0 }, { x: -40, y: -170, rot: -0.14 }, { x: -250, y: -330, rot: -0.48 }, { x: -560, y: -390, rot: -0.95 },
+    { x: -930, y: -340, rot: -1.45 }, { x: -1400, y: -230, rot: -1.9 }, { x: -1950, y: -90, rot: -2.4 }, { x: -2550, y: 80, rot: -2.9 }];
+  const BP = [{ x: 0, y: 0, rot: -0.12 }, { x: 70, y: -250, rot: 0.32 }, { x: 270, y: -430, rot: 1.05 }, { x: 500, y: -560, rot: 1.9 },
+    { x: 760, y: -640, rot: 2.8 }, { x: 1080, y: -700, rot: 3.6 }, { x: 1550, y: -720, rot: 4.4 }, { x: 2150, y: -700, rot: 5.2 }];
+  const ghosts = k => [
+    Object.assign({ g: 'lid', a: 0.4 }, mix(LP[k], LP[k - 1], 1 / 3)), Object.assign({ g: 'lid', a: 0.2 }, mix(LP[k], LP[k - 1], 2 / 3)),
+    Object.assign({ g: 'bow', a: 0.4 }, mix(BP[k], BP[k - 1], 1 / 3)), Object.assign({ g: 'bow', a: 0.2 }, mix(BP[k], BP[k - 1], 2 / 3))];
+  const trails = (k, i) => [trailAt('trailLid', i, LP[k - 1], LP[k], LID_PV, [380, 50]), trailAt('trailBow', i, BP[k - 1], BP[k], BOW_PV, [120, 110])];
+  const up = (y, len) => ({ k: 'speed', x: 0, y, i: 0, len, dir: 1 });
+  s.d(2, { box: { sx: 1.12, sy: 1.08, rim: 1, lidShadow: 0.3, lid: Object.assign({ fly: 1 }, LP[1]), bow: BP[1], mult: ghosts(1) } }, { pre: 0 });
+  // the ball comes up: pinched by the rim, the box bulging round it
+  s.d(2, { box: { sx: 1.26, sy: 0.96, lidShadow: 0, lid: LP[2], bow: BP[2], mult: null }, fx: trails(2, 0),
+    ball: merge(BALL0, { y: 150, sx: 0.8, sy: 1.12, inBox: 1, ground: { a: 0 } }) }, { pre: 0 });
+  s.d(2, { box: { sx: 1.22, sy: 0.92, lid: LP[3], bow: BP[3] }, fx: trails(3, 1), ball: { y: -235, sx: 0.72, sy: 1.28 } }, { pre: 0 });
+  // out: it pops round, full size, far too big for the box; the box squashes down under it
+  s.d(2, { box: { sx: 1.06, sy: 0.8, lid: LP[4], bow: BP[4] }, ball: { y: -385, s: 1.08, sx: 1.08, sy: 0.93, inBox: 0, front: 1 }, fx: [up(-385, 330)] });
+  // it hangs in the air (on 3s) while the box scoots out under it
+  s.d(3, { box: { x: 140, y: -40, sx: 0.92, sy: 1.08, rot: 0.06, lid: LP[5], bow: BP[5], ground: { a: 0.7, s: 0.9 } }, ball: { y: -388, s: 1.06, sx: 0.98, sy: 1.03 }, fx: [] });
+  s.d(3, { box: { x: 520, y: -110, sx: 1, sy: 1, rot: 0.22, lid: LP[6], bow: BP[6], ground: { a: 0 } }, ball: { y: -398, s: 1.05, sx: 1, sy: 1 } });
+  s.d(3, { box: { x: 1000, y: -70, rot: 0.43, lid: LP[7], bow: BP[7] }, ball: { y: -400, s: 1.04 } });
+  s.d(3, { box: { x: 1560, y: 30, rot: 0.62, lid: { on: 0 }, bow: { on: 0 } }, ball: { y: -392, s: 1.03, ground: { a: 0.4, s: 0.6 } } });
+  // the drop: accelerating, stretched, then contact
+  s.d(2, { box: { x: 2150, y: 160, rot: 0.8 }, ball: { y: -360, s: 1.02, sx: 0.98, sy: 1.03, ground: { a: 0.6, s: 0.72 } } });
+  s.d(2, { box: null, ball: { y: -262, s: 1, sx: 0.92, sy: 1.12, ground: { a: 0.8, s: 0.86 } } });
+  s.d(2, { ball: { y: -95, sx: 0.8, sy: 1.3, ground: { a: 0.95, s: 0.96 } }, fx: [{ k: 'speed', x: 0, y: -95 - 765 * 1.3, i: 2, len: 420, dir: -1 }] });
+  // contact: squash, dust and a jolt of the camera, then the rebound and settle
+  s.d(2, { ball: { y: 0, sx: 1.24, sy: 0.78, front: 0, ground: { a: 1, s: 1.18 } }, shake: [0, 14], fx: [{ k: 'dust', i: 0, x: 0, y: DUST_Y }] });
+  s.d(2, { ball: { y: -62, sx: 0.9, sy: 1.1, ground: { a: 0.85, s: 0.92 } }, shake: [-6, -8], fx: [{ k: 'dust', i: 1, x: 0, y: DUST_Y }] });
+  s.d(2, { ball: { y: -74, sx: 0.98, sy: 1.03 }, shake: [3, 4], fx: [{ k: 'dust', i: 2, x: 0, y: DUST_Y }] });
+  s.d(2, { ball: { y: 0, sx: 1.08, sy: 0.93, ground: { a: 1, s: 1.04 } }, shake: [0, 0], fx: [{ k: 'dust', i: 2, x: 0, y: DUST_Y }] });
+  s.d(3, { ball: { sx: 0.98, sy: 1.02, ground: { s: 1 } }, fx: [{ k: 'dust', i: 3, x: 0, y: DUST_Y }] });
+  s.d(3, { ball: { sx: 1, sy: 1 }, fx: [] });
+  return s.d(6);
+}
+
+function knock(s, d) {   // something inside knocks: a bulge, a lift, a squash, then a decaying rock about the contact
+  s.d(2, { ball: { sx: 1.05, sy: 0.96, holes: 1 } });
+  s.d(2, { ball: { y: -12, sx: 0.97, sy: 1.04, rot: 0.01 * d, holes: 2 } });
+  s.d(2, { ball: { y: 0, sx: 1.06, sy: 0.94, rot: 0, holes: 1 } });
+  s.d(2, { ball: { sx: 1, sy: 1, rot: 0.035 * d, holes: 0 } });
+  s.d(2, { ball: { rot: -0.022 * d } });
+  s.d(3, { ball: { rot: 0.011 * d } });
+  s.d(3, { ball: { rot: -0.004 * d } });
+  s.d(3, { ball: { rot: 0 } });
+}
+function knock2(s, d) {   // a double knock, the second harder
+  s.d(2, { ball: { sx: 1.03, sy: 0.975, holes: 1 } });
+  s.d(2, { ball: { sx: 1, sy: 1, holes: 2 } });
+  s.d(2, { ball: { sx: 1.06, sy: 0.95, holes: 1 } });
+  s.d(2, { ball: { y: -16, sx: 0.96, sy: 1.05, rot: 0.012 * d, holes: 2 } });
+  s.d(2, { ball: { y: 0, sx: 1.07, sy: 0.93, rot: 0, holes: 1 } });
+  s.d(2, { ball: { sx: 1, sy: 1, rot: -0.04 * d, holes: 0 } });
+  s.d(3, { ball: { rot: 0.02 * d } });
+  s.d(3, { ball: { rot: -0.007 * d } });
+  s.d(3, { ball: { rot: 0 } });
+}
+function ballSheet() {
+  const s = new Sheet(merge(SCENE0, { ball: BALL0 }));
+  if (RM) return s.d(60);
+  s.d(48); knock(s, 1);
+  s.d(66); knock2(s, -1);
+  s.d(54); knock(s, -1);
+  return s.d(81);
+}
+
+const VI = o => merge(LOGO0, merge({ word: { on: 0 } }, o));
+const sparkleSite = (site, i) => {   // a sparkle at its fixed site round the logo (offsets from the logo's centre)
+  const m = (J.fx && J.fx.meta && J.fx.meta['sparkle' + site]) || { on: { at: [0, 0] } }, at = m.on.at;
+  return { k: 'sparkle' + site, i, x: LOGO_REST.x + at[0] * 1.08, y: LOGO_MID + at[1] * (at[1] < 0 ? 0.8 : 1) };
+};
+// a sparkle burst: sites staggered by 1-2 drawings on 3s so no more than two are lit and no two glints coincide
+function sparkles(s, sites, tail) {
+  const starts = { A: 0, B: 2, D: 3, C: 5 }, list = sites.filter(x => starts[x] !== undefined);
+  const end = Math.max(...list.map(x => starts[x])) + 3;
+  for (let r = 0; r < end; r++) {
+    const fx = [];
+    for (const x of list) { const i = r - starts[x]; if (i >= 0 && i < 3) fx.push(sparkleSite(x, i)); }
+    s.d(3, { fx }, { held: 1 });
+  }
+  if (tail) s.d(tail, { fx: [] });
+}
+
+function crackSheet() {
+  const s = new Sheet(merge(SCENE0, { ball: BALL0 }));
+  if (RM) {
+    s.d(8, { ball: { crack: 1 } });
+    return s.d(14, merge(REST_R, { fx: [] }));
+  }
+  // the tap answered at once: one big jolt, then a tremble that grows
+  s.d(3, { ball: { y: -40, sx: 0.92, sy: 1.1, holes: 1 }, shake: [0, 9] });
+  s.d(2, { ball: { y: 0, sx: 1.07, sy: 0.93, holes: 2 }, shake: [0, -4] });
+  s.d(3, { ball: { sx: 1, sy: 1, holes: 0 }, shake: [0, 0] });
+  [6, -8, 10, -12, 14, -16].forEach((x, i) => s.d(2, { cam: CAM.tight, ball: { x, rot: x * 0.0022, holes: 1 + (i % 2), sx: 1 + 0.006 * i, sy: 1 - 0.006 * i } }));
+  // the crack runs out from the middle (on 1s) while the ball trembles on 1s
+  s.d(8, { ball: { x: 0, rot: 0, holes: 1, sx: 1.04, sy: 0.96 } }, { still: 1, wo: { 'ball.crack': [0, 1] }, tremble: [14, 18] });
+  s.d(2, { ball: { x: 0, sx: 1.08, sy: 0.93, holes: 0 } }, { pre: 1 });                     // the breath before
+  // the impact: two drawings, paper and heavy graphite only, the second held longer
+  s.d(2, { ball: { sx: 1, sy: 1 }, impact: 1 }, { pre: 1 });
+  s.d(3, { impact: 2 }, { pre: 1 });
+  // the reveal: the halves fall open on 2s, overshoot and rock back on 3s; the VI rises alone out of the light
+  const at = (k, i) => ({ k, i, x: BALL_CW[0], y: BALL_CW[1], back: 1 });
+  s.d(2, { cam: CAM.reveal, impact: 0, ball: { split: 0.3, hop: 14 }, shake: [12, -6], logo: VI({ y: -260, s: 0.4, sx: 0.84, sy: 1.22 }),
+    fx: [at('emph', 0), at('burst', 0)] }, { pre: 2 });
+  s.d(2, { ball: { split: 0.7, hop: 6 }, shake: [-7, 4], logo: VI({ y: -520, s: 0.5, sx: 0.88, sy: 1.18 }), fx: [at('emph', 1), at('burst', 1)] }, { pre: 2 });
+  s.d(3, { ball: { split: 1.08, hop: 0 }, shake: [3, -2], logo: VI({ y: -740, s: 0.55, sx: 0.95, sy: 1.08 }), fx: [at('emph', 0), at('burst', 2)] }, { pre: 2 });
+  s.d(2, { ball: { split: 1.26 }, shake: [0, 0], logo: VI({ y: -805, sx: 0.99, sy: 1.02 }), fx: [at('emph', 1)] });
+  s.d(3, { ball: { split: 1.1 }, logo: VI({ y: -815, sx: 1.01, sy: 0.99 }), fx: [at('emph', 2)] });       // the top of the rise
+  s.d(3, { ball: { split: 1.18 }, logo: VI({ y: -785, sx: 0.99, sy: 1.02 }), fx: [] });
+  s.d(2, { ball: { split: SPLIT_REST }, logo: VI({ y: -715, sx: 0.97, sy: 1.04 }) });
+  s.d(2, { logo: VI({ sx: 1.07, sy: 0.92 }) });                                                         // settles into the cradle
+  s.d(3, { logo: VI({ sx: 0.985, sy: 1.02 }) });
+  s.d(6, { logo: VI({}) });
+  // the wordmark slams down onto the VI on 2s: a smear, a squash on both, a shake, one emphasis drawing
+  const W = (w, o) => merge(LOGO0, merge(o || {}, { word: w }));
+  s.d(2, { logo: W({ y: -330, scale: 1.45, sx: 0.97, sy: 1.04 }) });
+  s.d(2, { logo: W({ y: -95, scale: 1.12, sx: 0.9, sy: 1.26 }, { ghosts: [{ y: -255, scale: 1.34, sx: 0.95, sy: 1.1, a: 0.4 }, { y: -180, scale: 1.24, sx: 0.93, sy: 1.16, a: 0.22 }] }) });
+  s.d(2, { logo: W({ y: 0, scale: 1, sx: 1.14, sy: 0.82 }, { sx: 1.05, sy: 0.93, ghosts: null }), shake: [0, 12],
+    fx: [{ k: 'emph', i: 2, x: LOGO_REST.x, y: LOGO_MID, back: 1 }] });
+  s.d(2, { logo: W({ sx: 0.95, sy: 1.07 }, { sx: 0.98, sy: 1.03 }), shake: [0, -5], fx: [] });
+  s.d(3, { logo: W({ sx: 1.02, sy: 0.98 }, { sx: 1, sy: 1 }), shake: [0, 0] });
+  s.d(3, { logo: LOGO0 }, { held: 1 });
+  // at rest: the sparkles go off at their sites, staggered
+  s.d(3, merge(REST_R, { fx: [] }), { held: 1 });
+  sparkles(s, ['A', 'B', 'D', 'C'], 12);
+  return s.pad3();
+}
+
+function greetingSheet() {
+  const s = new Sheet(merge(merge(SCENE0, REST), { fx: [] }));
+  if (RM) {
+    const ends = textWordEnds();
+    s.d(8, { bg: { dusk: DUSK_N }, text: merge(TEXT0, { draw: ends[1], accent: 0 }) });
+    s.d(8, { text: { draw: ends[2] } });
+    return s.d(10, { text: { draw: 1, accent: 1 } });
+  }
+  s.d(3, { text: merge(TEXT0, { draw: 0, accent: 0 }) });
+  // the greeting writes on (on 1s) while the dusk is scribbled into the sky, one pass-drawing per boil beat (on 3s)
+  s.d(TEXT_WRITE, {}, { wo: { 'text.draw': [0, 1], 'bg.dusk': [0, TEXT_WRITE / 3, 3, DUSK_N] } });
+  s.d(6);                                                    // a beat after the last dot
+  s.d(9, {}, { wo: { 'text.accent': [0, 1] } });            // the swash, two passes
+  return s.d(6);
+}
+function finalSheet() {   // the hold: everything boils; sparkles go off at irregular gaps of 5-8 s
+  const s = new Sheet(merge(merge(SCENE0, REST), { bg: { dusk: DUSK_N }, text: TEXT0, fx: [] }));
+  if (RM) return s.d(72);
+  s.d(72, {}, { held: 1 });
+  sparkles(s, ['A', 'B', 'D', 'C'], 141);
+  sparkles(s, ['B', 'A', 'C'], 180);
+  sparkles(s, ['A', 'D', 'B'], 120);
+  return s;
+}
+
+let textEnds = null;
+function textWordEnds() {   // draw progress at the end of "Happy", "birthday,", "Jaden", "!!!"
+  if (textEnds) return textEnds;
+  const tl = P.timeline(J.text), end = w => Math.max(...tl.filter(t => t.id.includes('-' + w + '-')).map(t => t.end));
+  return (textEnds = [end('happy'), end('birthday'), end('jaden'), 1]);
+}
+
+const BUILD = { sketch: sketchSheet, present: presentSheet, open: openSheet, ball: ballSheet, crack: crackSheet, greeting: greetingSheet, final: finalSheet };
+const NEXT = { sketch: 'present', open: 'ball', crack: 'greeting', greeting: 'final' };
+const LOOP = { present: 1, ball: 1, final: 1 };
+const ORDER = ['sketch', 'present', 'open', 'ball', 'crack', 'greeting', 'final'];
+const SHOTS = {};
+function shot(name) {   // sheets are built on first use (the greeting's needs the greeting's data)
+  if (!SHOTS[name]) { const sheet = BUILD[name](); SHOTS[name] = { name, sheet, dur: sheet.len / FPS, loop: !!LOOP[name], next: NEXT[name] }; }
+  return SHOTS[name];
+}
+let TIMELINE = null;
+function timeline() {   // the canonical auto-play timeline (each idle loop played once; the final 6 s), for seek(t)
+  if (TIMELINE) return TIMELINE;
+  let t = 0;
+  return (TIMELINE = ORDER.map(n => { const S = shot(n), dur = n === 'final' ? 6 : S.dur, o = { name: n, start: +t.toFixed(4), dur: +dur.toFixed(4), loop: S.loop }; t += dur; return o; }));
+}
+
+/* ═══ a drawing: the pose on a frame, with its seed, registration and colour ═══════════════════════ */
+function drawingAt(name, t, rt) {
+  const S = shot(name), len = S.sheet.len;
+  let f = Math.floor(t * FPS + 1e-6);
+  f = S.loop ? ((f % len) + len) % len : Math.max(0, Math.min(len - 1, f));
+  const row = S.sheet.at(f), lf = f - row.f0;
+  const boil = !RM && (row.n >= 4 || row.opt.held) && !row.opt.still;
+  const ph = boil && !(rt && rt.freeze) ? Math.floor(f / 3) % 3 : 0;   // the boil: three drawings cycled at 8 fps
+  let pose = row.pose, key = '', ukey = '';
+  if (row.opt.wo) for (const k in row.opt.wo) {
+    const [a, b, step0, max] = row.opt.wo[k], step = step0 || WO;
+    const u = RM ? 1 : Math.min(1, (Math.floor(lf / step) + 1) * step / row.n);
+    const v = max !== undefined ? Math.min(max, a + (b - a) * u) : a + (b - a) * u;
+    pose = setPath(pose, k, v); key += '|' + k + v.toFixed(4);
+    if (k.slice(0, 5) !== 'text.') ukey += '|' + k + v.toFixed(4);
+  }
+  if (row.opt.tremble && !RM) {   // the ball shakes on 1s, harder as the crack runs
+    const [a0, a1] = row.opt.tremble, amp = lerp(a0, a1, lf / Math.max(1, row.n - 1));
+    pose = setPath(pose, 'ball.x', (lf % 2 ? -1 : 1) * amp * (0.85 + 0.15 * rnd(name, row.i, lf)));
+    pose = setPath(pose, 'ball.rot', (lf % 2 ? 1 : -1) * amp * 0.0012);
+    key += '|t' + lf; ukey += '|t' + lf;
+  }
+  const id = `${name}:${row.i}` + (boil ? '.' + ph : '');
+  const seed = RM ? 1 : boil ? 1 + ph : 1 + (row.i % 6);
+  const cseed = RM ? 0 : boil ? 1 + (hs(name) % 3) : 1 + (row.i % 4);   // the marker re-rolled per new drawing, not per boil
+  const D = { shot: name, t, f, row, id, seed, cseed, boil, pose, key: id + key, ukey: (pose.rest ? 'rest' : id) + ukey + '|s' + seed };
+  if (name === 'final') finalExtras(D, t, rt);
+  return D;
+}
+// registration: each drawing sits a hair off where the last one sat (units, radians); at rest, per boil drawing
+function regOf(D, fig) {
+  if (RM) return null;
+  const k = D.pose.rest ? 'rest' + D.seed : D.id;
+  return [sym(k, fig, 'x') * 0.8, sym(k, fig, 'y') * 0.8, sym(k, fig, 'r') * 0.0012];
+}
+function colourOf(seed, fig, boil) {
+  if (RM) return COLOR;
+  return COLOR + sym(seed, fig, 'c') * (boil ? 0.012 : 0.03);
+}
+function finalExtras(D, t, rt) {
+  // the replay button draws itself on after a few seconds (on 2s); taps leave drawn bursts
+  const icon = J.fx && J.fx.replay, at = RM ? 1.5 : 3.2, dur = RM ? 0 : icon ? P.writeDuration(icon) / 1000 : 0.5;
+  const u = t < at ? 0 : dur ? Math.min(1, Math.ceil((t - at) * 12) / (dur * 12)) : 1;
+  D.pose = setPath(D.pose, 'replay', u);
+  D.key += '|r' + u.toFixed(3);
+  if (rt && rt.taps && rt.taps.length) {
+    const fx = D.pose.fx.slice(), holds = [2, 2, 3, 3, 3];
+    for (const tp of rt.taps) {
+      let fr = Math.floor((t - tp.t) * FPS), i = 0;
+      while (i < holds.length && fr >= holds[i]) fr -= holds[i++];
+      if (t >= tp.t && i < holds.length) { fx.push({ k: tp.dark ? 'tapColour' : 'tap', i, x: tp.x, y: tp.y, n: tp.n }); D.key += `|tap${tp.n}.${i}`; }
+    }
+    D.pose = setPath(D.pose, 'fx', fx);
+  }
+}
+
+/* ═══ canvas, camera, layout ══════════════════════════════════════════ */
+let VW = 1, VH = 1, DPR = 1, lastKey = '', lastD = null, lastMs = 0, layoutGen = 0;
+const stats = { renders: 0, ms: 0, max: 0, slow: 0 };
+function resize() {
+  VW = scene.clientWidth || innerWidth; VH = scene.clientHeight || innerHeight;
+  const want = Q.has('dpr') ? +Q.get('dpr') : Math.min(2, window.devicePixelRatio || 1);
+  DPR = Math.max(0.5, Math.min(want, Math.sqrt(2.6e6 / (VW * VH))));
+  cv.width = Math.round(VW * DPR); cv.height = Math.round(VH * DPR);
+  lastKey = ''; layoutGen++;
+  BASES.clear(); WASH.clear(); SPR.clear(); PRE.clear(); COMPS.clear();
+}
+function viewRect(c) {   // a focus box that always fits; the long axis shows more of the world
   const a = VW / VH;
-  const roomy = a > 1.8 ? 1 + .07 * dusk.t : 1;   // short landscape screens get a little more air around the finale
-  const h = Math.max(cam.h * roomy, cam.w * (a < .75 ? .86 : 1) / a), w = h * a;
-  vb = { x: cam.x - w / 2 + shakeOff.x, y: cam.y - h / 2 + shakeOff.y, w, h };
-  const v = `${vb.x.toFixed(2)} ${vb.y.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`;
-  svg.setAttribute('viewBox', v);
-  if (titleW) {   // keep the greeting inside the frame on narrow screens
-    const s = Math.min(1, (vb.w * (a < .75 ? .8 : .9)) / titleW);
-    titleG.setAttribute('transform', `translate(800 240) scale(${s.toFixed(4)}) translate(-800 -240)`);
+  if (a < 0.8 && c.tall) {   // portrait: the ground low; widened only if the sky above it would be too short
+    const t = c.tall, w = Math.max(t.pw, (t.top || 0) / t.ground * a), h = w / a;
+    return { x: c.cx - w / 2, y: -t.ground * h, w, h };
   }
+  let w = a < 0.8 && c.pw ? c.pw : c.w, h = c.h;
+  if (w / h > a) h = w / a; else w = h * a;
+  const y = c.cy - c.h / 2 - (h - c.h) * (c.bias !== undefined ? c.bias : 0.5);
+  return { x: c.cx - w / 2, y, w, h };
 }
-
-/* ═══ landscape ═══════════════════════════════════════════════════════ */
-function smooth(pts, baseY) {
-  let d = `M${pts[0][0]},${pts[0][1]}`;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
-    d += ` C${f1(p1[0] + (p2[0] - p0[0]) / 6)},${f1(p1[1] + (p2[1] - p0[1]) / 6)} ${f1(p2[0] - (p3[0] - p1[0]) / 6)},${f1(p2[1] - (p3[1] - p1[1]) / 6)} ${p2[0]},${p2[1]}`;
-  }
-  return d + ` L${pts[pts.length - 1][0]},${baseY} L${pts[0][0]},${baseY} Z`;
+function camera(c, shake) {
+  const r = viewRect(c), k = cv.width / r.w;
+  const sx = RM ? 0 : (shake && shake[0]) || 0, sy = RM ? 0 : (shake && shake[1]) || 0;
+  return { r, k, sx, sy, m: new DOMMatrix([k, 0, 0, k, -(r.x + sx) * k, -(r.y + sy) * k]), m0: new DOMMatrix([k, 0, 0, k, -r.x * k, -r.y * k]),
+    key: [cv.width, cv.height, r.x.toFixed(1), r.y.toFixed(1), r.w.toFixed(1)].join(',') };
 }
-const HILL_FAR = new Path2D(smooth([[-1800, 640], [-1400, 660], [-1000, 638], [-700, 656], [-400, 626], [-100, 650], [150, 634], [380, 650], [560, 667], [740, 658], [920, 646], [1090, 660], [1300, 630], [1520, 650], [1800, 638], [2100, 656], [2500, 630], [2900, 652], [3400, 640]], 780));
-const HILL_MID = new Path2D(smooth([[-1800, 700], [-1400, 690], [-1000, 702], [-640, 684], [-300, 698], [0, 690], [262, 672], [440, 684], [620, 702], [800, 706], [1000, 699], [1220, 686], [1460, 700], [1720, 690], [2000, 702], [2400, 688], [2900, 700], [3400, 692]], 800));
-const MEADOW = new Path2D(smooth([[-1800, 718], [-1300, 712], [-800, 720], [-300, 712], [200, 719], [600, 712], [1000, 716], [1400, 710], [1900, 719], [2400, 712], [3400, 716]], 2200));
-// a lone tree on the far ridge
-const treePath = (trunk, crowns) => { const p = new Path2D(); p.rect(...trunk); for (const [x, y, r] of crowns) { p.moveTo(x + r, y); p.arc(x, y, r, 0, 6.2832); } return p; };
-const TREE = treePath([414.5, 650, 7, 40], [[418, 636, 22], [403, 649, 16], [434, 648, 17], [418, 656, 17], [408, 632, 13], [429, 630, 12]]);
-const TREE_FAR = treePath([597.5, 684, 4.5, 20], [[600, 674, 12], [591, 682, 8.5], [609, 681, 9]]);   // stands against the low sun
-// painterly light & shade swaths across the meadow
-const PAINT = [...[[430, 752, 520, 26, .42], [1240, 770, 560, 30, .34], [-200, 790, 600, 34, .3], [2000, 780, 600, 30, .3], [820, 728, 380, 10, .4]].map(e => [...e, 'meadowLight']),
-  ...[[980, 1010, 640, 60, .22], [300, 1100, 700, 70, .2], [1600, 1150, 700, 80, .2]].map(e => [...e, 'meadow2'])];
-
-/* anime cumulus: one silhouette (union of puffs) in lavender shadow; the same silhouette lifted straight up (by one
-   distance per cloud) in a mid tone and again further in the lit tone, clipped to it, so the scalloped underside
-   repeats as the light/shadow line. A light lavender wash settles toward the bottom. */
-const clouds = [];
-function cumulus(cx, by, w, h) {
-  const P = [], n = Math.max(3, Math.round(w / 62)), u = w / n;
-  for (let i = 0; i < n; i++) { const r = u * R(.55, .8); P.push([cx - w / 2 + (i + .5) * u + R(-6, 6), by - r * R(.35, .55), r]); }
-  const m = Math.round(n * (1 + h / u) * 1.15);
-  for (let k = 0; k < m; k++) {   // fill a lumpy dome: wider low, narrower high, each puff jittered
-    const t = Math.pow(rnd(), .85), hw = w / 2 * (1 - Math.pow(t, 1.5) * .78) * R(.7, 1.05);
-    const r = u * R(.6, 1.15) * (1 - t * .3);
-    P.push([cx + R(-hw, hw) + t * w * .05, by - h * t * .82 - r * .1 + R(-6, 6), r]);
-  }
-  if (w > 380) for (let k = 0; k < 2; k++) P.push([cx + R(-.28, .28) * w, by - h * R(.5, .68), u * R(.85, 1.05)]);   // shoulders
-  P.push([cx + R(-.08, .08) * w, by - h * .8, u * R(.95, 1.15)]);   // a broad crown
-  const top = Math.min(...P.map(p => p[1] - p[2])), bot = Math.max(...P.map(p => p[1] + p[2]));
-  // a solid core under the puffs so the silhouette has no pinholes (each would cast a streak of shade)
-  const core = [cx + w * .02, by - h * .38, w * .36, h * .4];
-  const blob = (dy, grow = 0) => {
-    const p = new Path2D(); p.ellipse(core[0], core[1] + dy, core[2] + grow, core[3] + grow, 0, 0, 6.2832);
-    for (const [x, y, r] of P) { p.moveTo(x + r + grow, y + dy); p.arc(x, y + dy, r + grow, 0, 6.2832); }
-    return p;
-  };
-  // the whole silhouette lifted by one distance per cloud: shade only where the cloud's underside is close below
-  const d1 = h * .12 + 8, d2 = h * .24 + 14;
-  clouds.push({ body: blob(0), mid: blob(-d1, d1 * .5), hi: blob(-d2, d2 * .5), x0: cx - w, x1: cx + w, top, bot, wash0: by - (by - top) * .4, x: 0, opacity: 1 });
-}
-[[1190, 612, 600, 440], [330, 500, 400, 190], [760, 292, 270, 110], [655, 520, 210, 84], [1470, 236, 320, 130], [90, 196, 360, 150],
- [960, 52, 300, 120], [610, -70, 260, 96], [1240, -150, 340, 120], [340, -40, 280, 100], [-260, 380, 420, 170],
- [1880, 420, 460, 190], [1980, 120, 320, 120], [-420, 60, 300, 110]]
-  .forEach(c => cumulus(...c));
-
-/* grass tufts with the occasional flower: drawn on canvas every frame, bent by the wind field */
-const tuftsB = [], tuftsF = [];
-const FLOWERS = ['#fffaf0', '#ffe48a', '#ffc6d4', '#e9dcff'];
-function tuft(list, x, y, s, bare) {
-  const blades = [], n = Math.round(R(3, 6));
-  for (let i = 0; i < n; i++) {
-    const h = R(22, 48), w = R(2.6, 4.6), lean = R(-.45, .45) * h * .6, bx = R(-9, 9);
-    blades.push({ p: new Path2D(`M${f1(bx - w)},0 Q${f1(bx - w * .3 + lean * .35)},${f1(-h * .55)} ${f1(bx + lean)},${f1(-h)} Q${f1(bx + w * .5 + lean * .35)},${f1(-h * .5)} ${f1(bx + w)},0Z`), b: rnd() < .5 });
-  }
-  let flower = null;
-  if (rnd() < .16 && !bare) {
-    const fx = R(-6, 6), fh = R(26, 40), petals = new Path2D();
-    for (let k = 0; k < 5; k++) { const a = k * 1.2566, px = fx + Math.cos(a) * 3.4, py = -fh + Math.sin(a) * 3.4; petals.moveTo(px + 2.6, py); petals.arc(px, py, 2.6, 0, 6.283); }
-    flower = { stem: new Path2D(`M${f1(fx)},0 Q${f1(fx + 3)},${f1(-fh / 2)} ${f1(fx)},${f1(-fh)}`), petals, col: FLOWERS[Math.floor(R(0, 4))], cx: fx, cy: -fh };
-  }
-  list.push({ x, y, s, ph: R(0, 6.283), k: R(.8, 1.2), blades, flower });
-}
-for (let i = 0; i < 230; i++) {
-  const y = 716 + Math.pow(rnd(), 1.3) * 700, x = R(-900, 2500);
-  if (y < 920 && x > 600 && x < 1000) continue;   // nothing grows behind the gift (the grass is drawn over the stage)
-  tuft(tuftsB, x, y, .38 + (y - 716) / 330, x > 600 && x < 1000 && y > 850 && y < 1010);
-}
-tuftsB.sort((a, b) => a.y - b.y);
-for (const [x, y, s] of [[664, 903, .62], [936, 903, .62], [702, 902, .5], [896, 902, .5], [648, 906, .95], [684, 910, .8], [722, 914, .7], [905, 912, .78], [948, 906, .95], [990, 918, 1.1], [602, 922, 1.1], [776, 922, .55], [842, 924, .6], [540, 960, 1.4], [1060, 968, 1.5], [700, 1010, 1.7], [930, 1040, 1.8]])
-  tuft(tuftsF, x, y, s, Math.abs(x - 800) < 130);
-const GRASS_TEX = [];
-(() => {
-  for (const [n, cls, op, hMin, hMax] of [[1500, 'grassA', .55, 10, 22], [900, 'grassTip', .4, 8, 16], [500, 'grassB', .5, 12, 26]]) {
-    let d = '';
-    for (let i = 0; i < n; i++) {
-      const y = 714 + Math.pow(rnd(), 1.15) * 640, x = R(-900, 2500), sc = .28 + (y - 714) / 360;
-      const h = R(hMin, hMax) * sc, w = R(1.3, 2.3) * sc, l = R(-.5, .5) * h * .6;
-      d += `M${f1(x - w)},${f1(y)}Q${f1(x + l * .4)},${f1(y - h * .6)} ${f1(x + l)},${f1(y - h)}Q${f1(x + l * .4 + w * .6)},${f1(y - h * .5)} ${f1(x + w)},${f1(y)}Z`;
-    }
-    GRASS_TEX.push([new Path2D(d), cls, op]);
-  }
-})();
-const gradCache = new WeakMap();
-function grassGrads(c) {
-  let g = gradCache.get(c);
-  if (g && g.t === dusk.t) return g;
-  const tip = lerpHex(PAL.grassTip[0], PAL.grassTip[1], dusk.t);
-  const make = base => { const gr = c.createLinearGradient(0, 0, 0, -46); gr.addColorStop(.1, base); gr.addColorStop(1, tip); return gr; };
-  g = { t: dusk.t, A: make(lerpHex(PAL.grassA[0], PAL.grassA[1], dusk.t)), B: make(lerpHex(PAL.grassB[0], PAL.grassB[1], dusk.t)) };
-  gradCache.set(c, g); return g;
-}
-function drawTufts(c, list) {
-  const k = c.canvas.width / vb.w, G = grassGrads(c), amp = RM ? .4 : 1;
-  for (const t of list) {
-    if (t.x < vb.x - 80 || t.x > vb.x + vb.w + 80 || t.y < vb.y - 20 || t.y > vb.y + vb.h + 80) continue;
-    const w = .05 + wind.gust * .62 + amp * ((.07 + wind.gust * .14) * Math.sin(T * 1.6 - t.x * .007 + t.ph * .25) + .025 * Math.sin(T * 3.3 + t.ph));
-    const a = k * t.s;
-    c.setTransform(a, 0, a * Math.tan(-w * 30 * t.k * Math.PI / 180), a, k * (t.x - vb.x), k * (t.y - vb.y));
-    for (const b of t.blades) { c.fillStyle = b.b ? G.B : G.A; c.fill(b.p); }
-    if (t.flower) {
-      const f = t.flower; c.strokeStyle = '#4f8a46'; c.lineWidth = 1.4; c.stroke(f.stem);
-      c.fillStyle = f.col; c.fill(f.petals); c.fillStyle = '#f6b440'; c.beginPath(); c.arc(f.cx, f.cy, 1.8, 0, 6.283); c.fill();
-    }
-  }
-}
-
-/* ═══ present shards (built once, hidden until the gust) ═════════════ */
-const shards = [];
-(() => {
-  const cols = 6, rows = 5, X0 = 650, Y0 = 606, W = 300, H = 300;
-  const V = [];
-  for (let i = 0; i <= cols; i++) { V[i] = []; for (let j = 0; j <= rows; j++) {
-    const edge = i === 0 || i === cols || j === 0 || j === rows;
-    V[i][j] = [X0 + i * W / cols + (edge ? 0 : R(-13, 13)), Y0 + j * H / rows + (edge ? 0 : R(-12, 12))];
-  } }
-  const edges = new Map();   // each grid edge gets one torn polyline, shared by the two pieces beside it
-  const torn = (i1, j1, i2, j2) => {
-    const back = edges.get([i2, j2, i1, j1].join());
-    if (back) return back.slice().reverse();
-    const A = V[i1][j1], B = V[i2][j2], outer = (i1 === i2 && (i1 === 0 || i1 === cols)) || (j1 === j2 && (j1 === 0 || j1 === rows));
-    const nx = A[1] - B[1], ny = B[0] - A[0], L = Math.hypot(nx, ny), pts = [];
-    for (let q = 1; q < 5; q++) { const t = q / 5, j = outer ? 0 : R(-4.5, 4.5); pts.push([A[0] + (B[0] - A[0]) * t + nx / L * j, A[1] + (B[1] - A[1]) * t + ny / L * j]); }
-    edges.set([i1, j1, i2, j2].join(), pts); return pts;
-  };
-  let k = 0;
-  for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
-    const poly = [V[i][j], ...torn(i, j, i + 1, j), V[i + 1][j], ...torn(i + 1, j, i + 1, j + 1), V[i + 1][j + 1], ...torn(i + 1, j + 1, i, j + 1), V[i][j + 1], ...torn(i, j + 1, i, j)];
-    const cx = poly.reduce((a, p) => a + p[0], 0) / poly.length, cy = poly.reduce((a, p) => a + p[1], 0) / poly.length;
-    const pts = poly.map(([x, y]) => `${f1(cx + (x - cx) * 1.03)},${f1(cy + (y - cy) * 1.03)}`).join(' ');
-    k++;
-    const sp = R(.6, 1.5);
-    shards.push({ path: new Path2D('M' + pts.replace(/ /g, ' L') + 'Z'), cx, cy, x: 0, y: 0, a: 0, flip: 1, sy: 1, o: 1, delay: .55 * (cx - X0) / W + .12 * (Y0 + H - cy) / H + R(0, .1),
-      vx0: R(20, 120) * sp, ax: R(240, 560) * sp, vy0: R(-200, -40) - (906 - cy) * .18, ay: R(-120, 100),
-      A: R(8, 24), w: R(3.5, 7), va: R(-200, 200), aa: R(-90, 90), fr: R(3.5, 7.5), done: false });
-  }
-})();
-
-const paperSil = new Path2D($('paperSil').getAttribute('d'));
-/* the detailed vector art (wrapped box, bow, ball, finger-hole glow, the logo) is rasterised once into sprites */
-const SPR = {}, warm = [];
-let paperImg = null, paperM = null;
-(() => {
-  const defsHTML = defs.outerHTML;
-  const make = (name, content, x, y, w, h, ppu) => {
-    const W = Math.round(w * ppu), H = Math.round(h * ppu), img = new Image();
-    img.onload = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(img, 0, 0, W, H); SPR[name] = { c, x, y, w, h }; warm.push(c); if (name === 'paper') paperImg = c; };
-    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="${NS}" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="${x} ${y} ${w} ${h}">${defsHTML}${content}</svg>`);
-  };
-  const bow = $('bow').cloneNode(true); bow.removeAttribute('transform'); bow.removeAttribute('style');
-  const glows = [...defs.querySelectorAll('.hglow')].map(p => `<g transform="${p.parentNode.getAttribute('transform')}"><path d="${p.getAttribute('d')}" fill="url(#holeGlow)"/></g>`).join('');
-  make('paper', '<use href="#paperArt"/>', 650, 606, 300, 300, 3);
-  make('bow', bow.outerHTML, 712, 578, 172, 126, 3.5);
-  make('ball', '<use href="#ballArt"/>', 688, 680, 224, 224, 4);
-  make('holes', glows, 688, 680, 224, 224, 4);
-  make('vi', '<g filter="url(#logoShadow)"><use href="#gtaVI" x="590" y="353.12" width="420" height="325.76"/></g>', 560, 330, 480, 380, 2.6);
-  make('word', '<g filter="url(#logoShadow)"><use href="#gtaWord" x="590" y="353.12" width="420" height="325.76"/></g>', 560, 330, 480, 380, 2.6);
-})();
-function drawShards(c) {
-  const k = c.canvas.width / vb.w;
-  for (const s of shards) {
-    if (s.done) continue;
-    c.setTransform(k, 0, 0, k, -vb.x * k, -vb.y * k);
-    if (paperM) c.transform(paperM.a, paperM.b, paperM.c, paperM.d, paperM.e, paperM.f);
-    c.translate(s.cx + s.x, s.cy + s.y); c.rotate(s.a * Math.PI / 180); c.scale(s.flip, s.sy); c.translate(-s.cx, -s.cy);
-    c.globalAlpha = s.o; c.save(); c.clip(s.path);
-    if (s.flip >= 0) c.drawImage(paperImg, 650, 606, 300, 300); else { c.fillStyle = '#ecdcc2'; c.fill(paperSil); }
-    const sh = (1 - Math.abs(s.flip)) * .4; if (sh > .01) { c.fillStyle = `rgba(12,36,34,${sh.toFixed(3)})`; c.fill(paperSil); }
-    c.restore();
-  }
-  c.globalAlpha = 1;
-}
-
-/* ═══ crack + ball halves ════════════════════════════════════════════ */
-const CRACK = [], HALF_CLIP = {};
-for (let i = 0, n = 12; i <= n; i++) CRACK.push([i === 0 || i === n ? 797 : 797 + (i % 2 ? 1 : -1) * R(3, 7.5), 684 + 216 * i / n]);
-(() => {
-  const zig = CRACK.map(p => p.join(',')).join(' ');
-  const L = `600,668 ${CRACK[0][0]},668 ${zig} ${CRACK[12][0]},912 600,912`, Rt = `1000,668 ${CRACK[0][0]},668 ${zig} ${CRACK[12][0]},912 1000,912`;
-  mk('polygon', { points: L }, mk('clipPath', { id: 'clipL' }, defs));
-  mk('polygon', { points: Rt }, mk('clipPath', { id: 'clipR' }, defs));
-  HALF_CLIP.L = new Path2D('M' + L.replace(/ /g, ' L') + 'Z'); HALF_CLIP.R = new Path2D('M' + Rt.replace(/ /g, ' L') + 'Z');
-  const c = $('crack');
-  const main = 'M' + CRACK.map(p => p.join(',')).join(' L');
-  const branches = [`M${CRACK[2].join(',')} l14,-3 l10,5`, `M${CRACK[5].join(',')} l-16,8 l-12,2`, `M${CRACK[8].join(',')} l14,7 l9,-3`, `M${CRACK[10].join(',')} l-14,5 l-9,-4`];
-  const dash = { pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 };
-  mk('path', { d: main, stroke: '#0a0420', 'stroke-width': 3.2, ...dash, class: 'ck ckm' }, c);
-  const glow = mk('g', { filter: 'url(#crackGlow)' }, c);
-  mk('path', { d: main, stroke: '#ffe9b0', 'stroke-width': 1.9, ...dash, class: 'ck ckm ckg' }, glow);
-  for (const d of branches) mk('path', { d, stroke: '#ffe2a0', 'stroke-width': 1.6, ...dash, class: 'ck ckb ckg' }, glow);
-})();
-
-/* light rays */
-const RAYS = [];
-for (let i = 0; i < 16; i++) {
-  const a = i / 16 * Math.PI * 2 + R(-.08, .08), wdt = R(.03, .075), r = 1050, p = new Path2D();
-  p.moveTo(0, 0); p.lineTo(Math.cos(a - wdt) * r, Math.sin(a - wdt) * r); p.lineTo(Math.cos(a + wdt) * r, Math.sin(a + wdt) * r); p.closePath();
-  RAYS.push([p, f1(R(.45, 1))]);
-}
-const rays = { x: 800, y: 792, s: .7, a: 0, spin: 1, o: 0 };
-const sun = { cy: 652 };
-
-/* ═══ particles (canvas) ═════════════════════════════════════════════ */
-const fcv = $('fx'), fctx = fcv.getContext('2d');
-let DPR = 1;
-function sizeCanvas() { DPR = Math.min(window.devicePixelRatio || 1, Math.max(1, Math.sqrt(3.2e6 / (VW * VH)))); for (const c of [fcv]) { c.width = Math.round(VW * DPR); c.height = Math.round(VH * DPR); } makeOverlay(); }
-const glowSprite = (() => {
-  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  gr.addColorStop(0, 'rgba(255,252,236,1)'); gr.addColorStop(.22, 'rgba(255,240,206,.7)'); gr.addColorStop(1, 'rgba(255,230,200,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return c;
-})();
-const parts = [];
-const PETALS = ['#ffc4d2', '#fff4ee', '#ffd9e2', '#ffe9b8'];
-const LEAVES = ['#8cc66b', '#a9d47c', '#6fae55'];
-const VICE = ['#ff5fa2', '#ff9a5c', '#ffd36b', '#a66cff', '#5fb8ff', '#fff1e0', '#ff7fc8'];
-function spawn(o) { if (parts.length > 500) parts.splice(0, parts.length - 500); parts.push(Object.assign({ x: 0, y: 0, vx: 0, vy: 0, g: 0, drag: 0, rot: R(0, 6.28), vr: R(-3, 3), fl: R(0, 6.28), vf: R(4, 9), life: 3, age: 0, size: 6, kind: 'petal', col: '#fff' }, o)); }
-function spawnMote(initial) {
-  spawn({ kind: 'mote', x: R(vb.x, vb.x + vb.w), y: initial ? R(vb.y + vb.h * .2, vb.y + vb.h) : R(vb.y + vb.h * .45, vb.y + vb.h * 1.02),
-    vx: R(-6, 10), vy: R(-22, -8), life: R(6, 11), size: R(5, 13), ph: R(0, 6.28), vf: R(.6, 1.4) });
-}
-function gustPetals(n) {
-  for (let i = 0; i < n; i++) {
-    const leaf = rnd() < .35;
-    setTimeout(() => spawn({ kind: leaf ? 'leaf' : 'petal', col: leaf ? LEAVES[i % 3] : PETALS[i % 4],
-      x: vb.x - R(10, 80), y: R(vb.y + vb.h * .25, vb.y + vb.h * .95), vx: R(520, 900), vy: R(-120, 30), drag: .2, g: -10,
-      life: 3, size: leaf ? R(7, 11) : R(5, 8) }), R(0, 1100));
-  }
-}
-function burst(x, y, n, spread, up, top) {
-  for (let i = 0; i < n; i++) {
-    const a = -Math.PI / 2 + R(-spread, spread), v = R(220, 720) * (up || 1), spark = rnd() < .25;
-    spawn({ top, kind: spark ? 'spark' : 'petal', col: VICE[i % VICE.length], x: x + R(-14, 14), y: y + R(-14, 14),
-      vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: spark ? 60 : 210, drag: spark ? 1.6 : 1.9, life: spark ? R(1, 1.8) : R(3.5, 6), size: spark ? R(7, 14) : R(5, 9) });
-  }
-}
-function ring(x, y, rx, ry) {   // a ring of bright sparkles just outside the logo, in front of everything
-  for (let i = 0, n = RM ? 10 : 30; i < n; i++) {
-    const a = i / n * 6.283 + R(-.08, .08), v = R(120, 220);
-    spawn({ top: true, kind: 'spark', col: ['#ffc93c', '#ff5fa2', '#fff1c4'][i % 3], x: x + Math.cos(a) * rx, y: y + Math.sin(a) * ry, vx: Math.cos(a) * v, vy: Math.sin(a) * v * .8, g: 20, drag: 2.4, life: R(.35, .55), size: R(13, 20) });
-  }
-}
-function dust(x, y, n) {
-  for (let i = 0; i < n; i++) { const a = R(Math.PI * .95, Math.PI * 2.05);
-    spawn({ kind: 'dust', x: x + R(-70, 70), y: y + R(-4, 4), vx: Math.cos(a) * R(30, 110), vy: Math.sin(a) * R(20, 70), g: 40, drag: 2.4, life: R(.7, 1.2), size: R(6, 13) }); }
-}
-let ambientPetals = false;
-function updateParticles(dt) {
-  if (!RM) { let motes = 0; for (const p of parts) if (p.kind === 'mote') motes++; if (motes < (lowFx ? 8 : 16) && rnd() < dt * 3) spawnMote(false); }
-  if (ambientPetals && rnd() < dt * (RM ? .6 : 2.6)) spawn({ kind: rnd() < .2 ? 'spark' : 'petal', col: VICE[Math.floor(R(0, VICE.length))], x: R(vb.x - 60, vb.x + vb.w), y: vb.y - 20, vx: R(15, 55), vy: R(35, 70), g: 0, drag: 0, life: vb.h / 45, size: R(5, 8) });
-  for (let i = parts.length - 1; i >= 0; i--) {
-    const p = parts[i]; p.age += dt;
-    if (p.age > p.life) { parts.splice(i, 1); continue; }
-    p.vx -= p.vx * p.drag * dt; p.vy -= p.vy * p.drag * dt; p.vy += p.g * dt;
-    if (p.kind === 'petal' || p.kind === 'leaf') p.vx += wind.gust * 160 * dt;
-    p.x += p.vx * dt + (p.kind === 'mote' ? Math.sin(p.age * p.vf + p.ph) * 8 * dt : 0);
-    p.y += p.vy * dt + (p.kind === 'petal' ? Math.sin(p.fl) * 14 * dt : 0);
-    p.rot += p.vr * dt; p.fl += p.vf * dt;
-  }
-}
-let vign = null, grainPat = null;
-function makeOverlay() {
-  const w = fcv.width, h = fcv.height, R = Math.hypot(w, h) * .62;
-  vign = fctx.createRadialGradient(w / 2, h * .55, R * .55, w / 2, h * .55, R);
-  vign.addColorStop(0, 'rgba(40,20,50,0)'); vign.addColorStop(1, 'rgba(40,20,50,.24)');
-  if (!grainPat) {
-    const c = document.createElement('canvas'); c.width = c.height = 160; const g = c.getContext('2d'), im = g.createImageData(160, 160);
-    for (let i = 0; i < im.data.length; i += 4) { const v = 60 + Math.random() * 60; im.data[i] = v * 1.1; im.data[i + 1] = v * .85; im.data[i + 2] = v * .7; im.data[i + 3] = Math.random() * 255; }
-    g.putImageData(im, 0, 0); grainPat = fctx.createPattern(c, 'repeat');
-  }
-}
-function drawOverlay(c) {
-  c.setTransform(1, 0, 0, 1, 0, 0);
-  c.fillStyle = vign; c.fillRect(0, 0, fcv.width, fcv.height);
-  c.globalAlpha = .07; c.fillStyle = grainPat; c.fillRect(0, 0, fcv.width, fcv.height); c.globalAlpha = 1;
-}
-function drawLayer(ctx, top) {   // draws onto a canvas the frame loop has already cleared
-  const cv = ctx.canvas, k = cv.width / vb.w;
-  ctx.setTransform(k, 0, 0, k, -vb.x * k, -vb.y * k);
-  for (const p of parts) {
-    if (!p.top !== !top) continue;
-    const t = p.age / p.life, fade = Math.min(1, p.age / .35, (1 - t) / .3);
-    if (p.kind === 'mote') {
-      ctx.globalAlpha = Math.max(0, fade) * (.55 + .45 * Math.sin(p.age * 2.2 + p.ph)) * .8;
-      ctx.drawImage(glowSprite, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
-      continue;
-    }
-    const vis = 1;
-    ctx.save(); ctx.globalAlpha = Math.max(0, fade) * vis; ctx.translate(p.x, p.y); ctx.rotate(p.rot);
-    if (p.kind === 'spark') {
-      ctx.globalCompositeOperation = top ? 'source-over' : 'lighter';   // in front, sparkles must read on a pale sky too
-      const s = p.size * (.6 + .4 * Math.sin(p.age * 14 + p.rot));
-      ctx.drawImage(glowSprite, -s * 1.4, -s * 1.4, s * 2.8, s * 2.8);
-      ctx.fillStyle = p.col; ctx.beginPath();
-      ctx.moveTo(0, -s); ctx.quadraticCurveTo(0, 0, s, 0); ctx.quadraticCurveTo(0, 0, 0, s); ctx.quadraticCurveTo(0, 0, -s, 0); ctx.quadraticCurveTo(0, 0, 0, -s); ctx.fill();
-    } else if (p.kind === 'dust') {
-      const s = p.size * (1 + t * 1.6); ctx.globalAlpha = Math.max(0, fade) * .32;
-      ctx.drawImage(glowSprite, -s, -s, s * 2, s * 2);
-    } else {
-      ctx.scale(Math.cos(p.fl), 1); ctx.fillStyle = p.col; ctx.beginPath();
-      if (p.kind === 'leaf') { const s = p.size; ctx.moveTo(-s, 0); ctx.quadraticCurveTo(0, -s * .62, s, 0); ctx.quadraticCurveTo(0, s * .62, -s, 0); }
-      else ctx.ellipse(0, 0, p.size, p.size * .58, 0, 0, 6.283);
-      ctx.fill();
-    }
-    ctx.restore();
-  }
-  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-}
-
-/* ═══ the painter: the whole scene on one canvas ═══════════════════════
-   The SVG above is an invisible scene graph — GSAP animates its transforms and opacities as before — and each frame
-   this paints the scene from it onto a single canvas sized to a pixel budget. One modest raster surface, instead of
-   several full-resolution SVG layers, so a GPU short on memory never drops tiles mid-animation (which showed as
-   full-screen flashes of the page background during the reveal). */
-const C = fctx;
-let BASE = new DOMMatrix();
-const E = { bloom: $('bloom'), logo: $('logo'), logoBob: $('logoBob'), word: $('logoWord'), ground: $('groundGlow'), pShadow: $('presentShadow'), bShadow: $('ballShadow'),
-  ball: $('ball'), whole: $('ballWhole'), crack: $('crack'), pw: $('presentWrap'), paper: $('paperIntact'), bow: $('bow'), titleBob: $('titleBob'), hglow: defs.querySelector('.hglow') };
-const HALVES = [[$('halfL'), HALF_CLIP.L], [$('halfR'), HALF_CLIP.R]].map(([el, clip]) => [el, clip, el.querySelector('.inner')]);
-const CK = [...$('crack').querySelectorAll('path')].map(el => ({ el, path: new Path2D(el.getAttribute('d')), len: el.getTotalLength(), col: el.getAttribute('stroke'), glow: el.classList.contains('ckg') }));
-function lm(el) {   // an element's own transform, as a DOMMatrix
-  const l = el.transform.baseVal; let m = new DOMMatrix();
-  for (let i = 0; i < l.numberOfItems; i++) { const t = l.getItem(i).matrix; m = m.multiply(new DOMMatrix([t.a, t.b, t.c, t.d, t.e, t.f])); }
+// a figure's matrix: anchor -> world (x, y); uniform scale s about the anchor; rot and squash about the pivot pv
+// (figure units, default the anchor); then the drawing's registration error
+function figM(base, A, p, reg) {
+  const pv = p.pv || A;
+  let m = base.translate(p.x || 0, p.y || 0);
+  if (p.s && p.s !== 1) m = m.scale(p.s, p.s);
+  m = m.translate(-A[0], -A[1]).translate(pv[0], pv[1]);
+  if (p.rot) m = m.rotate(p.rot * 180 / Math.PI);
+  const sx = p.sx !== undefined ? p.sx : 1, sy = p.sy !== undefined ? p.sy : 1;
+  if (sx !== 1 || sy !== 1) m = m.scale(sx, sy);
+  m = m.translate(-pv[0], -pv[1]);
+  if (reg) m = m.translate(A[0] + reg[0], A[1] + reg[1]).rotate(reg[2] * 180 / Math.PI).translate(-A[0], -A[1]);
   return m;
 }
-function op(el) {   // an element's opacity as the SVG would have shown it (CSS beats the attribute)
-  if (!el || el.style.display === 'none' || el.style.visibility === 'hidden') return 0;
-  const s = el.style.opacity; if (s !== '') return +s;
-  const a = el.getAttribute('opacity'); return a === null ? 1 : +a;
+const gM = (o, pv) => new DOMMatrix().translate(o.x || 0, o.y || 0).translate(pv[0], pv[1]).rotate((o.rot || 0) * 180 / Math.PI).translate(-pv[0], -pv[1]);
+function fromM(m, pv) {
+  const rot = Math.atan2(m.b, m.a), c = Math.cos(rot), s = Math.sin(rot);
+  return { x: m.e - pv[0] + (c * pv[0] - s * pv[1]), y: m.f - pv[1] + (s * pv[0] + c * pv[1]), rot };
 }
-const setM = m => C.setTransform(m ? BASE.multiply(m) : BASE);
-const ID = new DOMMatrix();
-const SH = [[0, 'rgba(20,48,26,1)'], [.45, 'rgba(20,48,26,.7)'], [1, 'rgba(20,48,26,0)']];
-const SHB = [[0, 'rgba(18,10,32,1)'], [.45, 'rgba(18,10,32,.7)'], [1, 'rgba(18,10,32,0)']];
-const LOGOGLOW = [[0, 'rgba(255,243,220,.95)'], [.4, 'rgba(255,179,207,.45)'], [1, 'rgba(255,154,192,0)']];
-const GROUND = [[0, 'rgba(255,242,200,.95)'], [.45, 'rgba(255,177,126,.45)'], [1, 'rgba(255,143,181,0)']];
-const INNER = [[0, '#fffbe8'], [.35, '#ffd88a'], [.72, '#ff7fb0'], [1, '#9d3fb0']];
-function glowEllipse(cx, cy, rx, ry, stops, alpha, m) {   // a soft elliptical glow: a unit radial gradient, scaled
-  if (alpha <= 0) return;
-  setM((m || ID).translate(cx, cy).scale(rx, ry));
-  const g = C.createRadialGradient(0, 0, 0, 0, 0, 1); for (const [o, col] of stops) g.addColorStop(o, col);
-  C.globalAlpha = alpha; C.fillStyle = g; C.beginPath(); C.arc(0, 0, 1, 0, 6.2832); C.fill(); C.globalAlpha = 1;
-}
-function solidEllipse(cx, cy, rx, ry, col, alpha, m) { setM(m); C.globalAlpha = alpha; C.fillStyle = col; C.beginPath(); C.ellipse(cx, cy, rx, ry, 0, 0, 6.2832); C.fill(); C.globalAlpha = 1; }
-function sprite(name, m, alpha) { const s = SPR[name]; if (!s || alpha <= 0) return; setM(m); C.globalAlpha = alpha; C.drawImage(s.c, s.x, s.y, s.w, s.h); C.globalAlpha = 1; }
-const inView = (x0, y0, x1, y1) => x1 > vb.x && x0 < vb.x + vb.w && y1 > vb.y && y0 < vb.y + vb.h;
+const isTall = () => VW / VH < 0.8;      // the three-line greeting and the portrait framings
+const isPhone = () => VW / VH < 0.62;
+const bgTall = () => VW / VH < 0.8;
 
-function render() {
-  const k = fcv.width / vb.w; BASE = new DOMMatrix([k, 0, 0, k, -vb.x * k, -vb.y * k]);
-  const K = colours();
-  C.globalAlpha = 1; C.globalCompositeOperation = 'source-over';
-  if (warm.length) { C.setTransform(1, 0, 0, 1, 0, 0); for (const c of warm.splice(0)) C.drawImage(c, 0, 0, 2, 2); }
-  // sky and sun
-  setM();
-  const sg = C.createLinearGradient(0, 150, 0, 720);
-  [[0, 'sky0'], [.26, 'sky1'], [.5, 'sky2'], [.74, 'sky3'], [1, 'sky4']].forEach(([o, n]) => sg.addColorStop(o, rgba(K[n])));
-  C.fillStyle = sg; C.fillRect(vb.x - 20, vb.y - 20, vb.w + 40, vb.h + 40);
-  const gl = C.createRadialGradient(605, 652, 0, 605, 652, 620);
-  [[0, 1], [.05, .9], [.16, .46], [.42, .14], [1, 0]].forEach(([o, a]) => gl.addColorStop(o, rgba(K.sunGlow, a)));
-  C.fillStyle = gl; C.fillRect(-15, 32, 1240, 1240);
-  C.fillStyle = rgba(K.sunDisk); C.beginPath(); C.arc(605, sun.cy, 38, 0, 6.2832); C.fill();
-  // clouds: lavender body, then the lifted mid and lit tones clipped to it, then a wash toward the base
-  for (const cl of clouds) {
-    if (cl.opacity <= 0 || !inView(cl.x0 + cl.x, cl.top, cl.x1 + cl.x, cl.bot)) continue;
-    setM(ID.translate(cl.x, 0)); C.globalAlpha = cl.opacity;
-    C.fillStyle = rgba(K.clSh); C.fill(cl.body);
-    C.save(); C.clip(cl.body);
-    C.fillStyle = rgba(K.clMid); C.fill(cl.mid); C.fillStyle = rgba(K.clHi); C.fill(cl.hi);
-    const wg = C.createLinearGradient(0, cl.wash0, 0, cl.bot);
-    wg.addColorStop(0, rgba(K.clSh, 0)); wg.addColorStop(.7, rgba(K.clSh, .25)); wg.addColorStop(1, rgba(K.clSh, .45));
-    C.fillStyle = wg; C.fillRect(cl.x0, cl.top, cl.x1 - cl.x0, cl.bot - cl.top + 4);
-    C.restore(); C.globalAlpha = 1;
+// The greeting: two lines on wide screens; on portrait screens three ("Happy / birthday, / Jaden!!!") as big as fits
+// between the top of the frame and the logo.
+const TALL_GROUPS = { happy: { x: 428 }, birthday: { x: -317, y: 233 }, jaden: { x: 152, y: 225 }, bang: { x: 152, y: 225 } };
+const TALL_BOX = [251, 79, 1149, 685];
+function textPlace() {
+  if (isTall()) {
+    const r = viewRect(CAM.final), top = r.y + 80, bottom = LOGO_TOP - 80;
+    const bw = TALL_BOX[2] - TALL_BOX[0], bh = TALL_BOX[3] - TALL_BOX[1];
+    const s = Math.max(0.6, Math.min(1.5, (bottom - top) / bh, (r.w - 110) / bw));
+    return { x: -(TALL_BOX[0] + bw / 2) * s, y: top + Math.max(0, (bottom - top) - bh * s) / 2 - TALL_BOX[1] * s, s, groups: TALL_GROUPS };
   }
-  // light rays (behind the hills)
-  if (rays.o > 0) {
-    setM(ID.translate(rays.x, rays.y).scale(rays.s).rotate(rays.a));
-    const rg = C.createRadialGradient(0, 0, 0, 0, 0, 1050);
-    rg.addColorStop(0, 'rgba(255,246,220,.95)'); rg.addColorStop(.3, 'rgba(255,228,196,.42)'); rg.addColorStop(1, 'rgba(255,210,226,0)');
-    C.fillStyle = rg; for (const [p, a] of RAYS) { C.globalAlpha = rays.o * a; C.fill(p); } C.globalAlpha = 1;
-  }
-  // hills, haze, trees, meadow
-  setM();
-  C.fillStyle = rgba(K.hillFar); C.fill(HILL_FAR);
-  const hz = C.createLinearGradient(0, 560, 0, 750);
-  hz.addColorStop(0, rgba(K.haze, 0)); hz.addColorStop(.62, rgba(K.haze, .75)); hz.addColorStop(1, rgba(K.haze, 0));
-  C.fillStyle = hz; C.fillRect(vb.x - 20, 560, vb.w + 40, 190);
-  C.fillStyle = rgba(K.hillMid); C.fill(HILL_MID);
-  C.fillStyle = rgba(K.tree); C.fill(TREE); C.fillStyle = rgba(K.treeFar); C.fill(TREE_FAR);
-  const mg = C.createLinearGradient(0, 705, 0, 1320);
-  mg.addColorStop(0, rgba(K.meadow0)); mg.addColorStop(.28, rgba(K.meadow1)); mg.addColorStop(1, rgba(K.meadow2));
-  C.fillStyle = mg; C.fill(MEADOW);
-  for (const [x, y, rx, ry, o, n] of PAINT) if (inView(x - rx * 1.2, y - ry * 1.7, x + rx * 1.2, y + ry * 1.7)) glowEllipse(x, y, rx * 1.15, ry * 1.6, [[.25, rgba(K[n])], [1, rgba(K[n], 0)]], o);
-  setM(); for (const [p, n, o] of GRASS_TEX) { C.globalAlpha = o; C.fillStyle = rgba(K[n]); C.fill(p); } C.globalAlpha = 1;
-  drawTufts(C, tuftsB);
-  drawLayer(C, false);   // motes, petals and confetti sit behind the stage
-  // the stage, in the scene graph's order
-  glowEllipse(800, 792, 290, 250, LOGOGLOW, op(E.bloom));
-  const lo = op(E.logo);
-  if (lo > 0) {
-    const ml = lm(E.logoBob).multiply(lm(E.logo));
-    glowEllipse(800, 516, 320, 270, LOGOGLOW, lo * .85, ml);
-    sprite('vi', ml, lo);
-    const wo = op(E.word); if (wo > 0) sprite('word', ml.multiply(lm(E.word)), lo * wo);
-  }
-  glowEllipse(800, 900, 190, 34, GROUND, op(E.ground));
-  const ps = op(E.pShadow);
-  if (ps > 0) { const m = lm(E.pShadow); glowEllipse(880, 918, 270, 44, SH, ps * .3, m); glowEllipse(808, 903, 172, 20, SH, ps * .5, m); solidEllipse(800, 900.5, 132, 4.5, '#0f2412', ps * .38, m); }
-  const bs = op(E.bShadow);
-  if (bs > 0) { const m = lm(E.bShadow); glowEllipse(856, 912, 185, 36, SH, bs * .34, m); glowEllipse(804, 902, 100, 18, SHB, bs * .6, m); solidEllipse(800, 900, 44, 3.5, '#0a0612', bs * .45, m); }
-  if (E.ball.style.visibility !== 'hidden') {
-    const mb = lm(E.ball), hg = op(E.hglow);
-    if (E.whole.style.display !== 'none') { sprite('ball', mb, 1); sprite('holes', mb, hg); }
-    for (const [half, clip, inner] of HALVES) {
-      if (half.style.display === 'none') continue;
-      const mh = mb.multiply(lm(half));
-      setM(mh); C.save(); C.clip(clip); sprite('ball', mh, 1); sprite('holes', mh, hg); C.restore();
-      const rx = +inner.getAttribute('rx');
-      if (rx > .5) { glowEllipse(797, 792, rx, 102, INNER, 1, mh); setM(mh); C.strokeStyle = '#170c40'; C.lineWidth = 2.2; C.beginPath(); C.ellipse(797, 792, rx, 102, 0, 0, 6.2832); C.stroke(); }
+  return { x: -784, y: -1800, s: 1.12, groups: null };
+}
+function textHalos(T) {   // a loose margin round each line of the handwriting, kept clear of the dusk wash (world units)
+  const W = J.text.strokes.words, pad = 42, out = [];
+  const lines = T.groups ? [['happy'], ['birthday'], ['jaden', 'bang']] : [['happy', 'birthday'], ['jaden', 'bang']];
+  for (const line of lines) {
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const w of line) {
+      const [x, y, ww, hh] = W[w], o = (T.groups && T.groups[w]) || {};
+      x0 = Math.min(x0, x + (o.x || 0)); y0 = Math.min(y0, y + (o.y || 0)); x1 = Math.max(x1, x + ww + (o.x || 0)); y1 = Math.max(y1, y + hh + (o.y || 0));
     }
-    if (E.crack.style.display !== 'none') {
-      setM(mb); C.lineCap = 'round'; C.lineJoin = 'round';
-      for (const c of CK) {
-        const off = +c.el.getAttribute('stroke-dashoffset'); if (off >= .999) continue;
-        const sw = +c.el.getAttribute('stroke-width');
-        C.setLineDash([c.len, c.len]); C.lineDashOffset = off * c.len;
-        if (c.glow) { C.globalAlpha = .35; C.strokeStyle = '#ffd27a'; C.lineWidth = sw * 3.2; C.stroke(c.path); C.globalAlpha = 1; }
-        C.strokeStyle = c.col; C.lineWidth = sw; C.stroke(c.path);
-      }
-      C.setLineDash([]);
+    const low = line[0] === 'jaden' ? 70 : 0;   // and the swash under "Jaden!!!"
+    const y = T.y + (y0 - pad) * T.s, h = (y1 - y0 + 2 * pad + low) * T.s;
+    if (T.groups) out.push([-9000, y, 18000, h]);   // portrait: the whole band of the line
+    else out.push([T.x + (x0 - pad) * T.s, y, (x1 - x0 + 2 * pad) * T.s, h]);
+  }
+  return out;
+}
+
+/* ═══ rendering: g is the context being drawn ════════════════════════════ */
+let g = ctx, seeking = false;
+const reset = c => { c.setTransform(1, 0, 0, 1, 0, 0); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; };
+function render(D, target) {
+  const t0 = performance.now(), p = D.pose, prev = g;
+  g = target || ctx; reset(g);
+  const C = camera(p.cam, p.shake);
+  const pre = !target && !seeking && PRE.get(D.key);
+  if (pre) g.drawImage(pre, 0, 0);
+  else if (p.impact) { paperOnly(C); drawImpact(C, D); }
+  else if (p.rest) composeRest(C, D);
+  else {
+    backdrop(C, D);
+    if (!SKIP.has('fx')) for (const fx of p.fx) if (fx.back) drawFx(C, D, fx);
+    if (p.logo && !SKIP.has('logo')) drawLogo(C, D, p.logo);
+    if (p.ball && !p.ball.front && !SKIP.has('ball')) drawBall(C, D, p.ball);
+    if (p.box && !SKIP.has('box')) drawBox(C, D, p.box);
+    if (p.ball && p.ball.front && !SKIP.has('ball')) drawBall(C, D, p.ball);
+  }
+  if (!pre && p.text && !SKIP.has('text')) drawText(C, D, p.text);
+  if (!pre && !SKIP.has('fx')) for (const fx of p.fx) if (!fx.back) drawFx(C, D, fx);
+  reset(g); g = prev;
+  if (!target) {
+    lastMs = performance.now() - t0;
+    stats.renders++; stats.ms += lastMs; stats.max = Math.max(stats.max, lastMs);
+    if (lastMs > 41) { stats.slow++; (stats.slowList = stats.slowList || []).push(D.id + ' ' + lastMs.toFixed(0)); if (stats.slowList.length > 40) stats.slowList.shift(); }
+  }
+}
+function paperOnly(C) { reset(g); P.paper(g, 0, 0, g.canvas.width, g.canvas.height, { scale: C.k }); }
+const lru = (map, max) => { while (map.size > max) { const k0 = map.keys().next().value; map.delete(k0); } };
+
+/* ---- the background level ----
+ * Finished: one merged render per camera and boil seed, with a margin so a camera shake is a blit offset. In the
+ * final framing the sun is left out and drawn over the level each time (it sets in held keys, behind the land).
+ * While sketching in, the elements are drawn live with their build-up. */
+const BASES = new Map();
+const MARGIN = 18;   // world units of shake the level absorbs
+function bgSeedOf(D) { return D.boil && D.shot !== 'sketch' ? D.seed : 1; }   // the background is its own level: it boils in holds, holds still under action and while it is being drawn
+function framing(D) { return (D.pose.cam && D.pose.cam.name) || 'present'; }   // poses hold merged copies of the framings
+const skyFrame = fr => fr === 'final' || fr === 'reveal';   // from the reveal on, the sun is drawn on its own (it sets)
+function backdrop(C, D) {
+  const bg = D.pose.bg, s = bgSeedOf(D), fin = skyFrame(framing(D));
+  if (bg.r >= 1 && bg.d <= 0 && !NOCACHE) {   // the roughs are done and the details not begun: held while the box is drawn
+    const key = [C.key, 'roughs'].join('|');
+    let L = BASES.get(key);
+    if (!L) {
+      const M = Math.ceil(MARGIN * C.k) + 2, c = document.createElement('canvas');
+      c.width = cv.width + 2 * M; c.height = cv.height + 2 * M;
+      const b = c.getContext('2d'); b.setTransform(1, 0, 0, 1, M, M);
+      P.paper(b, -M, -M, c.width, c.height, { scale: C.k });
+      drawBgLive(b, new DOMMatrix().translate(M, M).multiply(C.m0), C, 1, bg);
+      L = { cv: c, M, parts: 3 }; BASES.set(key, L); lru(BASES, 5);
     }
-  }
-  const pwo = op(E.pw);
-  if (pwo > 0) {
-    const mp = lm(E.pw);
-    sprite('paper', mp, pwo * op(E.paper));
-    if (op(E.bow) > 0) sprite('bow', mp.multiply(lm(E.bow)), pwo * op(E.bow));
-  }
-  // the greeting: every outline first, then every fill, so an outline never crosses a neighbouring letter
-  if (titleG.style.visibility === 'visible' && letters.length) {
-    const mt = lm(E.titleBob).multiply(lm(titleG));
-    for (const pass of ['outline', 'fill']) for (const t of letters) {
-      const o = op(t), sp = t.__spr; if (o <= 0 || !sp) continue;
-      setM(mt.multiply(lm(t))); C.globalAlpha = o;
-      C.drawImage(sp[pass], +t.getAttribute('x') - sp.l, +t.getAttribute('y') - sp.a, sp.w, sp.h);
-    }
-    C.globalAlpha = 1;
-  }
-  // in front: the torn paper, the near grass, sparkles, then the vignette and grain
-  if (tearing && paperImg) drawShards(C);
-  drawTufts(C, tuftsF);
-  drawLayer(C, true);
-  drawOverlay(C);
-}
-
-/* ═══ the frame loop: wind through the grass, torn paper, rays, particles ═══ */
-const wind = { gust: 0 };
-let T = 0, tearing = false, tearT = 0;
-let lowFx = false, ftAcc = 0, ftN = 0, raysOn = false;
-function frame(time, deltaMs) {
-  const dt = Math.min(.05, deltaMs / 1000); T += dt;
-  const amp = RM ? .4 : 1;
-  // a slow device keeps fewer motes about
-  if (!lowFx && T > 1.5) { ftAcc += deltaMs; if (++ftN === 90) { lowFx = ftAcc / ftN > 40; ftAcc = ftN = 0; } }   // under ~25 fps (a 30 Hz cap is fine)
-  updateParticles(dt);
-  if (spriteQueue.length) letterSprite(spriteQueue.shift());
-  if (tearing) updateShards(dt);
-  if (raysOn) rays.a += dt * 4 * amp * rays.spin;
-  render();
-}
-function updateShards(dt) {
-  tearT += dt; let alive = 0;
-  for (const s of shards) {
-    if (s.done) continue; alive++;
-    const u = tearT - s.delay;
-    if (u < 0) { const j = Math.max(0, .12 + u) * 10; s.x = R(-j, j); s.y = R(-j, j); continue; }   // a shiver before it lets go
-    s.x = s.vx0 * u + .5 * s.ax * u * u; s.y = s.vy0 * u + .5 * s.ay * u * u + s.A * Math.sin(s.w * u);
-    s.a = s.va * u + .5 * s.aa * u * u; s.flip = Math.cos(s.fr * u); s.sy = 1 - .14 * Math.sin(s.fr * .7 * u);
-    s.o = u > 1.25 ? Math.max(0, 1 - (u - 1.25) / .65) : 1;
-    if (s.o <= 0) s.done = true;
-  }
-  if (!alive) tearing = false;
-}
-
-/* ═══ choreography ═══════════════════════════════════════════════════ */
-let state = 'intro', hopTL, ballTL, ballSince = 0, titleReady = null;
-const titleG = $('title');
-const letters = [];
-const FONT = "italic 700 64px 'Fraunces'";
-const fontNow = () => (document.fonts ? Promise.race([document.fonts.load(FONT, 'HapyBirthdJen!'), new Promise(r => setTimeout(r, 1500))]) : Promise.resolve()).catch(() => {});
-function buildTitle() {
-  if (letters.length) return;
-  const lines = [{ txt: 'Happy Birthday', y: 168, fs: 66 }, { txt: 'Jaden!!!', y: 286, fs: 106 }];
-  for (const L of lines) {
-    const m = mk('text', { x: 0, y: L.y, class: 'ttl', 'font-size': L.fs }, titleG); m.textContent = L.txt;
-    const w = m.getComputedTextLength(), x0 = 800 - w / 2, xs = [];
-    for (let i = 0; i < L.txt.length; i++) xs.push(m.getStartPositionOfChar(i).x);
-    m.remove(); titleW = Math.max(titleW, w + 20);
-    for (let i = 0; i < L.txt.length; i++) {
-      if (L.txt[i] === ' ') continue;
-      const t = mk('text', { x: f1(x0 + xs[i]), y: L.y, class: 'ttl', 'font-size': L.fs }, titleG); t.textContent = L.txt[i]; letters.push(t);
-    }
-  }
-  spriteQueue.push(...letters);   // their sprites are made one per frame (see letterSprite) during the crack
-  applyCam();
-}
-// each letter's outline (with its soft shadow) and fill, rasterised once: the pop-in then only stamps sprites
-const spriteQueue = [];
-function letterSprite(t) {
-  const fam = titleG.classList.contains('fb') ? "Georgia, 'Times New Roman', serif" : "'Fraunces', Georgia, serif", S = 2.6, pad = 12;
-  {
-    const fs = +t.getAttribute('font-size'), ch = t.textContent, font = `italic 700 ${fs}px ${fam}`;
-    const g0 = document.createElement('canvas').getContext('2d'); g0.font = font; const m = g0.measureText(ch);
-    const l = Math.ceil(m.actualBoundingBoxLeft) + pad, r = Math.ceil(m.actualBoundingBoxRight) + pad, a = Math.ceil(m.actualBoundingBoxAscent) + pad, d = Math.ceil(m.actualBoundingBoxDescent) + pad + 6;
-    const make = paint => { const c = document.createElement('canvas'); c.width = Math.ceil((l + r) * S); c.height = Math.ceil((a + d) * S); const g = c.getContext('2d'); g.scale(S, S); g.translate(l, a); g.font = font; g.lineJoin = 'round'; paint(g); return c; };
-    t.__spr = { l, a, w: l + r, h: a + d,
-      outline: make(g => { g.strokeStyle = 'rgba(38,6,47,.36)'; g.lineWidth = 14; g.strokeText(ch, 0, 6); g.strokeStyle = '#4b1659'; g.lineWidth = 6.8; g.strokeText(ch, 0, 0); }),
-      fill: make(g => { g.fillStyle = '#fff7ea'; g.fillText(ch, 0, 0); }) };
-    warm.push(t.__spr.outline, t.__spr.fill);
-  }
-}
-
-function startHop() {
-  if (RM) return;
-  const o = { svgOrigin: '800 900' }, b = { svgOrigin: '800 632' }, so = { svgOrigin: '800 904' };
-  hopTL = gsap.timeline({ repeat: -1, repeatDelay: 2.1, delay: 2.2 })
-    .to('#presentWrap', { ...o, scaleX: 1.05, scaleY: .93, duration: .14, ease: 'power2.out' })
-    .to('#presentWrap', { ...o, scaleX: .97, scaleY: 1.05, y: -34, rotation: -3, duration: .22, ease: 'power2.out' })
-    .to('#presentShadow', { ...so, scaleX: .8, opacity: .55, duration: .22, ease: 'power2.out' }, '<')
-    .to('#bow', { ...b, rotation: -7, duration: .22, ease: 'power2.out' }, '<')
-    .to('#presentWrap', { ...o, scaleX: 1, scaleY: 1, y: 0, rotation: 1.5, duration: .2, ease: 'power2.in' })
-    .to('#presentShadow', { ...so, scaleX: 1, opacity: 1, duration: .2, ease: 'power2.in' }, '<')
-    .to('#bow', { ...b, rotation: 6, duration: .2, ease: 'sine.inOut' }, '<')
-    .to('#presentWrap', { ...o, scaleX: 1.05, scaleY: .94, rotation: 0, duration: .07, ease: 'power1.out' })
-    .to('#presentWrap', { ...o, scaleX: 1, scaleY: 1, duration: .55, ease: 'elastic.out(1,.35)' })
-    .to('#bow', { ...b, rotation: 0, duration: .9, ease: 'elastic.out(1.2,.3)' }, '<');
-}
-
-function shake(px) {
-  if (RM) return;
-  const k = vb.w / VW;   // px on screen -> world units
-  gsap.fromTo(shakeOff, { x: 0, y: 0 }, { keyframes: { x: [0, -px * k, px * k * .8, -px * k * .5, px * k * .3, 0], y: [0, px * k * .6, -px * k * .5, px * k * .3, -px * k * .2, 0] }, duration: .4, ease: 'none', onUpdate: applyCam });
-}
-function toScreen(x, y) { return [((x - vb.x) / vb.w * 100).toFixed(1) + '%', ((y - vb.y) / vb.h * 100).toFixed(1) + '%']; }
-
-function openPresent() {
-  state = 'opening';
-  if (hopTL) hopTL.kill();
-  scene.setAttribute('aria-label', 'The wind takes the wrapping paper away.'); say('The wind takes the wrapping paper away. Inside is a bowling ball.');
-  if (RM) {
-    $('ball').style.visibility = ''; gsap.set('#ball', { y: 0 });
-    gsap.timeline().to('#presentWrap, #presentShadow', { opacity: 0, duration: .7 }, 0).to('#ballShadow', { opacity: 1, duration: .7 }, 0)
-      .add(() => { state = 'ball'; ballSince = performance.now(); scene.setAttribute('aria-label', 'A bowling ball. Press to open it.'); startBallIdle(); }, .8);
+    reset(g); g.drawImage(L.cv, -L.M - C.sx * C.k, -L.M - C.sy * C.k);
     return;
   }
-  const o = { svgOrigin: '800 900' };
-  const tl = gsap.timeline();
-  tl.to('#presentWrap', { ...o, scaleX: 1.08, scaleY: .9, y: 0, rotation: 0, duration: .16, ease: 'power2.out' }, 0)
-    .to('#presentShadow', { scaleX: 1, opacity: 1, duration: .16, svgOrigin: '800 904' }, 0)
-    .to('#bow', { rotation: 0, scale: 1.22, duration: .16, ease: 'back.out(3)', svgOrigin: '800 632' }, 0)
-    .to('#presentWrap', { ...o, scaleX: .97, scaleY: 1.04, duration: .14, ease: 'power2.out' })
-    .to('#presentWrap', { ...o, scaleX: 1, scaleY: 1, duration: .18, ease: 'power1.inOut' })
-    .addLabel('gust', .3)
-    .to('#bow', { y: -430, duration: 1.7, ease: 'power1.out', svgOrigin: '800 632' }, 'gust')
-    .to('#bow', { x: 700, rotation: 380, scale: .8, duration: 1.7, ease: 'power2.in', svgOrigin: '800 632' }, 'gust')
-    .to('#bow', { opacity: 0, duration: .42, ease: 'power1.in', onComplete: () => { $('bow').style.display = 'none'; } }, 'gust+=.38')
-    .to(wind, { gust: 1, duration: .55, ease: 'power2.in' }, 'gust')
-    .add(() => gustPetals(RM ? 10 : 46), 'gust')
-    .add(() => { $('ball').style.visibility = ''; if (paperImg) { const t = $('presentWrap').transform.baseVal.consolidate(); paperM = t && t.matrix; tearT = 0; tearing = true; $('paperIntact').style.display = 'none'; } else gsap.to('#paperIntact', { opacity: 0, duration: .8 }); }, 'gust+=.32')
-    .to('#presentShadow', { opacity: 0, duration: 1.2 }, 'gust+=.6')
-    .to('#ballShadow', { opacity: 1, duration: 1.2 }, 'gust+=.7')
-    .to('#ball', { y: 0, duration: .55, ease: 'bounce.out' }, 'gust+=1.75')
-    .add(() => { shake(5); dust(800, 900, RM ? 4 : 16); }, 'gust+=1.92')
-    .to(wind, { gust: 0, duration: 2.6, ease: 'sine.inOut' }, 'gust+=1.8')
-    .add(() => { state = 'ball'; ballSince = performance.now(); scene.setAttribute('aria-label', 'A bowling ball. Press to open it.'); startBallIdle(); }, 'gust+=2.4');
+  if (bg.r < 1 || bg.d < 1 || NOCACHE) {   // sketching in: live
+    paperOnly(C);
+    reset(g); drawBgLive(g, C.m, C, s, bg);
+    return;
+  }
+  const L = base(C, s, !fin, framing(D));
+  reset(g); g.drawImage(L.cv, -L.M - C.sx * C.k, -L.M - C.sy * C.k);
+  if (fin) drawSun(g, C, s, 0, C.m, framing(D));
 }
-
-// the greeting is measured and its letter sprites made while the ball sits waiting, not during the reveal
-function prepTitle() {
-  if (!titleReady) titleReady = fontNow().then(() => { if (document.fonts && !document.fonts.check(FONT, 'HapyBirthdJen!')) titleG.classList.add('fb'); buildTitle(); gsap.set(letters, { opacity: 0 }); });
-  return titleReady;
+const BG_PARTS = [['sky', 'sun', 'cloudB', 'cloudA'], ['hillL', 'hillR', 'horizon'], ['tree', 'palm', 'grass']];
+function base(C, s, withSun, fr, upto) {   // upto: build only the next part (a warm-up slice); default: all of it
+  const key = [C.key, s, withSun ? 1 : 0, fr, bgTall() ? 't' : 'w'].join('|');
+  let L = BASES.get(key);
+  if (!L) {
+    const M = Math.ceil(MARGIN * C.k) + 2, c = document.createElement('canvas');
+    c.width = cv.width + 2 * M; c.height = cv.height + 2 * M;
+    const b = c.getContext('2d');
+    b.setTransform(1, 0, 0, 1, M, M);
+    P.paper(b, -M, -M, c.width, c.height, { scale: C.k });   // the tooth anchored where the page's is
+    L = { cv: c, M, parts: 0 };
+    BASES.set(key, L); lru(BASES, 5);
+  } else { BASES.delete(key); BASES.set(key, L); }
+  while (L.parts < BG_PARTS.length) {
+    if (!SKIP.has('bg')) {
+      const b = L.cv.getContext('2d');
+      b.setTransform(new DOMMatrix().translate(L.M, L.M).multiply(C.m0));
+      P.render(b, mergedBg(withSun, fr, L.parts), { seed: s, color: BGJ.layout.color, show: ['horizon:hz-mid'] });
+    }
+    L.parts++;
+    if (upto) break;
+  }
+  return L;
 }
-function startBallIdle() {
-  setTimeout(prepTitle, 700);
-  ballTL = gsap.timeline({ repeat: -1, repeatDelay: 1.9, delay: .5 })
-    .to('.hglow', { opacity: .45, duration: .45, ease: 'sine.out' })
-    .to('#ball', { keyframes: { x: [0, -3, 3, -2.5, 2, -1, 0] }, duration: .42, ease: 'none' }, '<.15')
-    .to('.hglow', { opacity: .06, duration: 1.4, ease: 'sine.inOut' });
+// background elements are kept whole in the visible frame: nudged in when mostly inside, out when mostly outside
+function placeEl(name, fr) {
+  const L = BGJ.layout, tall = bgTall();
+  let p = (tall && L.tall && L.tall[name]) || L.place[name] || [0, 0];
+  if (skyFrame(fr) && isTall() && name === 'cloudB') return [2600, -1880];   // portrait: the greeting fills that sky
+  if (name === 'sun' && tall && fr !== 'present') return [-9000, 0];          // portrait: set before the close-up
+  if (name === 'sun' && isPhone() && fr === 'present') p = [-300, -1550];       // clear of the hanging ball
+  if (skyFrame(fr) && tall && name === 'cloudB') p = [330, -1880];
+  if (!/^(sun|cloudA|cloudB)$/.test(name)) return p;
+  const r = viewRect(CAM[fr] || CAM.present), b = BGJ.elements[name].style.bounds, m = 40;
+  let x = p[0], y = p[1];
+  const x0 = x + b[0], x1 = x + b[2], y0 = y + b[1], y1 = y + b[3], w = x1 - x0, h = y1 - y0;
+  const vis = Math.max(0, Math.min(x1, r.x + r.w) - Math.max(x0, r.x)) * Math.max(0, Math.min(y1, r.y + r.h) - Math.max(y0, r.y)) / (w * h);
+  if (vis <= 0) return p;
+  if (vis < 0.5) {   // push it out of the frame: no slivers
+    if (x0 < r.x) x -= x1 - r.x + m; else if (x1 > r.x + r.w) x += r.x + r.w - x0 + m;
+    else if (y0 < r.y) y -= y1 - r.y + m;
+  } else {           // pull it fully in
+    if (x0 < r.x + m) x += r.x + m - x0; if (x1 > r.x + r.w - m) x -= x1 - (r.x + r.w - m);
+    if (y0 < r.y + m) y += r.y + m - y0;
+  }
+  return [x, y];
 }
-
-function crackBall() {
-  state = 'cracking';
-  if (ballTL) ballTL.kill();
-  scene.setAttribute('aria-label', 'The bowling ball cracks open.'); say('The bowling ball cracks open…');
-  prepTitle();
-  raysOn = true;
-  const B = '#ball', o = { svgOrigin: '800 900' };
-  const draw = (sel, dur, at, ease, stagger) => svg.querySelectorAll(sel).forEach((el, i) => {
-    const p = { v: 1 };
-    tl.to(p, { v: 0, duration: dur, ease, onUpdate: () => el.setAttribute('stroke-dashoffset', p.v.toFixed(4)) }, at + (stagger ? (i % 4) * stagger : 0));
-  });
-  const tl = gsap.timeline();
-  if (RM) { gsap.set(B, { x: 0 }); tl.to('.hglow', { opacity: 1, duration: .2 }, 0).to(rays, { o: .5, duration: .6 }, .2).add(split, .9); draw('.ckm', .4, .1, 'none'); draw('.ckb', .15, .4, 'none', .05); return; }
-  tl.to(B, { ...o, x: 0, rotation: 0, scaleX: 1.07, scaleY: .93, duration: .1, ease: 'power2.out' }, 0)
-    .to(B, { ...o, scaleX: 1, scaleY: 1, duration: .45, ease: 'elastic.out(1,.4)' }, .1)
-    .to('.hglow', { opacity: 1, duration: .12 }, 0)
-    .to(B, { ...o, keyframes: { rotation: [0, -1.6, 1.6, -1.8, 1.8, -2, 2, 0] }, duration: .55, ease: 'none' }, .2)
-    .to(B, { ...o, keyframes: { x: [0, -2.5, 2.5, -2.5, 2.5, -2, 2, -2.5, 2.5, -1.5, 0] }, duration: .3, ease: 'none' }, .75)
-    .to(B, { ...o, scaleX: 1.035, scaleY: 1.035, duration: .2, ease: 'power2.out' }, 1.02)
-    .to(rays, { o: .5, duration: .7 }, .35)
-    .to(rays, { s: .85, duration: .7 }, .35)
-    .to(svg.querySelectorAll('.ckg'), { attr: { 'stroke-width': 4.2 }, duration: .2, ease: 'power2.in' }, .95)
-    .add(split, 1.2);
-  draw('.ckm', .42, .2, 'power1.in');
-  draw('.ckb', .14, .5, 'power1.out', .09);
+const MERGED = new Map();
+function mergedBg(withSun, fr, part) {
+  const parts = BG_PARTS[part].filter(n => (withSun || n !== 'sun') && !(n === 'sky' && bgTall()));   // portrait: no pale sky legs (they'd be cut by the frame)
+  const key = [withSun, fr, part, bgTall(), layoutGen].join('|');
+  let f = MERGED.get(key);
+  if (!f) {
+    const items = parts.map(n => { const p = placeEl(n, fr); return [n, { x: p[0], y: p[1] }]; });
+    f = BGJ.merge(items); MERGED.set(key, f);
+  }
+  return f;
 }
-
-function split() {
-  $('ballWhole').style.display = 'none';
-  $('halfL').style.display = ''; $('halfR').style.display = '';
-  gsap.to('#ball', { scaleX: 1, scaleY: 1, x: 0, rotation: 0, duration: .35, ease: 'power2.out', svgOrigin: '800 900' });
-  $('crack').style.display = 'none';   // the seam's light hands over to the glowing cut faces
-  gsap.set('#halfL', { rotation: 7, x: -11, svgOrigin: '800 792' }); gsap.set('#halfR', { rotation: -7, x: 11, svgOrigin: '800 792' });
-  gsap.set(svg.querySelectorAll('#halfL .inner, #halfR .inner'), { attr: { rx: 6 } });
-  const [fx, fy] = toScreen(800, 792);
-  $('flash').style.setProperty('--fx', fx); $('flash').style.setProperty('--fy', fy);
-  $('flash').style.display = 'block';
-  gsap.timeline().to('#flash', { opacity: RM ? .12 : .18, duration: .04 }).to('#flash', { opacity: 0, duration: .1, ease: 'power2.out', onComplete: () => { $('flash').style.display = 'none'; } });
-  gsap.timeline().to('#bloom', { opacity: 1, duration: .08 }).to('#bloom', { opacity: .45, duration: 1.4, ease: 'power2.out' });
-  shake(8);
-  setTimeout(() => burst(800, 780, RM ? 20 : 80, 1.25), 40);
-  const roll = RM ? (sel, dir) => gsap.set(sel, { rotation: -40 * dir, x: -75 * dir, svgOrigin: '800 792' }) : (sel, dir) => gsap.timeline()
-    .to(sel, { rotation: -46 * dir, x: -87 * dir, duration: .5, ease: 'power3.out', svgOrigin: '800 792' })
-    .to(sel, { rotation: -34 * dir, x: -64 * dir, duration: .45, ease: 'sine.inOut' })
-    .to(sel, { rotation: -40 * dir, x: -75 * dir, duration: .55, ease: 'sine.inOut' });
-  roll('#halfL', 1); roll('#halfR', -1);
-  gsap.to(svg.querySelectorAll('#halfL .inner, #halfR .inner'), { attr: { rx: 24 }, duration: .6, ease: 'power2.out' });
-  gsap.to('#ballShadow', { scaleX: 1.9, opacity: .8, svgOrigin: '800 902', duration: .6 });
-  gsap.to('#groundGlow', { opacity: 1, duration: .5 });
-  gsap.to('.hglow', { opacity: .35, duration: 1.2 });
-  gsap.to(rays, { o: .9, duration: .4 });
-
-  // the logo rises out of the light from behind the halves; then the wordmark slams down onto it
-  const tl = gsap.timeline({ delay: .06 });
-  const logo = $('logo'), word = $('logoWord'), wb = word.getBBox(), wc = [wb.x + wb.width / 2, wb.y + wb.height / 2];
-  const L = { y: 276, s: .14, kx: 1, ky: 1, o: 1, ws: 1.45, wo: 0 };
-  const drawLogo = () => {
-    logo.setAttribute('transform', `translate(800 ${f1(516 + L.y)}) scale(${L.s.toFixed(4)}) translate(0 163) scale(${L.kx.toFixed(4)} ${L.ky.toFixed(4)}) translate(-800 -679)`);
-    logo.setAttribute('opacity', L.o.toFixed(3));
-    word.setAttribute('transform', `translate(${f1(wc[0])} ${f1(wc[1])}) scale(${L.ws.toFixed(4)}) translate(${f1(-wc[0])} ${f1(-wc[1])})`);
-    word.setAttribute('opacity', L.wo.toFixed(3));
-  };
-  if (RM) { L.y = 0; L.s = 1; L.ws = 1; L.o = 0; }   // reduced motion: everything fades in place
-  drawLogo();
-  tl.to(L, { y: 0, s: 1, duration: 1.7, ease: 'expo.out', onUpdate: drawLogo }, 0)
-    .to(L, { o: 1, duration: RM ? .8 : 0, ease: 'none', onUpdate: drawLogo }, 0)
-    .to(rays, { y: 516, s: 1.25, duration: 1.7, ease: 'expo.out' }, 0)
-    .to(L, { wo: 1, duration: RM ? .5 : 0, ease: 'none', onUpdate: drawLogo }, .85)
-    .to(L, { ws: 1, duration: .26, ease: 'power2.in', onUpdate: drawLogo }, .85)
-    .to(L, { kx: 1.07, ky: .91, duration: .07, ease: 'power2.out', onUpdate: drawLogo }, 1.11)
-    .to(L, { kx: 1, ky: 1, duration: .5, ease: 'elastic.out(1,.35)', onUpdate: drawLogo }, 1.18)
-    .add(() => { shake(3); ring(800, 516, 255, 200); }, 1.11)
-    .to(dusk, { t: 1, duration: 3.4, ease: 'sine.inOut', onUpdate: applyDusk }, .1)
-    .to(sun, { cy: 726, duration: 3.4, ease: 'sine.inOut' }, .1)   // the sun sets behind the hills
-    .to(clouds[2], { x: 330, duration: 2.3, ease: 'power1.in' }, 0)   // and the cloud behind the greeting is blown aside
-    .to(clouds[2], { opacity: 0, duration: .7, ease: 'power1.in' }, 1.6)
-    .to(cam, { x: CAM1.x, y: CAM1.y, w: CAM1.w, h: CAM1.h, duration: RM ? .01 : 3.2, ease: 'power2.inOut', onUpdate: applyCam }, .1)
-    .to(rays, { o: .7, duration: 2 }, 1.6)
-    .add(showTitle, 2.3)
-    .add(() => {
-      state = 'final'; scene.classList.add('done'); ambientPetals = true;
-      scene.setAttribute('aria-label', 'Happy Birthday Jaden!!! The bowling ball has opened, and inside it is the Grand Theft Auto VI logo.');
-      say('Inside the bowling ball: Grand Theft Auto VI. Happy Birthday Jaden!!!');
-      // the resting state stays light: the logo and greeting float gently and the rays settle to stillness
-      if (!RM) gsap.to('#logoBob', { y: -9, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-      gsap.to(rays, { spin: 0, duration: 3, ease: 'sine.out', onComplete: () => { raysOn = false; } });
-    }, 3.4)
-    .add(() => { const b = $('replay'); b.classList.add('on'); b.tabIndex = 0; }, 6.5);
+// sketching in: each element with its own build-up; the horizon writes from the middle out; the land knocks out
+const BG_SPAN = l => l.reduce((m, it) => Math.max(m, it.at + it.ms), 0);
+const BG_R_MS = BG_SPAN(BGJ.layout.sketchIn.roughs), BG_D_MS = BG_SPAN(BGJ.layout.sketchIn.details);
+function detailsMs(u) {   // the coda: the lines quickly, then time to lay the colour in, then the shadows
+  return u < 0.35 ? u / 0.35 * 2050 : u < 0.72 ? 2050 + (u - 0.35) / 0.37 * 1250 : 3300 + (u - 0.72) / 0.28 * (BG_D_MS - 3300);
 }
-
-function showTitle() {
-  (titleReady || Promise.resolve()).then(() => {
-    titleG.style.visibility = 'visible';
-    gsap.to(letters, { opacity: 1, duration: RM ? .5 : .001, ease: 'none', stagger: .05 });
-    if (!RM) gsap.from(letters, { y: 34, scale: .4, rotation: () => R(-16, 16), transformOrigin: '50% 80%', duration: .8, ease: 'back.out(2.4)', stagger: .05,
-      onComplete: () => gsap.to('#titleBob', { y: -5, duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1 }) });
-  });
-}
-
-function advance(e) {
-  if (state === 'present' || state === 'intro') openPresent();
-  else if (state === 'ball') { if (performance.now() - ballSince > 700) crackBall(); }   // rapid taps can't skip the ball
-  else if (state === 'final' && e && e.clientX !== undefined) {
-    const r = scene.getBoundingClientRect(), x = vb.x + (e.clientX - r.left) / VW * vb.w, y = vb.y + (e.clientY - r.top) / VH * vb.h;
-    burst(x, y, RM ? 8 : 26, 3.14, .55, true);
+const HZ_ORDER = { 'hz-mid': [0, 0.32], 'hz-l2': [0.26, 0.66], 'hz-r1': [0.26, 0.66], 'hz-l1': [0.6, 1], 'hz-r2': [0.6, 1] };
+function drawBgLive(t, base, C, s, bg) {
+  const builds = bg.r < 1 ? BGJ.sketchAt('roughs', bg.r * BG_R_MS) : bg.d < 1 ? BGJ.sketchAt('details', detailsMs(bg.d)) : null;
+  for (const name of BGJ.layout.order) {
+    const b = builds ? builds[name] : undefined;
+    if (b === null || (name === 'sky' && bgTall())) continue;
+    const p = placeEl(name, 'present');
+    t.setTransform(base.translate(p[0], p[1]));
+    const o = { seed: s, color: BGJ.layout.color, build: b };
+    if (name === 'horizon') {
+      o.show = ['hz-mid'];
+      const u = b && b.line !== undefined ? b.line : 1;
+      o.draw = id => { const r = HZ_ORDER[id] || [0, 1]; return clamp01((u - r[0]) / (r[1] - r[0])); };
+    }
+    if (/^hill|^horizon/.test(name)) o.layers = { knockout: true };
+    P.render(t, BGJ.elements[name], o);
   }
 }
-scene.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType !== 'mouse') advance(e); });
-scene.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); } });
-$('replay').addEventListener('click', e => { e.stopPropagation(); location.reload(); });
 
-/* ═══ go ═════════════════════════════════════════════════════════════ */
-function resize() { VW = scene.clientWidth || innerWidth; VH = scene.clientHeight || innerHeight; sizeCanvas(); applyCam(); }
-if (window.ResizeObserver) new ResizeObserver(resize).observe(scene); else addEventListener('resize', resize);
+/* ---- the sun in the final framing: it sets in held keys; drawn in a small scratch, the land erased from it ---- */
+const scratch = document.createElement('canvas'), sg = scratch.getContext('2d');
+function landPolys(fr) {
+  const out = [];
+  for (const n of ['hillL', 'hillR', 'horizon']) {
+    const e = BGJ.elements[n], p = placeEl(n, fr);
+    for (const o of e.style.occluders || []) out.push(o.poly.map(([x, y]) => [x + p[0], y + p[1]]));
+  }
+  return out;
+}
+function sunPos(k, fr) {
+  const tall = bgTall();
+  let p = BGJ.sunAt ? BGJ.sunAt(k, tall) : placeEl('sun', fr);
+  if (k <= 0 && !tall) p = placeEl('sun', fr);
+  const r = viewRect(CAM[fr] || CAM.final), b = BGJ.elements.sun.style.bounds;   // never cut by the frame's side
+  return [Math.max(r.x + 50 - b[0], Math.min(r.x + r.w - 50 - b[2], p[0])), p[1]];
+}
+function drawSun(t, C, s, k, base, fr) {
+  if (bgTall()) return;   // portrait: it has already set; the dusk wash carries the sunset
+  const [x, y] = sunPos(k, fr), b = BGJ.elements.sun.style.bounds, pad = 30;
+  const a = base.transformPoint(new DOMPoint(x + b[0] - pad, y + b[1] - pad)), z = base.transformPoint(new DOMPoint(x + b[2] + pad, y + b[3] + pad));
+  const bx = Math.floor(a.x), by = Math.floor(a.y), bw = Math.ceil(z.x) - bx, bh = Math.ceil(z.y) - by;
+  if (bw < 2 || bh < 2) return;
+  if (scratch.width < bw || scratch.height < bh) { scratch.width = Math.max(bw, scratch.width); scratch.height = Math.max(bh, scratch.height); }
+  reset(sg); sg.clearRect(0, 0, bw, bh);
+  const m = new DOMMatrix().translate(-bx, -by).multiply(base);
+  sg.setTransform(m.translate(x, y));
+  P.render(sg, BGJ.elements.sun, { seed: s, color: BGJ.layout.color });
+  if (k > 0) { const S = BGJ.duskState(k); P.render(sg, BGJ.dusk.sun, Object.assign({ seed: s, color: BGJ.layout.color }, S.opts.sun)); }
+  sg.setTransform(m); sg.globalCompositeOperation = 'destination-out'; sg.fillStyle = '#000';
+  for (const poly of landPolys(fr)) { sg.beginPath(); poly.forEach(([px, py], i) => i ? sg.lineTo(px, py) : sg.moveTo(px, py)); sg.closePath(); sg.fill(); }
+  reset(sg);
+  t.save(); reset(t); t.globalCompositeOperation = 'multiply';
+  t.drawImage(scratch, 0, 0, bw, bh, bx, by, bw, bh);
+  t.restore();
+}
+
+/* ---- the dusk wash: each pass committed, once complete, onto a per-seed wash level (base without the sun +
+ * passes); the pass still being drawn goes on each composite. The handwriting's halo and the clouds stay paper. ---- */
+const WASH = new Map();
+function duskPasses(k) {   // [{el, g, f}] per beat up to k, the last progress of each pass
+  const B = BGJ.layout.duskBeats, out = {};
+  for (let i = 0; i < Math.min(k, B.length); i++) for (const [el, gr, f] of B[i]) if (el !== 'sun') out[el + '|' + gr] = { el, g: gr, f: f === undefined ? 1 : f, beat: i + 1 };   // the sun's own passes go with the sun
+  return Object.values(out);
+}
+function washLevel(C, s, k, fr) {
+  const key = [C.key, s, bgTall()].join('|');
+  let W = WASH.get(key);
+  if (!W || W.k > k) {
+    const L = base(C, s, false, fr), c = (W && W.cv) || document.createElement('canvas');
+    c.width = L.cv.width; c.height = L.cv.height;
+    const w = c.getContext('2d'); reset(w); w.drawImage(L.cv, 0, 0);
+    W = { cv: c, M: L.M, k: 0 }; WASH.set(key, W); lru(WASH, 3);
+  }
+  if (W.k < k) {   // commit the passes that completed since
+    const done = duskPasses(k).filter(p => p.f >= 1 && p.beat > W.k).sort((a, b) => a.beat - b.beat);
+    const base0 = new DOMMatrix().translate(W.M, W.M).multiply(C.m0);
+    for (const p of done) washPass(W.cv.getContext('2d'), base0, C, s, p.el, p.g, 1, fr);
+    W.k = k;
+  }
+  return W;
+}
+function washPass(t, base0, C, s, el, gr, f, fr) {   // one pass, drawn into the scratch, cleared round words and clouds, multiplied on
+  const fig = BGJ.dusk[el], st = fig.style, groups = {};
+  for (const x of st.washOrder) if (x !== gr) groups[x] = { visible: false };
+  let a0 = 1, a1 = 0;
+  for (const ac of st.accents[st.accentSet]) if (ac.group === gr) { a0 = Math.min(a0, ac.span[0]); a1 = Math.max(a1, ac.span[1]); }
+  const amount = a0 + clamp01(f) * (a1 - a0);
+  const W = t.canvas.width, H = t.canvas.height;
+  if (scratch.width < W || scratch.height < H) { scratch.width = Math.max(W, scratch.width); scratch.height = Math.max(H, scratch.height); }
+  reset(sg); sg.clearRect(0, 0, W, H);
+  const p = el === 'wash' ? [0, 0] : placeEl(el, fr);
+  sg.setTransform(base0.translate(p[0], p[1]));
+  P.render(sg, fig, { seed: s, color: BGJ.layout.color, accent: st.accentSet, accentAmount: amount, groups });
+  sg.setTransform(base0); sg.globalCompositeOperation = 'destination-out'; sg.fillStyle = '#000';
+  for (const [x, y, w, h] of textHalos(textPlace())) { sg.beginPath(); roundRect(sg, x, y, w, h, w > 9000 ? 0 : Math.min(w, h) * 0.35); sg.fill(); }
+  if (el === 'wash') for (const n of ['cloudA', 'cloudB']) {
+    const q = placeEl(n, fr);
+    for (const o of BGJ.elements[n].style.occluders || []) { sg.beginPath(); o.poly.forEach(([x, y], i) => i ? sg.lineTo(x + q[0], y + q[1]) : sg.moveTo(x + q[0], y + q[1])); sg.closePath(); sg.fill(); }
+  }
+  reset(sg);
+  t.save(); reset(t); t.globalCompositeOperation = 'multiply'; t.drawImage(scratch, 0, 0, W, H, 0, 0, W, H); t.restore();
+}
+function roundRect(c, x, y, w, h, r) { c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+
+/* ---- at rest (from the wordmark's landing on): the wash level, the sun, the pass in progress, the halves and the
+ * logo as sprites, kept as one composite while only the pen moves ---- */
+const COMPS = new Map();   // key -> canvas: the scene under the greeting, one per boil drawing
+function composeRest(C, D) {
+  const k = Math.min(DUSK_N, Math.floor((D.pose.bg.dusk || 0) + 1e-6)), s = D.seed;
+  const ck = [C.key, s, k, bgTall(), isTall(), layoutGen].join('|');
+  let c = !NOCACHE && COMPS.get(ck);
+  if (!c) {
+    if (COMPS.size >= 3) { const [k0, old] = COMPS.entries().next().value; COMPS.delete(k0); c = old; }
+    c = c || document.createElement('canvas');
+    if (c.width !== cv.width || c.height !== cv.height) { c.width = cv.width; c.height = cv.height; }
+    const prev = g; g = c.getContext('2d'); reset(g);
+    if (SKIP.has('bg')) paperOnly(C);
+    else {
+      const fr = framing(D), W = washLevel(C, s, k, fr);
+      g.drawImage(W.cv, -W.M, -W.M);
+      drawSun(g, C, s, k, C.m, fr);
+      for (const p of duskPasses(k)) if (p.f < 1) washPass(g, C.m, C, s, p.el, p.g, p.f, fr);
+    }
+    if (!SKIP.has('logo')) drawLogo(C, D, D.pose.logo);          // the logo sits behind the halves
+    if (!SKIP.has('ball')) drawBall(C, D, D.pose.ball);
+    g = prev; COMPS.set(ck, c);
+  } else { COMPS.delete(ck); COMPS.set(ck, c); }
+  reset(g); g.drawImage(c, 0, 0);
+}
+
+/* ---- sprites: a figure drawn once per seed onto white (no paper-out), multiplied on through its silhouette,
+ * which is first filled with paper. Transforms are blits; at rest they are pixel-aligned. ---- */
+const SPR = new Map();
+const HALF_POLY = sgn => { const cr = J.ball.style.crack, n = cr.length, far = sgn < 0 ? -300 : 1300; return cr.concat([[far, cr[n - 1][1]], [far, cr[0][1]]]); };
+const polyPath = (poly, m) => { const p = new Path2D(); poly.forEach(([x, y], i) => { const q = m ? m.transformPoint(new DOMPoint(x, y)) : { x, y }; i ? p.lineTo(q.x, q.y) : p.moveTo(q.x, q.y); }); p.closePath(); return p; };
+function spriteSpec(kind) {
+  if (kind.slice(0, 4) === 'ball') return { fig: J.ball, box: [20, 20, 910, 840] };
+  if (kind === 'halfL') return { fig: J.ball, box: [20, 0, 520, 860] };
+  if (kind === 'halfR') return { fig: J.ball, box: [400, 0, 910, 860] };
+  const gb = J.logo.style.groupBox[kind];
+  return { fig: J.logo, box: [gb[0] - 60, gb[1] - 60, gb[2] + 60, gb[3] + 60] };
+}
+function sprite(kind, seed, ks, boil) {
+  const sd = 1 + ((seed - 1) % 3);
+  const key = [kind, sd, ks.toFixed(4), layoutGen].join('|');
+  let S = SPR.get(key);
+  if (S) { SPR.delete(key); SPR.set(key, S); return S; }
+  const spec = spriteSpec(kind), b = spec.box, c = document.createElement('canvas');
+  c.width = Math.ceil((b[2] - b[0]) * ks) + 2; c.height = Math.ceil((b[3] - b[1]) * ks) + 2;
+  const t = c.getContext('2d');
+  t.fillStyle = '#fff'; t.fillRect(0, 0, c.width, c.height);
+  t.setTransform(ks, 0, 0, ks, -b[0] * ks, -b[1] * ks);
+  const common = { seed: sd, colorSeed: 1 + (sd % 3), color: colourOf(sd, kind, true), layers: { knockout: false } };
+  if (kind.slice(0, 4) === 'ball') {
+    P.render(t, J.ball, Object.assign(common, { groups: { ground: { visible: false } } }));
+    if (kind !== 'ball') { const prev = g; g = t; holeHatch(t.getTransform(), +kind.slice(5), sd); g = prev; }   // the finger holes, darkened
+  }
+  else if (kind === 'halfL' || kind === 'halfR')   // one half in place: off-register colour, the hollow inner wall, the broken edge
+    P.render(t, J.ball, Object.assign(common, { half: { side: kind === 'halfL' ? -1 : 1, wall: 1 }, groups: { ground: { visible: false } } })); else if (have('logo')) J.logo.render(t, Object.assign(common, { only: kind }));
+  S = { cv: c, ox: b[0], oy: b[1], ks };
+  SPR.set(key, S); lru(SPR, 24);
+  return S;
+}
+function blitSprite(S, M, clipFn, C, alpha) {
+  // 1. paper inside the silhouette (anchored like the page's), so whatever is behind is hidden
+  if (alpha === undefined || alpha >= 0.999) {
+    g.save(); g.setTransform(M); clipFn(g); reset(g);
+    P.paper(g, 0, 0, g.canvas.width, g.canvas.height, { scale: C.k });
+    g.restore();
+  }
+  // 2. the drawing, multiplied
+  let m = M.translate(S.ox, S.oy).scale(1 / S.ks);
+  if (Math.abs(m.a - 1) < 1e-3 && Math.abs(m.d - 1) < 1e-3 && Math.abs(m.b) < 1e-3 && Math.abs(m.c) < 1e-3) m = new DOMMatrix([1, 0, 0, 1, Math.round(m.e), Math.round(m.f)]);
+  g.save(); g.setTransform(m); g.globalCompositeOperation = 'multiply'; if (alpha !== undefined) g.globalAlpha = alpha;
+  g.drawImage(S.cv, 0, 0); g.restore();
+}
+const ballClip = t => { const o = J.ball.style.occluders.find(q => q.group === 'ball'); t.clip(polyPath(o.poly)); };
+
+/* ---- the present ---- */
+const GHOST = { color: 0.35, weight: 0.8, layers: { construction: false, shadow: false } };
+function drawBox(C, D, b) {
+  const reg = regOf(D, 'box');
+  const common = { seed: D.seed, colorSeed: D.cseed, color: colourOf(D.seed, 'box', D.boil), build: b.build };
+  const airborne = Math.abs(b.y) > 0.5, groundOn = b.ground.a > 0.02;
+  const home = figM(C.m, BOX_A, { x: 0, y: 0 }, reg);
+  if (airborne && groundOn) {   // the contact shadow stays on the ground while the box is in the air
+    g.setTransform(home);
+    P.render(g, J.box, Object.assign({}, common, { only: 'ground', groups: { ground: { alpha: b.ground.a, scale: b.ground.s } } }));
+  }
+  const fly = b.lid.on && b.lid.fly;
+  if (fly) {   // the lid and bow on their own paths (not squashed with the box), multiples behind
+    g.setTransform(home);
+    for (const q of b.mult || []) {
+      const lid = q.g === 'lid' ? q : b.lid;
+      P.render(g, J.box, Object.assign({}, common, GHOST, { only: q.g, alpha: q.a,
+        groups: { lid: { x: lid.x, y: lid.y, rot: lid.rot }, bow: q.g === 'bow' ? bowGroup(b, q) : { visible: false } } }));
+    }
+    P.render(g, J.box, Object.assign({}, common, { only: 'lid', layers: { knockout: true }, groups: { lid: { x: b.lid.x, y: b.lid.y, rot: b.lid.rot }, bow: bowGroup(b) } }));
+  }
+  g.setTransform(figM(C.m, BOX_A, b, reg));
+  P.render(g, J.box, Object.assign({}, common, {
+    show: b.rim ? ['body-rim'] : [], layers: { knockout: (b.build.line === undefined ? 1 : b.build.line) >= 1 },   // the horizon goes behind it in one drawing
+    groups: {
+      lid: fly || !b.lid.on ? { visible: false } : { x: b.lid.x, y: b.lid.y, rot: b.lid.rot },
+      lidShadow: { alpha: b.lidShadow },
+      ground: airborne || !groundOn ? { visible: false } : { alpha: b.ground.a, scale: b.ground.s },
+      bow: bowGroup(b),
+    } }));
+}
+function bowGroup(b, ghost) {
+  const bow = ghost || b.bow;
+  if (!b.bow.on || !b.lid.on) return { visible: false };
+  if (!b.bow.free) return { x: bow.x, y: bow.y, rot: bow.rot };
+  return fromM(gM(b.lid, LID_PV).inverse().multiply(gM(bow, BOW_PV)), BOW_PV);
+}
+
+/* ---- the bowling ball ---- */
+const HOLES = ['hole-middle', 'hole-ring', 'hole-thumb'];
+function drawBall(C, D, b) {
+  if (!have('ball')) return;
+  const reg = regOf(D, 'ball'), common = { seed: D.seed, colorSeed: D.cseed, color: colourOf(D.seed, 'ball', D.boil) };
+  const grounded = Math.abs(b.y) < 0.5 && b.on && !b.split;
+  if (b.ground.a > 0.02) {   // the contact shadow stays on the ground
+    g.setTransform(figM(C.m, BALL_A, grounded ? Object.assign({}, b, { rot: 0, s: 1 }) : { x: 0, y: 0 }, reg));
+    P.render(g, J.ball, Object.assign({}, common, { only: 'ground', groups: { ground: { alpha: b.ground.a, scale: b.ground.s * (1 + 0.32 * clamp01(b.split)) } } }));
+  }
+  if (!b.on) return;
+  if (b.split > 0) { drawHalves(C, D, b, reg); return; }
+  const M = figM(C.m, BALL_A, b, reg);
+  const S = sprite(b.holes ? 'ballh' + b.holes : 'ball', D.seed, C.k);
+  g.save();
+  if (b.inBox) {   // still inside the box: only what has come up through the rim shows
+    const bx = figM(C.m, BOX_A, D.pose.box || {}, null), body = J.box.style.regions.body.polys[0];
+    g.setTransform(bx); const p = polyPath(body); p.rect(78, -6000, 685, 6190); g.clip(p);
+  }
+  blitSprite(S, M, ballClip, C);
+  g.restore();
+  if (b.crack > 0) crackLine(M, b.crack, D.seed, 1);
+}
+function crackLine(M, u, seed, wt) {   // the crack runs out from the middle, both ways at once
+  const cr = J.ball.style.crack, mid = 6, w = 7.5 * Math.sqrt(wt);
+  g.save(); g.setTransform(M); g.clip(P.regionPath(J.ball, 'disc'));
+  P.line(g, cr.slice(0, mid + 1).reverse(), { width: w, pressure: 0.95, seed, taper: [3, 7], draw: u });
+  P.line(g, cr.slice(mid), { width: w, pressure: 0.95, seed: seed + 9, taper: [3, 7], draw: u });
+  g.restore();
+}
+function holeHatch(M, v, seed) {   // the finger holes darken when something knocks: dense and dark, then lighter
+  for (const h of HOLES) {
+    const path = P.regionPath(J.ball, h), poly = J.ball.style.regions[h].polys[0];
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const [x, y] of poly) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    g.save(); g.setTransform(M); g.clip(path);
+    const ang = (62 + 5 * v) * Math.PI / 180, dx = Math.cos(ang), dy = -Math.sin(ang), L = (x1 - x0) + (y1 - y0);
+    const gap = v === 1 ? 5.5 : 11, lv = v === 1 ? 0.95 : 0.6;
+    for (let o = -L, k = 0; o < L; o += gap + 2.5 * rnd(h, v, k), k++) {
+      const cx = (x0 + x1) / 2 + o, cy = (y0 + y1) / 2;
+      P.line(g, [[cx - dx * L, cy - dy * L], [cx + dx * L, cy + dy * L]], { color: '#160f26', level: lv, width: v === 1 ? 4.4 : 3.2, seed: seed + k, taper: [4, 4] });
+    }
+    g.restore();
+  }
+}
+function halfRoot(b, sgn) {
+  const th = sgn * b.split * SPLIT_ROT;
+  return { x: sgn * Math.abs(th) * BALL_R * 0.92, y: -(b.hop || 0), rot: th };
+}
+function halfM(M, root) { return M.translate(root.x, root.y).translate(BALL_C[0], BALL_C[1]).rotate(root.rot * 180 / Math.PI).translate(-BALL_C[0], -BALL_C[1]); }
+function drawHalves(C, D, b, reg) {
+  const M = figM(C.m, BALL_A, Object.assign({}, b, { sx: 1, sy: 1 }), reg);
+  const disc = P.regionPath(J.ball, 'disc');
+  for (const sgn of [-1, 1]) {
+    const S = sprite(sgn < 0 ? 'halfL' : 'halfR', D.seed, C.k, D.boil);
+    blitSprite(S, halfM(M, halfRoot(b, sgn)), t => { t.clip(polyPath(HALF_POLY(sgn))); t.clip(disc); }, C);
+  }
+}
+
+/* ---- the impact (two drawings, no boil, no shake; everything else hidden) ----
+ * 1 "dark field": heavy strokes crowd in to a jagged clearing; the ball in plain heavy line, the crack drawn.
+ * 2 "silhouette": the burst blacked in; the ball knocked out to a white disc with its line on top. */
+function drawImpact(C, D) {
+  const p = D.pose, b = p.ball, k = p.impact - 1;
+  const M = figM(C.m, BALL_A, b, k ? [3, -2, 0.004] : [-1, 1, -0.002]);
+  if (J.fx && J.fx.impact) drawFx(C, D, { k: 'impact', i: k, x: (b.x || 0) + BALL_CW[0], y: BALL_CW[1] });
+  if (!have('ball')) return;
+  g.setTransform(M);
+  P.render(g, J.ball, { seed: 4 + k, color: 0, weight: 1.25, groups: { ground: { visible: false } },
+    layers: { knockout: k === 1, line: true, colour: false, shadow: false, construction: false } });
+  crackLine(M, 1, 50 + k, 1.4);
+}
+
+/* ---- the greeting ---- */
+function drawText(C, D, t) {
+  if (!have('text')) return;
+  const T = textPlace(), reg = regOf(D, 'text');
+  g.setTransform(figM(C.m, [0, 0], { x: T.x, y: T.y, s: T.s }, reg));
+  P.render(g, J.text, { seed: D.seed, color: COLOR, draw: t.draw, accent: 'underline', accentAmount: t.accent, groups: T.groups || undefined });
+}
+
+/* ---- the logo: the VI and the wordmark are separate sprites, so the VI can rise alone and the wordmark slam onto
+ * it. Anchor (0, 0) is the base centre; squash is about the base. ---- */
+const WORD_PV = () => J.logo.style.groups.word.pivot;
+function wordM(w) {   // the wordmark group's transform: translate, scale about its pivot, squash about its base
+  const pv = WORD_PV(), gb = J.logo.style.groupBox.word, ox = (gb[0] + gb[2]) / 2, oy = gb[3];
+  let m = new DOMMatrix().translate(w.x || 0, w.y || 0).translate(pv[0], pv[1]).scale(w.scale || 1).translate(-pv[0], -pv[1]);
+  if ((w.sx || 1) !== 1 || (w.sy || 1) !== 1) m = m.translate(ox, oy).scale(w.sx || 1, w.sy || 1).translate(-ox, -oy);
+  return m;
+}
+function logoClip(name) { const o = J.logo.style.occluders.find(q => q.group === name); return t => t.clip(polyPath(o.poly)); }
+function drawLogo(C, D, L) {
+  const M = figM(C.m, [0, 0], L, OFFICIAL ? null : regOf(D, 'logo'));
+  if (OFFICIAL || !have('logo')) {
+    if (!J.logoOfficial) return;
+    g.setTransform(M);
+    J.logoOfficial.draw(g, { groups: { word: L.word && L.word.on ? { x: L.word.x || 0, y: L.word.y || 0, scale: L.word.scale || 1 } : { visible: false, alpha: 0 } } });
+    return;
+  }
+  const ks = C.k * LOGO_REST.s;
+  blitSprite(sprite('vi', D.seed, ks, D.boil), M, logoClip('vi'), C);
+  for (const q of L.ghosts || []) blitSprite(sprite('word', D.seed, ks, D.boil), M.multiply(wordM(q)), logoClip('word'), C, q.a);
+  if (L.word && L.word.on) blitSprite(sprite('word', D.seed, ks, D.boil), M.multiply(wordM(L.word)), logoClip('word'), C);
+}
+
+/* ═══ FX ═══════════════════════════════════════════════════════════════ */
+function fxFig(k, i) { const a = J.fx && J.fx[k]; return a && a[i]; }
+function drawFx(C, D, fx) {
+  if (fx.k === 'sparkleC' && isTall()) return;   // three sites on phones
+  const fig = fxFig(fx.k, fx.i);
+  if (fig) {   // an FX drawing at its anchor (world units); trails turned to their travel
+    let m = C.m.translate(fx.x, fx.y);
+    if (fx.rot) m = m.rotate(fx.rot * 180 / Math.PI);
+    const r = regOf(D, 'fx' + fx.k + (fx.n || ''));
+    const meta = (J.fx.meta && J.fx.meta[fx.k]) || {};
+    g.save();
+    if (fx.k === 'burst' || fx.k === 'emph') { g.setTransform(C.m); g.beginPath(); g.rect(-9e3, -9e3, 18e3, 9e3 + 12); g.clip(); }   // never through the ground
+    g.setTransform(m);
+    P.render(g, fig, { seed: 1 + ((D.seed - 1 + (fx.n || 0)) % 6), reg: r ? { dx: r[0], dy: r[1], rot: r[2] } : undefined, layers: meta.layers });
+    g.restore();
+    return;
+  }
+  if (fx.k === 'speed') {   // speed lines from the ball's trailing edge, spread across its width
+    g.setTransform(C.m);
+    const len = fx.len || 400, dir = fx.dir || 1;
+    for (let k = 0; k < 7; k++) {
+      const u = (k + 0.5) / 7 - 0.5, xx = fx.x + u * 560 + sym('sx', fx.i, k) * 24;
+      const y0 = fx.y + dir * (10 + 30 * rnd('sy', fx.i, k)) - dir * Math.abs(u) * 140, y1 = y0 + dir * len * (0.45 + 0.55 * rnd('sl', fx.i, k)) * (1 - Math.abs(u));
+      P.line(g, [[xx, y0], [xx + sym('sw', fx.i, k) * 6, y1]], { width: 3.6 + 2 * rnd('sw2', fx.i, k), pressure: 0.5, seed: D.seed + k, taper: [5, 120] });
+    }
+  }
+}
+
+/* ═══ the replay button: the FX artist's circular arrow, written on, then boiling ═══ */
+const rctx = replayBtn.querySelector('canvas').getContext('2d');
+let replayKey = '';
+function drawReplay(u, seed) {
+  const key = u.toFixed(3) + '|' + seed;
+  if (key === replayKey) return;
+  replayKey = key;
+  replayBtn.classList.toggle('on', u > 0);
+  replayBtn.tabIndex = u > 0 ? 0 : -1;
+  const W = rctx.canvas.width;
+  reset(rctx); rctx.clearRect(0, 0, W, W);
+  const icon = J.fx && J.fx.replay;
+  if (u <= 0 || !icon) return;
+  const k = W / 76 * 46 / 110;
+  rctx.setTransform(k, 0, 0, k, W / 2, W / 2);
+  P.render(rctx, icon, { seed, draw: u, blend: 'normal' });
+}
+
+/* ═══ show: render only when the drawing changes ═══════════════════════ */
+function show(name, t, rt) {
+  const D = drawingAt(name, t, rt);
+  lastD = D;
+  if (D.key !== lastKey) { render(D); lastKey = D.key; noteShown(D); }
+  drawReplay(name === 'final' ? D.pose.replay || 0 : 0, D.seed);
+  return D;
+}
+
+/* ═══ the state machine (live) ═══════════════════════════════════════════ */
+const ACT = TOUCH ? 'Tap' : 'Press Enter or click';
+const NARR = {
+  sketch: ['A present is being drawn in pencil.', ''],
+  present: [`A wrapped present, drawn in pencil, giving a little hop now and then. ${ACT} to open it.`, `A wrapped present. ${ACT} to open it.`],
+  open: ['The lid and bow pop off, and a bowling ball bursts out of the box.', 'The lid and bow pop off, and a bowling ball bursts out of the box. It is far too big for it.'],
+  ball: [`A bowling ball. Something inside it is knocking to get out. ${ACT} to open it.`, `A bowling ball. Something inside is knocking to get out. ${ACT} to open it.`],
+  crack: ['The bowling ball cracks open.', 'The bowling ball cracks open…'],
+  greeting: ['Happy birthday, Jaden!!! The bowling ball has split open, and the Grand Theft Auto VI logo sits inside it.', 'Inside the bowling ball: Grand Theft Auto VI. Happy birthday, Jaden!!!'],
+  final: ['Happy birthday, Jaden!!! The bowling ball has split open, and the Grand Theft Auto VI logo sits inside it.', ''],
+};
+const NEEDS = { open: ['ball'], ball: ['ball'], crack: ['ball', 'fx'], greeting: ['text'] };
+let state = 'sketch', clock = 0, speed = 1, lastNow = 0, taps = [], tapN = 0, running = false;
+let pending = null, lastTapAt = -1e9, guardUntil = 0, ffNext = 0, enteredAt = 0;
+function ready(name) { return (NEEDS[name] || []).every(settled) && (name !== 'crack' || settled('logo') || settled('logoOfficial')); }
+function enter(name) {
+  if (!ready(name)) { pending = name; return false; }
+  closeVisit();
+  state = name; clock = 0; speed = 1; taps = []; pending = null; enteredAt = performance.now();
+  lastNow = 0;   // a stall before the tap is not charged to the new shot
+  const [label, say] = NARR[name];
+  scene.setAttribute('aria-label', label);
+  if (say) live.textContent = say;
+  scene.classList.toggle('done', name === 'final' || name === 'greeting');
+  if (name === 'present') guardUntil = performance.now() + 600;
+  if (name === 'greeting' || name === 'sketch' || name === 'ball') for (const [k] of PRE) if (name !== 'ball' || k.startsWith('open')) PRE.delete(k);
+  for (const k of NEEDS[name] || []) if (loadState[k] === false) fail('Part of the drawing didn’t load. Tap to try again.');
+  return true;
+}
+function onLoaded() { if (pending && running && ready(pending)) enter(pending); }
+function tick(now) {
+  if (!running) return;
+  const dt = lastNow ? Math.min(0.25, (now - lastNow) / 1000) : 0;
+  lastNow = now;
+  clock += dt * speed;
+  const S = shot(state), row = S.sheet.at(Math.min(S.sheet.len - 1, Math.floor(clock * FPS) % S.sheet.len));
+  if (pending === 'open' && state === 'present' && (row.opt.land || !row.opt.act)) enter('open');   // a tap mid-hop lands first
+  if (!S.loop && clock >= S.dur) {
+    const over = clock - S.dur;
+    if (enter(S.next)) clock = over; else clock = S.dur - 1e-3;   // hold the last drawing until the next part has loaded
+  }
+  const ff = state === 'sketch' && speed > 1;
+  if (!ff || now >= ffNext) {   // fast-forward: a new drawing every other frame, the boil held still
+    if (ff) ffNext = now + 1000 / 12;
+    show(state, clock, { taps, freeze: ff });
+  }
+  requestAnimationFrame(tick);
+}
+function toWorld(e) {
+  const r = viewRect(lastD ? lastD.pose.cam : CAM.final), b = scene.getBoundingClientRect();
+  return [r.x + (e.clientX - b.left) / VW * r.w, r.y + (e.clientY - b.top) / VH * r.h];
+}
+function darkAt(e) {   // is the tap on a dark fill (the ball, the logo, a shadow)?
+  try {
+    const b = scene.getBoundingClientRect(), x = Math.round((e.clientX - b.left) * DPR), y = Math.round((e.clientY - b.top) * DPR);
+    const d = ctx.getImageData(Math.max(0, x - 2), Math.max(0, y - 2), 5, 5).data;
+    let l = 0; for (let i = 0; i < d.length; i += 4) l += 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+    return l / (d.length / 4) < 150;
+  } catch (err) { return false; }
+}
+function advance(e) {
+  const now = performance.now();
+  if (now < guardUntil) return;
+  lastTapAt = now;
+  if (state === 'sketch') { speed = RM ? 4 : 6; return; }   // a tap fast-forwards the drawing
+  if (state === 'present') {
+    const row = shot('present').sheet.at(Math.floor(clock * FPS) % shot('present').sheet.len);
+    if (row.opt.act) { pending = 'open'; speed = 2; } else enter('open');   // mid-hop: land first (on 1s)
+  } else if (state === 'ball') { if (clock > 0.6) enter('crack'); }      // rapid taps cannot skip the ball
+  else if (state === 'final') {
+    const pt = e && e.clientX ? toWorld(e) : [sym('kx', tapN) * 500, LOGO_MID + sym('ky', tapN) * 260];
+    taps.push({ x: pt[0], y: pt[1], t: clock, n: ++tapN, dark: e && e.clientX ? darkAt(e) : false });
+    if (taps.length > 6) taps.shift();
+  }
+}
+let lastPointer = -1e9;
+scene.addEventListener('pointerdown', e => { if (e.button === 0 || e.pointerType !== 'mouse') { lastPointer = performance.now(); advance(e); } });
+scene.addEventListener('click', e => { if (performance.now() - lastPointer > 700) advance(null); });   // screen readers activate with a click
+scene.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && !e.repeat) { e.preventDefault(); advance(null); } else if (e.repeat && (e.key === 'Enter' || e.key === ' ')) e.preventDefault(); });
+replayBtn.addEventListener('click', e => { e.stopPropagation(); enter('sketch'); guardUntil = performance.now() + 500; scene.focus({ preventScroll: true }); });
+replayBtn.addEventListener('pointerdown', e => { e.stopPropagation(); lastPointer = performance.now(); });
+replayBtn.addEventListener('keydown', e => e.stopPropagation());
+
+/* ═══ QA bookkeeping: how many of a shot's drawings were actually shown ═══ */
+const visits = [];
+let visit = null;
+function noteShown(D) {
+  if (!running) return;
+  if (!visit || visit.shot !== D.shot) { closeVisit(); visit = { shot: D.shot, keys: new Set(), t0: performance.now() }; }
+  visit.keys.add(D.key.replace(/\|r[\d.]+|\|tap.*$/g, ''));
+}
+function closeVisit() {
+  if (!visit || shot(visit.shot).loop) { visit = null; return; }
+  const S = shot(visit.shot), all = new Set();
+  for (let f = 0; f < S.sheet.len; f++) all.add(drawingAt(visit.shot, (f + 0.5) / FPS, {}).key.replace(/\|r[\d.]+|\|tap.*$/g, ''));
+  visits.push({ shot: visit.shot, shown: [...visit.keys].filter(k => all.has(k)).length, expected: all.size, wall: (performance.now() - visit.t0) / 1000, dur: S.dur });
+  visit = null;
+}
+
+/* ═══ warm-up and pre-rendering: one slice at a time, 150 ms apart, only while a hold is on screen and nobody has
+ * just tapped. The present is warmed before the clock starts; the rest in the order the story needs them. ═══ */
+const jobs = [];
+function warmFig(fig, k) { try { P.warm(fig, { scale: k, seeds: [1] }); } catch (err) { /* still loading */ } }
+function queueJobs() {
+  const kP = () => camera(CAM.present).k, kR = () => camera(CAM.reveal).k, kF = () => camera(CAM.final).k, kT = () => camera(CAM.tight).k;
+  const fx = n => (J.fx && J.fx[n]) || [];
+  const add = (need, fn, sketch) => jobs.push({ need, fn, sketch });
+  const seeds = fn => { for (let s = 1; s <= 3; s++) fn(s); };
+  // while the box is coloured: the present's background level, one part per slice, for each boil drawing
+  seeds(s => { for (let k = 0; k < BG_PARTS.length; k++) add([], () => { base(camera(CAM.present), s, true, 'present', 1); }, 1); });
+  // what the open needs next
+  add(['ball'], () => warmFig(J.ball, kP()));
+  add(['ball'], () => sprite('ball', 1, kP()));
+  add(['ball', 'fx'], () => preRender(0, 'open'));
+  add(['fx'], () => { for (const f of fx('trailLid').concat(fx('trailBow'))) warmFig(f, kP()); });
+  add(['fx'], () => { for (const f of fx('dust')) warmFig(f, kP()); });
+  // the climax, ready first: its costliest figures, then its drawings (which build the levels they use)
+  add(['fx'], () => warmFig(fx('impact')[0], kT()));
+  add(['fx'], () => warmFig(fx('impact')[1], kT()));
+  add(['logo'], () => warmFig(J.logo, kR() * LOGO_REST.s));
+  add(['fx'], () => { for (const f of fx('burst')) warmFig(f, kR()); });
+  add(['fx'], () => { for (const f of fx('emph')) warmFig(f, kR()); });
+  add(['ball', 'fx'], () => preRender(1));
+  add(['ball', 'fx', 'logo'], () => preRender(2));
+  // then everything else, one figure or level per slice
+  seeds(s => { if (s > 1) add(['ball'], () => sprite('ball', s, kP())); add(['ball'], () => sprite('ballh1', s, kP())); add(['ball'], () => sprite('ballh2', s, kP())); });
+  seeds(s => { add(['ball'], () => sprite('ball', s, kT())); add(['ball'], () => sprite('ballh1', s, kT())); add(['ball'], () => sprite('ballh2', s, kT())); });
+  seeds(s => {
+    for (let k = 0; k < BG_PARTS.length; k++) add([], () => base(camera(CAM.reveal), s, false, 'reveal', 1));
+    for (const kind of ['halfL', 'halfR']) add(['ball'], () => sprite(kind, s, kR()));
+    for (const kind of ['vi', 'word']) add(['logo'], () => sprite(kind, s, kR() * LOGO_REST.s));
+    add([], () => washLevel(camera(CAM.reveal), s, 0, 'reveal'));
+  });
+  add(['fx'], () => { for (const n of ['sparkleA', 'sparkleB', 'sparkleC', 'sparkleD']) for (const f of fx(n)) warmFig(f, kR()); });
+  seeds(s => {
+    for (let k = 0; k < BG_PARTS.length; k++) add([], () => base(camera(CAM.final), s, false, 'final', 1));
+    for (const kind of ['halfL', 'halfR']) add(['ball'], () => sprite(kind, s, kF()));
+    for (const kind of ['vi', 'word']) add(['logo'], () => sprite(kind, s, kF() * LOGO_REST.s));
+  });
+  add(['text'], () => warmFig(J.text, kF()));
+  add([], () => { for (const n in BGJ.dusk) warmFig(BGJ.dusk[n], kF()); });
+  add(['fx'], () => { for (const n of ['tap', 'tapColour']) for (const f of fx(n)) warmFig(f, kF()); });
+}
+// the climax: the drawings from the breath before the impact to the third split drawing, rendered in advance
+const PRE = new Map();
+function preRender(group, name) {
+  name = name || 'crack';
+  if (name === 'open' && state !== 'present') return true;   // only worth it while the present waits
+  const S = shot(name);
+  for (const row of S.sheet.rows) if (row.opt.pre === group) {
+    const D = drawingAt(name, (row.f0 + 0.5) / FPS, {});
+    if (PRE.has(D.key)) continue;
+    const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height;
+    render(D, c.getContext('2d'));
+    PRE.set(D.key, c);
+    return false;   // one drawing per slice
+  }
+  return true;
+}
+let jobGen = 0;
+function runJobs() {
+  const gen = jobGen;
+  setTimeout(function step() {
+    if (gen !== jobGen) return;
+    const now = performance.now(), row = lastD && lastD.row;
+    const sketch2 = state === 'sketch' && row && row.opt.wo && Object.values(row.opt.wo).every(w => w[2] === 2);   // marker/shadow/coda rows, on 2s
+    const quiet = now - lastTapAt > 600 && lastD && !(row && row.opt.act) &&
+      (sketch2 || (state !== 'sketch' && (lastD.boil || state === 'present') && !(row && row.opt.wo)));
+    if (quiet) {
+      const i = jobs.findIndex(j => (!sketch2 || j.sketch) && (j.need.every(have) || (j.need.length && j.need.every(settled) && j.need.some(have))));
+      if (i >= 0) {
+        const j = jobs[i];
+        if (j.need.includes('ball') && !have('ball')) jobs.splice(i, 1);
+        else if (j.fn() !== false) jobs.splice(i, 1);
+      }
+    }
+    if (jobs.length) setTimeout(step, 150);
+  }, 150);
+}
+
+/* ═══ go ═══════════════════════════════════════════════════════════════ */
+if (window.ResizeObserver) new ResizeObserver(() => { resize(); if (lastD) { render(lastD); lastKey = lastD.key; } }).observe(scene);
+else addEventListener('resize', resize);
 resize();
-gsap.set('#ball', { y: -6 });
-for (let i = 0; i < 14 && !RM; i++) spawnMote(true);
-gsap.ticker.add(frame);
-gsap.to(cam, { y: CAM0.y, h: CAM0.h, duration: RM ? .01 : 2.8, ease: 'power2.inOut', onUpdate: applyCam, onComplete: () => { if (state === 'intro') state = 'present'; } });
-startHop();
-scene.focus({ preventScroll: true });
-window.__gift = { open: openPresent, crack: crackBall, get state() { return state; } };
+
+window.__jaden = {
+  get ready() { return Object.keys(LATE).every(settled) && (!OFFICIAL || !J.logoOfficial || officialReady); },
+  fps: FPS,
+  get shots() { return timeline(); },
+  get state() { return state; },
+  get clock() { return clock; },
+  get stats() { return Object.assign({ avg: stats.renders ? stats.ms / stats.renders : 0, dpr: DPR, px: cv.width * cv.height }, stats); },
+  get drops() { closeVisit(); return visits; },
+  get drawing() { return lastD && { shot: lastD.shot, id: lastD.id, key: lastD.key, seed: lastD.seed, pose: lastD.pose }; },
+  bench(name, t, n, cold) {   // render cost of one drawing (ms), averaged over n renders with one readback
+    n = n || 6;
+    const D = drawingAt(name, t, {});
+    render(D); ctx.getImageData(0, 0, 1, 1);
+    const t0 = performance.now();
+    for (let i = 0; i < n; i++) { if (cold) { BASES.clear(); WASH.clear(); SPR.clear(); COMPS.clear(); } render(D); }
+    ctx.getImageData(0, 0, 1, 1);
+    lastKey = '';
+    return (performance.now() - t0) / n;
+  },
+  seekShot(name, t, opts) {
+    if (!BUILD[name]) throw new Error('no shot ' + name + '; shots: ' + ORDER.join(', '));
+    running = false; state = name; clock = t;
+    lastKey = ''; seeking = true;
+    let D;
+    try { D = show(name, t, opts || {}); } finally { seeking = false; }
+    return { shot: name, t, id: D.id, seed: D.seed, ms: lastMs };
+  },
+  seek(t) {
+    let s = timeline()[0];
+    for (const x of timeline()) if (t >= x.start) s = x;
+    return this.seekShot(s.name, Math.max(0, t - s.start));
+  },
+  play() { if (!running) { running = true; lastNow = 0; requestAnimationFrame(tick); } },
+  pause() { running = false; },
+  tap(x, y) { advance(x === undefined ? null : { clientX: x, clientY: y }); },
+};
+let officialReady = false;
+const officialWait = setInterval(() => { if (J.logoOfficial) { clearInterval(officialWait); J.logoOfficial.ready.then(() => { officialReady = true; lastKey = ''; }); } }, 50);
+
+if (QA) { show('sketch', 0); return; }
+// first paper, then the present's figure (the one thing needed in the first second), then the clock
+paperOnly(camera(CAM.present));
+setTimeout(() => {
+  warmFig(J.box, camera(CAM.present).k);
+  queueJobs(); runJobs();
+  enter('sketch');
+  window.__jaden.play();
+  scene.focus({ preventScroll: true });
+}, 0);
 })();
 </script>
 </body>

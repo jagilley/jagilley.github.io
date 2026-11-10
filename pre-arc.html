@@ -163,7 +163,7 @@
 <body>
 <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
 <h1>
-    pre-ARC
+    pre-ARC: a pretraining corpus for ARC-AGI
 </h1>
 <p class="author">
 Jasper Gilley<br>
@@ -185,15 +185,8 @@ November 2026<br>
 <hr class="divider">
 
 <div class="abstract">
-  <p><strong>TLDR:</strong> I'm releasing pre-ARC, a new dataset of tasks intended for pretraining on ARC-AGI. It's the first of its kind to combine two properties:</p>
-  <ul>
-    <li>a synthetic data generator for ~unlimited data</li>
-    <li>an exact measurement of each task's difficulty</li>
-  </ul>
-  <p>The generator, corpus, and benchmark live at <a href="https://github.com/jagilley/pre-arc">github.com/jagilley/pre-arc</a>, and you can try the tasks yourself at <a href="https://jagilley.github.io/pre-arc/">jagilley.github.io/pre-arc</a>.</p>
-</div>
-
-<p>Here's why that combination matters.</p>
+  <p><strong>TLDR:</strong> I'm releasing pre-ARC, a new dataset of tasks intended for pretraining on ARC-AGI. It's the first of its kind to combine two properties: a synthetic data generator for ~unlimited data, and an exact measurement of each task's difficulty.
+  </div>
 
 <h2>Why pretrain for ARC?</h2>
 <p>First off: why do you need an ARC pretraining corpus in the first place?</p>
@@ -232,9 +225,6 @@ python -m pre_arc corpus --out corpus/ --shards 0-99 --per-depth 256
 # score a submission, next to each task's Bayes floor
 python -m pre_arc score submission.json</code></pre>
 <p>The <a href="https://github.com/jagilley/pre-arc#readme">README</a> has the rest: the full rule grammar, how the floors are computed, and the baselines.</p>
-
-<h2>Contact</h2>
-<p>If you pretrain something on pre-ARC, I'd love to hear how it does. You can <a href="https://x.com/0xjasper">DM me on Twitter</a> or email me at [my name] @ gmail.com.</p>
 
 <div class="post-footer">
   <a href="blog-archive.html" class="archive-link">&larr; All Posts</a>
