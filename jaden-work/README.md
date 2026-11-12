@@ -56,6 +56,11 @@ All of it regenerates (see `.gitignore`):
   intermediates, rebuilt by rerunning the pipelines. Some were cut from the
   original photos and carried their GPS metadata.
 
+The skill's `kit/` holds generalised, name-free copies of the renderer, the
+capture tools (`tools/anim/`), the two drawing hands (`tools/bg/hand.py`,
+`tools/fx/hand.js`) and `tools/style/geom.py`. New pieces start from the kit;
+this folder keeps the originals as they were used.
+
 The tools use absolute paths under `/Users/jasper/Code/jagilley.github.io/`.
 The capture tools need Node 22 or later and Google Chrome. Run one headless
 Chrome at a time on this machine.

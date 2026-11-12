@@ -4,19 +4,17 @@ A key-animation drawing that someone has started colouring and hasn't
 finished: pencil sketch blended with a loosely anime-inspired style that gives
 up completeness to keep the hand.
 
-See it before reading further. `jaden-work/thumbs/t064.jpg` is a still of the
-three Jaden figures as Jasper approved them.
-`jaden-work/review/index.html` is the live version with the dials.
-`jaden-work/STYLE-BRIEF.md` is the brief the look was built from, and
-`jaden-work/style/README.md` ("Visual rules baked in", "Colour dial") is how
-the renderer ended up implementing it. Where the two disagree (the graphite
-colour, for one), the README and this file are right: the brief is kept as it
-was handed out, before review.
+See it before reading further. `look.jpg`, beside this file, is the two
+example figures as they were approved. `../kit/demo.html` is the live version:
+`?color=0` is pencil only, `?color=1` is full colour, `?build=0.5` is a figure
+part-way through drawing itself. `../kit/RENDERER.md` ("Visual rules baked
+in", "Colour dial") is how the renderer implements what follows.
 
-## What Jasper said
+## In the first user's words
 
-These are the taste anchors. When a choice isn't covered below, reason from
-them.
+These are verbatim from the person the first piece was made with, and they are
+the taste anchors for the look. When a choice isn't covered below, reason from
+them. Your own user's reactions take over as soon as there are any.
 
 On the first, SVG version of the page:
 
@@ -34,7 +32,7 @@ The target:
 > anime style which is simpler and sacrifices some of the "completeness" for
 > the hand-drawn aesthetic.
 
-On Jasper's own drawings as the source:
+On their own drawings as the source:
 
 > it would be better to keep these things as vectors, which we can then do
 > some cool animations with, rather than trying to keep the drawing literal in
@@ -72,8 +70,8 @@ are the most important things."
 | Construction | A few blue col-erase marks (`#7aa6dc`) left in: a guide ellipse, a centre line, baselines under handwriting. They cross the outline rather than hugging it, and fade where colour lands. |
 | Shadow | One hard-edged shadow shape per form, as in cel animation. Its boundary is a red pencil line (`#d4574d`) with loose hatching at a right-handed angle (about 62°, varied in spacing, length and angle). Highlights are paper left bare, sometimes with a blue contour. |
 | Colour | Flat marker, laid by hand in passes from the shadow side. It runs under the line, sits slightly off-register, and gives out toward the light in stroke ends of uneven length. Some paper is always left. |
-| The dial | `color` runs from 0 (pencil and red/blue marks only) to 1 (quick flat colour). **0.64 is the resting value.** Every value between has to look good, because colour may arrive during an animation. |
-| Handwriting | Stays graphite, written on in stroke order with a pen's timing. One accent at most (the pink underline swash on jaden). |
+| The dial | `color` runs from 0 (pencil and red/blue marks only) to 1 (quick flat colour). **0.64 is the resting value** the first user chose from a slider. Every value between has to look good, because colour may arrive during an animation. |
+| Handwriting | Stays graphite, written on in stroke order with a pen's timing. One accent at most (a pink underline swash, on the first piece). |
 | Setting | Sparser and lighter than the subject: thinner lines, lower pressure, less colour. |
 
 Palettes are per piece: few colours, each with one shadow tone, chosen to look
@@ -98,9 +96,8 @@ shadow red are the constants.
 
 The first styling pass was convincing with no colour and wrong in ways its
 author couldn't see. Three review rounds found the list below (31 findings,
-then 9, then polish; `jaden-work/qa/ROUND1-FINDINGS.md` and
-`ROUND2-FINDINGS.md` have all of them with the fixes). Expect these again in
-any new renderer work or new figure.
+then 9, then polish). Expect these again in any new renderer work or new
+figure.
 
 - **The line as a tube.** A pale ribbon round a dark core reads as an outlined
   vector stroke. One ribbon, with density following weight, and some tooth
@@ -114,10 +111,9 @@ any new renderer work or new figure.
   geometry by about a unit. Gaps and slivers are placed by a design seed,
   never by the boil seed.
 - **The colour edge on the lit side.** It failed four ways before it worked:
-  torn paper, a bar-chart staircase, sawtooth teeth, a city skyline
-  (`jaden-work/thumbs/together-final.jpg` shows the last two). What works is
-  marker strokes of uneven length stopping short along a curved front, with
-  chisel ends, as in `t064.jpg`.
+  torn paper, a bar-chart staircase, sawtooth teeth, a city skyline. What
+  works is marker strokes of uneven length stopping short along a curved
+  front, with chisel ends, as in `look.jpg`.
 - **Fake marker texture.** Even diagonal banding reads as a brush overlay,
   and straight translucent bars read as glass glare. Flat colour with a
   hand-made edge beats a simulated texture.
@@ -135,20 +131,21 @@ any new renderer work or new figure.
   lifts. A real pen eases into a stroke, slows through tight turns, and takes
   longer to travel further between strokes.
 
-Each round's findings file ends with a list of what to keep. Ask reviewers
-for it and hold on to it: fixes are as likely to remove what was good as what
+Each round's findings ended with a list of what to keep. Ask reviewers for
+one and hold on to it: fixes are as likely to remove what was good as what
 was bad.
 
 ## Figures nobody drew
 
-- **Authored strokes** are measured against Jasper's and made no more perfect
-  (`strokes.md`, "Authored").
+- **Authored strokes** are measured against real pen strokes and made no more
+  perfect (`strokes.md`, "Authored").
 - **Effects are drawings**, in short sequences: a dust puff, speed lines, an
   impact frame built from radial pencil strokes, sparkles that live at fixed
   sites as tick, star, cross. Never particles, and never a flat fill with
   speckle.
 - **An official mark keeps its exact geometry** and is rendered in the style:
-  graphite outline traced from the real paths, the gradient handled as a few
-  hand-coloured marker bands, keylines kept where they define the mark.
-  Reviewers judged the pencil GTA VI logo better in context than the crisp
-  one. Keep the flag that swaps the original in, so the comparison can be made.
+  graphite outline traced from the real paths, any gradient handled as a few
+  hand-coloured marker bands, keylines kept where they define the mark. On the
+  first piece, reviewers judged the pencil version of a game logo better in
+  context than the crisp one. Keep a flag that swaps the original in, so the
+  comparison can be made.

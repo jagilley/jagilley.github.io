@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pencil kit demo</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #f3eee3; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="pencil.js"></script>
+<script src="example/box.js"></script>   <!-- window.GENGA.box  = {strokes, style} -->
+<script src="example/ball.js"></script>  <!-- window.GENGA.ball -->
+<script>
+/*
+ * The two example figures on one sheet of paper, at one scale so their pen widths match.
+ * Opens from file://. Query options:
+ *   color=0..1   the colour dial (default 0.64, the resting look; 0 is pencil only, 1 is quick colour)
+ *   seed=N       which drawing of the boil
+ *   boil=1       hold the drawing alive: cycle three seeds at 8 a second
+ *   build=0..1   draw the figures from nothing: line, then construction, then colour, then shadow
+ *   fig=box|ball only one of them
+ * Sets window.__ready once the first drawing is on the canvas (for tools/still.mjs --ready).
+ */
+const q = new URLSearchParams(location.search);
+const dpr = window.devicePixelRatio || 1, W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+cv.style.width = W + 'px'; cv.style.height = H + 'px';
+ctx.scale(dpr, dpr);
+
+const names = q.get('fig') ? [q.get('fig')] : ['box', 'ball'];
+const figs = names.map(n => GENGA[n]);
+const cellW = W / figs.length, pad = 0.06;
+// one scale for every figure: the smallest that fits each in its cell
+const scale = Math.min(...figs.map(f => Pencil.fit(f, cellW, H, pad).scale));
+const ground = Math.max(...figs.map(f => (H + (f.style.bounds[3] - f.style.bounds[1]) * scale) / 2));
+
+// build=t splits into the four layers, each added in turn
+const seg = (t, a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+const buildAt = t => ({ line: seg(t, 0, 0.4), construct: seg(t, 0.4, 0.55), color: seg(t, 0.55, 0.85), shadow: seg(t, 0.85, 1) });
+
+function draw(seed) {
+  ctx.globalCompositeOperation = 'source-over';
+  Pencil.paper(ctx, 0, 0, W, H, { scale });
+  figs.forEach((fig, i) => {
+    const b = fig.style.bounds;
+    const opts = {
+      x: cellW * i + cellW / 2 - (b[0] + b[2]) / 2 * scale,   // centred in its cell
+      y: ground - b[3] * scale,                               // standing on a shared ground line
+      scale, seed,
+      color: q.has('color') ? +q.get('color') : Pencil.DEFAULT_COLOR,
+    };
+    if (q.has('build')) opts.build = buildAt(+q.get('build'));
+    Pencil.render(ctx, fig, opts);
+  });
+}
+
+draw(+(q.get('seed') || 1));
+window.__ready = true;
+if (q.get('boil') === '1') {
+  let last = 0;
+  setInterval(() => { const s = Pencil.boilSeed(performance.now()); if (s !== last) draw(last = s); }, 1000 / 24);
+}
+</script>
+</body>
+</html>
