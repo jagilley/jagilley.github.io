@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Pencil export</title>
+<style>html,body{margin:0;background:#f3eee3;overflow:hidden}canvas{display:block}</style>
+</head><body>
+<canvas id="c"></canvas>
+<script src="../../resources/jaden/pencil.js"></script>
+<script src="../../resources/jaden/box.style.js"></script>
+<script src="../../resources/jaden/ball.style.js"></script>
+<script src="../../resources/jaden/text.style.js"></script>
+<script src="sheet.js"></script>
+<script>
+/*
+ * Headless export / close-up page. Fills the window with one figure (or the together sheet) on paper.
+ *   export.html?fig=box|ball|text|together&color=0..1 (default 0.64)&seed=1
+ *     &zoom=2&cx=0.5&cy=0.5            close-up around a point (fractions of the figure bounds)
+ *     &layers=line,colour,shadow,construction   only these layers
+ *     &draw=0..1  &accent=underline  &groups={"lid":{"y":-80}}  &bench=1
+ *     &build={"line":1,"construct":0.5,"color":0,"shadow":0}  &colorSeed=3  &reg={"dx":1,"dy":-0.5,"rot":0.004}
+ *     &weight=1.6  &only=bow  &alpha=0.4  &crack={"draw":0.5} or {"split":0.4}  (&split=0..1 still works)
+ */
+const q = new URLSearchParams(location.search);
+const dpr = window.devicePixelRatio || 1;
+const W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c');
+cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+cv.style.width = W + 'px'; cv.style.height = H + 'px';
+const ctx = cv.getContext('2d');
+ctx.scale(dpr, dpr);
+const name = q.get('fig') || 'box';
+const color = q.has('color') ? +q.get('color') : Pencil.DEFAULT_COLOR, seed = +(q.get('seed') || 1);
+let layers;
+if (q.get('layers')) { layers = {construction: false, colour: false, shadow: false, line: false}; q.get('layers').split(',').forEach(k => layers[k] = true); }
+const extra = {seed, color, layers, accent: q.get('accent') || undefined};
+if (q.has('draw')) extra.draw = +q.get('draw');
+if (q.get('groups')) extra.groups = JSON.parse(q.get('groups'));
+for (const k of ['build', 'reg', 'crack']) if (q.get(k)) extra[k] = JSON.parse(q.get(k));
+for (const k of ['colorSeed', 'weight', 'alpha']) if (q.has(k)) extra[k] = +q.get(k);
+if (q.get('only')) extra.only = q.get('only').split(',');
+
+const t0 = performance.now();
+if (name === 'together') {
+  Sheet.drawTogether(ctx, W, H, extra);
+} else {
+  const fig = JADEN[name];
+  const f = Pencil.fit(fig, W, H, 0.03);
+  const zoom = +(q.get('zoom') || 1), cx = +(q.get('cx') || 0.5), cy = +(q.get('cy') || 0.5);
+  const b = fig.style.bounds;
+  const fx = b[0] + cx * (b[2] - b[0]), fy = b[1] + cy * (b[3] - b[1]);
+  const scale = zoom === 1 ? f.scale : f.scale * zoom;
+  const x = zoom === 1 ? f.x : W / 2 - fx * scale, y = zoom === 1 ? f.y : H / 2 - fy * scale;
+  Pencil.paper(ctx, 0, 0, W, H, {scale});
+  const opts = Object.assign({x, y, scale}, extra);
+  if (name === 'ball' && q.has('split')) opts.crack = Object.assign({ split: +q.get('split') }, opts.crack || {});
+  Pencil.render(ctx, fig, opts);
+  if (q.has('bench')) {
+    for (let i = 1; i <= 3; i++) Pencil.render(ctx, fig, Object.assign({}, opts, {seed: i}));   // warm the seed caches
+    ctx.getImageData(0, 0, 1, 1);
+    const t1 = performance.now();
+    const N = 30;
+    // one readback at the end (per-frame readbacks make Chrome drop the canvas to software)
+    for (let i = 0; i < N; i++) Pencil.render(ctx, fig, Object.assign({}, opts, {seed: 1 + (i % 3)}));
+    ctx.getImageData(0, 0, 1, 1);
+    const t2 = performance.now();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    ctx.fillStyle = '#000'; ctx.font = (20 * dpr) + 'px sans-serif';
+    ctx.fillText(`${name} ${cv.width}x${cv.height}: first ${(t1 - t0).toFixed(1)} ms, then ${((t2 - t1) / N).toFixed(2)} ms/frame`, 20, 40 * dpr);
+  }
+}
+</script>
+</body></html>

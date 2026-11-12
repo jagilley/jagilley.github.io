@@ -1,0 +1,27 @@
+<!doctype html><html><head><meta charset="utf-8"><title>qa text</title>
+<style>html,body{margin:0;background:#f3eee3;overflow:hidden}canvas{display:block}#log{position:fixed;left:4px;bottom:2px;font:12px monospace;color:#900;white-space:pre}</style></head>
+<body><canvas id="c"></canvas><div id="log"></div>
+<script src="../../style/pencil.js"></script><script src="../../style/text.style.js"></script>
+<script>
+// ?rows=JSON array of {draw,seed,accent,accentAmount,zoom,cx,cy,label}
+const q=new URLSearchParams(location.search), W=innerWidth, H=innerHeight, dpr=devicePixelRatio||1;
+const cv=document.getElementById('c'); cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+const rows=JSON.parse(q.get('rows')||'[{}]'); const fig=JADEN.text; const rh=H/rows.length;
+const b=fig.style.bounds;
+rows.forEach((r,i)=>{
+  ctx.save(); ctx.beginPath(); ctx.rect(0,i*rh,W,rh); ctx.clip();
+  const f=Pencil.fit(fig,W,rh,0.02); const zoom=r.zoom||1;
+  const fx=b[0]+(r.cx??0.5)*(b[2]-b[0]), fy=b[1]+(r.cy??0.5)*(b[3]-b[1]);
+  const scale=f.scale*zoom; const x=W/2-fx*scale, y=i*rh+rh/2-fy*scale;
+  Pencil.paper(ctx,0,i*rh,W,rh,{scale});
+  const o={x,y,scale,seed:r.seed||1,color:r.color||0};
+  if(r.draw!==undefined)o.draw=r.draw; if(r.accent)o.accent=r.accent; if(r.accentAmount!==undefined)o.accentAmount=r.accentAmount;
+  if(r.layers)o.layers=r.layers;
+  Pencil.render(ctx,fig,o);
+  ctx.restore();
+  ctx.fillStyle='#c00'; ctx.font='14px monospace'; ctx.fillText(r.label||JSON.stringify(r),6,i*rh+16);
+  ctx.strokeStyle='#999'; ctx.beginPath(); ctx.moveTo(0,i*rh+0.5); ctx.lineTo(W,i*rh+0.5); ctx.stroke();
+});
+if(q.has('tl')) document.getElementById('log').textContent=Pencil.timeline(fig).map(t=>t.id+' '+t.start.toFixed(3)+'-'+t.end.toFixed(3)).join('\n');
+</script></body></html>

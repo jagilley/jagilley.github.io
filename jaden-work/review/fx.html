@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FX Drawings Review</title>
+<style>
+  :root { --desk: #e4ddcf; --paper: #f3eee3; --ink: #2f2c30; --muted: #6f6970; --line: #cfc6b4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--desk); color: var(--ink); font: 16px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  header, section { max-width: 1480px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 36px; }
+  h1 { font-size: 32px; font-weight: 600; margin: 0 0 6px; }
+  h2 { font-size: 22px; font-weight: 600; margin: 0 0 2px; }
+  p { margin: 0 0 10px; max-width: 80ch; }
+  .mono, .ctl, .meta { font: 12px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  section { padding-top: 34px; }
+  .sub { color: var(--muted); }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: start; margin-top: 12px; }
+  .stage { background: var(--paper); border-radius: 3px; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+  canvas { display: block; width: 100%; }
+  .meta { color: var(--muted); margin-top: 6px; }
+  .bar { position: sticky; top: 0; z-index: 2; background: rgba(228,221,207,.94); border-bottom: 1px solid var(--line); }
+  .bar .in { max-width: 1480px; margin: 0 auto; padding: 8px 24px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+  .ctl { display: inline-flex; align-items: center; gap: 6px; }
+  button { font: 12px ui-monospace, Menlo, monospace; background: var(--paper); border: 1px solid #b9b0a0; border-radius: 3px; padding: 4px 9px; cursor: pointer; color: var(--ink); }
+  .icon44 { display: flex; gap: 22px; align-items: center; padding: 14px; }
+  .icon44 canvas { width: 44px; height: 44px; }
+  @media (max-width: 860px) { .row { grid-template-columns: 1fr; } }
+  body.sheet { background: #f3eee3; }
+  body.sheet canvas#sheet { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// Renderer: resources/jaden/pencil.js (default) or ?r=frozen (jaden-work/style/pencil.frozen.js, the pre-animation snapshot).
+// Sheet mode for PNG export: ?sheet=<seq>[&c=0.64][&cell=i][&ball=0]  (canvas fills the window)
+const Q = new URLSearchParams(location.search);
+const RENDERER = Q.get('r') === 'frozen' ? '../style/pencil.frozen.js' : '../../resources/jaden/pencil.js';
+const SRC = [RENDERER, '../../resources/jaden/ball.style.js', '../../resources/jaden/box.style.js', '../../resources/jaden/fx.style.js'];
+(function load(i) {
+  if (i >= SRC.length) return boot();
+  const s = document.createElement('script');
+  s.src = SRC[i]; s.onload = () => load(i + 1);
+  s.onerror = () => { document.body.insertAdjacentHTML('beforeend', '<p class="mono">failed to load ' + SRC[i] + '</p>'); load(i + 1); };
+  document.head.appendChild(s);
+})(0);
+
+/* ------------------------------------------------------------- scene setup */
+// Every FX drawing is authored around its anchor at (0, 0). Placement in ball figure units:
+const BALL_C = [462, 429.2], BALL_GROUND = [462, 832];
+const C0 = 0.64;   // the approved resting colour
+
+function ballHalves(ctx, o, d) {
+  if (Pencil.DEFAULT_COLOR !== undefined) { Pencil.render(ctx, JADEN.ball, Object.assign({}, o, { crack: { split: d } })); return; }
+  // frozen renderer: the old review/sheet.js halves (clip + colourClip + root + heavier crack line)
+  const B = JADEN.ball, f = B.strokes.fit, c = B.style.crack, n = c.length, top = c[0][1], bot = c[n - 1][1];
+  Pencil.render(ctx, B, Object.assign({}, o, { layers: Object.assign({}, o.layers || {}, { construction: false }),
+    groups: { ball: { visible: false }, ground: { alpha: Math.max(0, 1 - d * 1.6) } } }));
+  for (const [sgn, far] of [[-1, -300], [1, 1300]]) {
+    const poly = c.concat([[far, bot], [far, top]]);
+    const inset = c.map(([x, y], i) => [x - sgn * (3 + 2.5 * Math.abs(Math.sin(i * 1.7))), y]);
+    const root = { x: sgn * d * 70, y: -d * 30 + d * d * 40, rot: sgn * d * 0.22, pivot: [f.cx, f.cy + f.r] };
+    Pencil.render(ctx, B, Object.assign({}, o, { clip: poly, colourClip: inset.concat([[far, bot], [far, top]]), groups: { root, ground: { visible: false } } }));
+    ctx.save();
+    ctx.translate(o.x, o.y); ctx.scale(o.scale, o.scale);
+    const m = new DOMMatrix().translate(root.x, root.y).translate(root.pivot[0], root.pivot[1]).rotate(root.rot * 180 / Math.PI).translate(-root.pivot[0], -root.pivot[1]);
+    ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);
+    ctx.clip(Pencil.regionPath(B, 'disc'));
+    Pencil.line(ctx, c.map(([x, y]) => [x + sgn * 2.5, y]), { width: 7.5, pressure: 0.92, seed: o.seed, taper: [6, 6] });
+    ctx.restore();
+  }
+}
+
+// world box (ball units) per scene and what to draw around the FX
+const SCENES = {
+  dust: { box: [-330, 380, 1250, 930], at: BALL_GROUND, label: 'dust puff · anchor = ball ground contact (462, 832)',
+    under(ctx, o) { Pencil.render(ctx, JADEN.ball, Object.assign({}, o, { groups: { root: { y: 18, scale: 1 } } })); }, knockout: true },
+  emph: { box: [-900, -800, 1820, 1660], at: BALL_C, label: 'emphasis lines · anchor = ball centre (462, 429)',
+    under(ctx, o) { ballHalves(ctx, o, 0.85); } },
+  impact: { box: [-1200, -900, 2120, 1760], at: BALL_C, label: 'impact frame · anchor = ball centre; ball line-only on top',
+    under() {}, over(ctx, o, i) {
+      const L = { colour: false, shadow: false, construction: false, knockout: i === 1 };
+      const live = Pencil.DEFAULT_COLOR !== undefined;
+      Pencil.render(ctx, JADEN.ball, Object.assign({}, o, { color: 0, layers: L, weight: 1.25, groups: { ground: { visible: false } } },
+        live ? { crack: { draw: 1, split: 0, width: 11 } } : {}));
+      if (live) return;
+      ctx.save(); ctx.translate(o.x, o.y); ctx.scale(o.scale, o.scale);
+      Pencil.line(ctx, JADEN.ball.style.crack, { width: 11, pressure: 0.95, seed: o.seed, taper: [10, 10] });
+      ctx.restore();
+    } },
+  burst: { box: [-500, -560, 1430, 1420], at: BALL_C, label: 'split burst · anchor = ball centre (crack middle)',
+    under(ctx, o, i) { ballHalves(ctx, o, [0.25, 0.6, 0.9][i] || 0.9); }, knockout: true },
+  // the four sparkle sites around the logo, staggered: site k shows life drawing (i + PH[k]) % 3
+  sparkle: { box: [-520, -560, 1440, 1000], at: [462, 40], label: 'sparkle sites A-D in context, staggered (anchor = each sparkle centre; sites from the logo centre, here ball (462, 40))',
+    under(ctx, o) {
+      ballHalves(ctx, o, 1);
+      ctx.save(); ctx.translate(o.x, o.y); ctx.scale(o.scale, o.scale);   // logo placeholder (blue pencil box)
+      const b = [[112, -180], [818, -186], [822, 262], [108, 268], [114, -170]];
+      Pencil.line(ctx, b, { width: 3, color: '#7aa6dc', level: 0.5, seed: 3, taper: [20, 20] });
+      ctx.restore();
+    },
+    custom(ctx, o, i) {
+      const PH = [0, 2, 1, 2];
+      ['sparkleA', 'sparkleB', 'sparkleC', 'sparkleD'].forEach((k, n) => {
+        const at = JADEN.fx.meta[k].on.at, fig = JADEN.fx[k][(i + PH[n]) % 3];
+        Pencil.render(ctx, fig, Object.assign({}, o, { x: o.x + (462 + at[0]) * o.scale, y: o.y + (40 + at[1]) * o.scale }));
+      });
+    } },
+  sparkleA: { box: [-170, -170, 170, 170], at: [0, 0], label: 'sparkle site A life', under() {} },
+  sparkleB: { box: [-170, -170, 170, 170], at: [0, 0], label: 'sparkle site B life', under() {} },
+  sparkleC: { box: [-170, -170, 170, 170], at: [0, 0], label: 'sparkle site C life', under() {} },
+  sparkleD: { box: [-170, -170, 170, 170], at: [0, 0], label: 'sparkle site D life', under() {} },
+  tap: { box: [-210, -210, 210, 210], at: [0, 0], label: 'tap burst · anchor = tap point', under() {} },
+  // on a dark fill: the tap lands on the ball
+  tapColour: { box: [340, 180, 780, 620], at: [560, 400], label: 'tap burst, coloured variant on a dark fill (here the ball) · knockout on', knockout: true,
+    under(ctx, o) { Pencil.render(ctx, JADEN.ball, o); } },
+  // flights: the box's lid / bow thrown off, with the multiples spec (2 ghosts at 1/3 and 2/3 back
+  // toward the previous drawing, alpha .4/.2, colour .35, line weight .8) and the trail drawing rotated
+  // to the direction of travel, anchored on the part's trailing edge
+  trailLid: { box: [-260, -1150, 1500, 950], at: null, label: 'trail (lid) + multiples · anchor = trailing edge centre, +x = direction of travel (rotate to the motion)',
+    flight: { part: 'lid', centre: [424, 147], d: [300, -560], rot: 0.22, back: 230 }, under(ctx, o) { flight(ctx, o, this.flight, 'lid'); } },
+  trailBow: { box: [-500, -700, 1100, 700], at: null, label: 'trail (bow) + multiples · anchor = trailing edge centre, +x = direction of travel',
+    flight: { part: 'bow', centre: [612, 140], d: [-470, -330], rot: -0.6, back: 120 }, under(ctx, o) { flight(ctx, o, this.flight, 'bow'); } },
+  replay: { box: [-70, -70, 70, 70], at: [0, 0], label: 'replay icon · anchor = centre', under() {} },
+};
+
+function flight(ctx, o, F, part) {
+  const B = JADEN.box, live = Pencil.DEFAULT_COLOR !== undefined;
+  // the body stays (lid off: show its rim); the part leaves along d
+  Pencil.render(ctx, B, Object.assign({}, o, { show: ['body-rim'], groups: { lid: { visible: part !== 'lid' && false }, bow: { visible: false } } }));
+  if (part === 'bow') Pencil.render(ctx, B, Object.assign({}, o, live ? { only: 'lid' } : { groups: { body: { visible: false }, ground: { visible: false }, bow: { visible: false } } }));
+  const ghosts = [[0.66, 0.2], [0.33, 0.4]];
+  for (const [k, a] of ghosts.concat([[0, 1]])) {
+    const g = { x: F.d[0] * (1 - k), y: F.d[1] * (1 - k), rot: F.rot * (1 - k) };
+    const opt = Object.assign({}, o, { groups: { [part]: g } });
+    if (live) Object.assign(opt, { only: part, alpha: a, weight: a < 1 ? 0.8 : 1, color: a < 1 ? 0.35 : o.color, layers: a < 1 ? { construction: false, shadow: false } : {} });
+    else Object.assign(opt, { groups: { [part]: Object.assign(g, { alpha: a }), body: { visible: false }, ground: { visible: false }, lid: part === 'bow' ? { visible: true, alpha: 0 } : g } });
+    Pencil.render(ctx, B, opt);
+  }
+  // where the trail goes: behind the part's centre, rotated to the travel direction
+  const L = Math.hypot(F.d[0], F.d[1]), ux = F.d[0] / L, uy = F.d[1] / L;
+  F.at = [F.centre[0] + F.d[0] - ux * F.back, F.centre[1] + F.d[1] - uy * F.back];
+  F.ang = Math.atan2(uy, ux);
+}
+const seqOf = (seq) => (Array.isArray(JADEN.fx[seq]) ? JADEN.fx[seq] : [JADEN.fx[seq]]);
+function drawFx(ctx, seq, i, o, scene) {
+  const fig = seqOf(seq)[i];
+  const at = scene.at || (scene.flight && scene.flight.at) || [0, 0], ang = scene.flight ? scene.flight.ang || 0 : 0;
+  ctx.save();
+  ctx.translate(o.x + at[0] * o.scale, o.y + at[1] * o.scale);
+  ctx.rotate(ang);
+  Pencil.render(ctx, fig, Object.assign({}, o, { x: 0, y: 0, layers: Object.assign({ knockout: !!scene.knockout }, o.layers || {}) }));
+  ctx.restore();
+}
+
+/** draw drawing i of `seq` into a px rect: paper, context, FX */
+function drawCell(ctx, seq, i, rect, opt) {
+  const sc = SCENES[seq], [bx0, by0, bx1, by1] = sc.box;
+  const [x, y, w, h] = rect;
+  const s = Math.min(w / (bx1 - bx0), h / (by1 - by0));
+  const ox = x + (w - (bx1 - bx0) * s) / 2 - bx0 * s, oy = y + (h - (by1 - by0) * s) / 2 - by0 * s;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  Pencil.paper(ctx, x, y, w, h, { scale: s });
+  const o = { x: ox, y: oy, scale: s, seed: opt.seed || 1, color: opt.c !== undefined ? opt.c : C0 };
+  if (opt.ball !== false && seq !== 'impact') sc.under(ctx, Object.assign({}, o, { seed: opt.ballSeed || o.seed }), i);
+  if (sc.custom) sc.custom(ctx, o, i);
+  else drawFx(ctx, seq, i, o, sc);
+  if (sc.over && opt.ball !== false) sc.over(ctx, o, i);
+  ctx.restore();
+}
+
+/* ------------------------------------------------------------- sheet mode */
+function sheet(seq) {
+  document.body.className = 'sheet';
+  const cv = document.createElement('canvas');
+  cv.id = 'sheet';
+  const W = innerWidth, Hh = innerHeight;
+  cv.width = W; cv.height = Hh;
+  document.body.appendChild(cv);
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#e4ddcf'; ctx.fillRect(0, 0, W, Hh);
+  if (seq === 'sparkleSites') {   // 4 sites (rows) x their 3-drawing life (columns)
+    const sites = ['sparkleA', 'sparkleB', 'sparkleC', 'sparkleD'], gap = 8, cap = 20, cw = (W - gap * 4) / 3, ch = (Hh - gap) / 4 - gap;
+    sites.forEach((k, row) => JADEN.fx[k].forEach((f, i) => {
+      const x = gap + i * (cw + gap), y = gap + row * (ch + gap);
+      drawCell(ctx, k, i, [x, y + cap, cw, ch - cap], { seed: 1 + i });
+      ctx.fillStyle = '#4a454b'; ctx.font = '13px ui-monospace, Menlo, monospace';
+      ctx.fillText(`${k} ${["tick", "glint", "cross"][i]} · hold ${f.hold}` + (i ? "" : ` · site ${JADEN.fx.meta[k].on.at.join(", ")}`), x + 2, y + 14);
+    }));
+    return;
+  }
+  const list = seqOf(seq);
+  const one = Q.get('cell') !== null ? +Q.get('cell') : null;
+  const idx = one !== null ? [one] : list.map((_, i) => i);
+  const c = Q.get('c') !== null ? +Q.get('c') : C0, ball = Q.get('ball') !== '0';
+  const cols = Q.get('cols') ? +Q.get('cols') : idx.length, rows = Math.ceil(idx.length / cols);
+  const gap = 10, cap = 22, cw = (W - gap * (cols + 1)) / cols, ch = (Hh - gap) / rows - gap;
+  idx.forEach((i, k) => {
+    const x = gap + (k % cols) * (cw + gap), y = gap + Math.floor(k / cols) * (ch + gap);
+    drawCell(ctx, seq, i, [x, y + cap, cw, ch - cap], { c, ball, seed: 1 + (i % 3) });
+    ctx.fillStyle = '#4a454b'; ctx.font = '13px ui-monospace, Menlo, monospace';
+    const f = list[i];
+    ctx.fillText(`${seq} ${i + 1}/${list.length} · hold ${f.hold} · size ${f.size[0]}×${f.size[1]} · c ${c}`, x + 2, y + 15);
+  });
+}
+
+/* ------------------------------------------------------------- live review */
+const META = {
+  dust: 'Ball landing. Contact, bloom, break-up, thin-out; holds 2,2,3,3. Knockout on, so the dust sits in front of the ball.',
+  emph: 'The light pouring out of the opening, without glow. Cycle 1-2 on 2s, end on 3 (thinning, receding).',
+  impact: 'The split instant. 1 = dark field with a jagged clearing; 2 = blacked-in burst silhouette, ball knocked out. Ball line-only, everything else hidden. 2 frames each.',
+  burst: 'Jagged pop out of the crack, with split 0.25 / 0.6 / 0.9. Holds 2,2,3. Knockout on; paper left bare at the core is the light.',
+  sparkle: 'Four fixed sites around the logo (blue box = placeholder), each living tick, glint, cross on 3s at its own phase, then off for a few drawings.',
+  sparkleA: 'tick, glint, cross', sparkleB: 'tick, glint, cross', sparkleC: 'tick, glint, cross', sparkleD: 'tick, glint, cross',
+  tap: 'Where Jaden taps in the final hold. Land, burst, fly, break, fade; holds 2,2,3,3,3.',
+  tapColour: 'For taps that land on a dark fill: coloured pencil on paper eraser strokes (knockout on). Same timing.',
+  trailLid: 'Lid flight with the multiples spec (2 ghosts at 1/3 and 2/3 back, alpha .4/.2, colour .35, weight .8) plus the trail drawing rotated to the motion. Alternate 1-2.',
+  trailBow: 'Bow flight, same spec. Alternate 1-2.',
+  replay: 'Shown enlarged here; real size below.',
+};
+function live() {
+  const app = document.getElementById('app');
+  app.innerHTML = `<header><h1>FX drawings</h1>
+    <p class="sub">Hand-drawn effects for the "For Jaden" animation, rendered by ${RENDERER.includes('frozen') ? 'the frozen pencil.js snapshot' : 'resources/jaden/pencil.js'}.
+    Each sequence plays at its exposure: drawings held on 2s or 3s at 24 fps, with a new boil seed per drawing. Left: the sequence playing in context. Right: every drawing.</p></header>
+    <div class="bar"><div class="in">
+      <label class="ctl">colour <input id="col" type="range" min="0" max="1" step="0.01" value="${C0}"> <span id="colv">${C0}</span></label>
+      <label class="ctl"><input id="ctx" type="checkbox" checked> context (ball / box)</label>
+      <label class="ctl">speed <select id="spd"><option value="1">1×</option><option value="0.25">¼×</option></select></label>
+      <a class="mono" href="?r=${Q.get('r') === 'frozen' ? 'live' : 'frozen'}">switch renderer</a>
+    </div></div><div id="secs"></div>`;
+  const secs = document.getElementById('secs');
+  const players = [];
+  for (const seq of Object.keys(SCENES)) {
+    if (!JADEN.fx[seq]) continue;
+    const list = Array.isArray(JADEN.fx[seq]) ? JADEN.fx[seq] : [JADEN.fx[seq]];
+    const sec = document.createElement('section');
+    sec.innerHTML = `<h2>${seq}</h2><p class="meta">${SCENES[seq].label}. ${META[seq] || ''}</p>
+      <div class="row"><div class="stage"><canvas class="play"></canvas></div><div class="stage"><canvas class="all"></canvas></div></div>`;
+    secs.appendChild(sec);
+    players.push({ seq, list, play: sec.querySelector('.play'), all: sec.querySelector('.all') });
+  }
+  const st = { c: C0, ctx: true, spd: 1 };
+  const size = (cv, ar) => { const w = cv.clientWidth * devicePixelRatio; cv.width = w; cv.height = Math.round(w / ar); };
+  function drawAll() {
+    for (const p of players) {
+      const n = p.list.length, sc = SCENES[p.seq], br = (sc.box[2] - sc.box[0]) / (sc.box[3] - sc.box[1]);
+      const cols = n === 4 ? 2 : n, rows = Math.ceil(n / cols);
+      size(p.all, (cols * br) / rows);
+      const ctx = p.all.getContext('2d'), W = p.all.width, Hh = p.all.height, cw = W / cols, ch = Hh / rows;
+      ctx.fillStyle = '#e4ddcf'; ctx.fillRect(0, 0, W, Hh);
+      for (let i = 0; i < n; i++) drawCell(ctx, p.seq, i, [(i % cols) * cw, Math.floor(i / cols) * ch, cw - 3, ch - 3], { c: st.c, ball: st.ctx, seed: 1 + (i % 3) });
+      size(p.play, Math.max(1, br));
+    }
+  }
+  // timeline per player: drawing holds (24 fps frames), then a rest of blank context
+  let t0 = performance.now(), last = {};
+  function frame(now) {
+    const f = Math.floor(((now - t0) / 1000) * 24 * st.spd);
+    for (const p of players) {
+      const holds = p.list.map((d) => d.hold || 2), rest = 12, total = holds.reduce((a, b) => a + b, 0) + rest;
+      let k = f % total, i = 0;
+      while (i < holds.length && k >= holds[i]) { k -= holds[i]; i++; }
+      const loop = Math.floor(f / total), key = i + ':' + loop + ':' + Math.floor(f / 3);
+      if (last[p.seq] === key) continue;
+      last[p.seq] = key;
+      const ctx = p.play.getContext('2d'), W = p.play.width, Hh = p.play.height;
+      if (i < holds.length) drawCell(ctx, p.seq, i, [0, 0, W, Hh], { c: st.c, ball: st.ctx, seed: 1 + ((i + loop) % 3), ballSeed: 1 + (Math.floor(f / 3) % 3) });
+      else {
+        const sc = SCENES[p.seq], [bx0, by0, bx1, by1] = sc.box, s = Math.min(W / (bx1 - bx0), Hh / (by1 - by0));
+        Pencil.paper(ctx, 0, 0, W, Hh, { scale: s });
+        if (st.ctx && p.seq !== 'impact') sc.under(ctx, { x: (W - (bx1 - bx0) * s) / 2 - bx0 * s, y: (Hh - (by1 - by0) * s) / 2 - by0 * s, scale: s, seed: 1 + (Math.floor(f / 3) % 3), color: st.c }, 99);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  document.getElementById('col').oninput = (e) => { st.c = +e.target.value; document.getElementById('colv').textContent = st.c.toFixed(2); last = {}; drawAll(); };
+  document.getElementById('ctx').onchange = (e) => { st.ctx = e.target.checked; last = {}; drawAll(); };
+  document.getElementById('spd').onchange = (e) => { st.spd = +e.target.value; t0 = performance.now(); };
+  // the replay icon at its real size: still, boiling (8 fps) and writing itself on (natural pen speed)
+  const rs = document.createElement('section');
+  rs.innerHTML = '<h2>replay at 44 CSS px</h2><p class="meta">still · boil on 3 seeds at 8 fps · write-on (draw 0..1 over writeDuration, then a held beat)</p><div class="stage icon44"><canvas></canvas><canvas></canvas><canvas></canvas></div>';
+  secs.appendChild(rs);
+  const icons = [...rs.querySelectorAll('canvas')];
+  icons.forEach((cv) => { cv.width = cv.height = 44 * devicePixelRatio; });
+  const R0 = JADEN.fx.replay, wd = Pencil.writeDuration(R0);
+  function icon(cv, seed, draw) {
+    const c = cv.getContext('2d'), k = cv.width / 44, sc = (44 / 110) * k;
+    Pencil.paper(c, 0, 0, cv.width, cv.height, { scale: sc });
+    Pencil.render(c, R0, { x: cv.width / 2, y: cv.height / 2, scale: sc, seed, draw });
+  }
+  icon(icons[0], 1, 1);
+  setInterval(() => {
+    const t = performance.now();
+    icon(icons[1], Pencil.boilSeed(t), 1);
+    const per = wd + 1500, u = (t % per) / wd;
+    icon(icons[2], Pencil.boilSeed(t), Math.min(1, Math.floor(u * wd / (1000 / 24)) * (1000 / 24) / wd));
+  }, 1000 / 24);
+  drawAll();
+  requestAnimationFrame(frame);
+  addEventListener('resize', () => { last = {}; drawAll(); });
+}
+
+/** ?bench: ms per FX drawing on a 1600 x 1600 canvas with the ball ~1600 device px wide (first build, then cached) */
+function bench() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 1600;
+  const ctx = cv.getContext('2d'), out = [];
+  for (const [nm, fig] of [['ball', JADEN.ball], ['box', JADEN.box]]) {
+    const o = { x: 0, y: 0, scale: 1.7, seed: 1, color: C0 };
+    Pencil.render(ctx, fig, o);
+    let t = performance.now(); for (let k = 0; k < 5; k++) Pencil.render(ctx, fig, o); out.push(`${nm} cached ${((performance.now() - t) / 5).toFixed(1)}`);
+  }
+  for (const seq of Object.keys(SCENES)) {
+    seqOf(seq).forEach((fig, i) => {
+      const o = { x: 800, y: 800, scale: 2, seed: 1, color: C0, layers: { knockout: true } };
+      let t = performance.now(); Pencil.render(ctx, fig, o); const first = performance.now() - t;
+      t = performance.now(); for (let k = 0; k < 5; k++) Pencil.render(ctx, fig, o); const cached = (performance.now() - t) / 5;
+      t = performance.now(); Pencil.render(ctx, fig, Object.assign({}, o, { seed: 2 })); const seed2 = performance.now() - t;
+      out.push(`${seq}[${i}] first ${first.toFixed(1)} cached ${cached.toFixed(1)} newSeed ${seed2.toFixed(1)}`);
+    });
+  }
+  const pre = document.createElement('pre'); pre.id = 'bench'; pre.textContent = out.join('\n'); document.body.appendChild(pre);
+}
+
+function boot() {
+  if (!window.Pencil || !window.JADEN || !JADEN.fx) return;
+  if (Q.get('bench') !== null) return bench();
+  if (Q.get('sheet')) sheet(Q.get('sheet'));
+  else live();
+}
+</script>
+</body>
+</html>

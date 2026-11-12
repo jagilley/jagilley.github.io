@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paper World Background</title>
+<style>
+  :root { --desk: #e4ddcf; --paper: #f3eee3; --ink: #2f2c30; --muted: #6f6970; --line: #cfc6b4; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--desk); color: var(--ink); font: 15px/1.5 "Iowan Old Style", Palatino, Georgia, serif; }
+  body.bare { background: var(--paper); overflow: hidden; }
+  body.bare .ui { display: none; }
+  canvas { display: block; }
+  .ui { max-width: 1480px; margin: 0 auto; padding: 24px 24px 60px; }
+  h1 { font-size: 28px; margin: 0 0 4px; font-weight: 600; }
+  h2 { font-size: 20px; margin: 28px 0 6px; font-weight: 600; }
+  p { margin: 0 0 10px; max-width: 80ch; }
+  .stage { background: var(--paper); border-radius: 3px; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+  .stage canvas { width: 100%; }
+  .ctl { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 12px 0; font: 12px ui-monospace, Menlo, monospace; }
+  .ctl label { display: inline-flex; align-items: center; gap: 6px; }
+  .ctl input[type=range] { width: 180px; accent-color: #6d5ea8; }
+  button { font: 12px ui-monospace, Menlo, monospace; background: var(--paper); border: 1px solid #b9b0a0; border-radius: 3px; padding: 5px 10px; cursor: pointer; color: var(--ink); }
+  .frames { display: grid; grid-template-columns: 1fr 2.2fr 3fr; gap: 14px; align-items: end; }
+  .frames figure { margin: 0; }
+  .frames figcaption { font: 12px ui-monospace, Menlo, monospace; color: var(--muted); padding-top: 4px; }
+  code { font: 13px ui-monospace, Menlo, monospace; background: rgba(255,255,255,.45); padding: 1px 4px; border-radius: 2px; }
+  @media (max-width: 800px) { .frames { grid-template-columns: 1fr; } .ui { padding: 16px; } }
+</style>
+</head>
+<body>
+<div class="ui">
+  <h1>The paper world</h1>
+  <p>The background elements on one sheet, in world units: the figures stand on <code>y = 0</code> at <code>x = 0</code>,
+    and the sheet spans <code>x</code> −2600…2600, <code>y</code> −2000…700. Everything is drawn by <code>Pencil.render</code>
+    from <code>resources/jaden/bg.style.js</code>. The box or ball is placed on the ground for scale. Notes for the
+    director: <code>style/bg-NOTES.md</code>. Static exports: <code>png/bg-golden.png</code>, <code>bg-dusk.png</code>,
+    <code>bg-golden-color0.png</code>, <code>bg-framings.png</code>, <code>bg-ultrawide.png</code>, <code>bg-hand.png</code>,
+    <code>bg-sketchin.png</code>, <code>bg-dusk-beats.png</code>.</p>
+  <div class="ctl">
+    <label>colour <input type="range" id="c" min="0" max="1" step="0.01" value="0.64"><span id="cv">0.64</span></label>
+    <label>dusk <input type="range" id="d" min="0" max="1" step="1" value="0"><span id="dv">0</span></label>
+    <label><input type="checkbox" id="boil"> boil</label>
+    <label>figure <select id="f"><option>box</option><option>ball</option><option>none</option></select></label>
+    <label>layout <select id="lay"><option>wide</option><option>tall</option></select></label>
+    <button id="sketch">play sketch-in</button>
+    <button id="wash">play dusk wash</button>
+  </div>
+  <div class="stage"><canvas id="sheet"></canvas></div>
+  <h2>Framings</h2>
+  <p>The same world through three camera boxes: phone portrait, laptop, ultrawide. The sun and the big cloud move in for
+    the portrait layout (<code>layout.tall</code>).</p>
+  <div class="frames">
+    <figure><canvas id="fr0"></canvas><figcaption>390×844 (tall layout)</figcaption></figure>
+    <figure><canvas id="fr1"></canvas><figcaption>1440×900</figcaption></figure>
+    <figure><canvas id="fr2"></canvas><figcaption>2560×1080</figcaption></figure>
+  </div>
+  <h2>Hand check</h2>
+  <p>The background's strokes beside Jasper's at the same scale (2 px per unit): the box's left edge and lid corner, then
+    the cloud, sun, a tuft and a hill line.</p>
+  <div class="stage"><canvas id="zoom"></canvas></div>
+</div>
+<canvas id="bare" style="display:none"></canvas>
+
+<script>
+  // the renderer: resources/jaden/pencil.js (?pencil=frozen for the old snapshot)
+  const PQ = new URLSearchParams(location.search);
+  document.write('<script src="' + (PQ.get('pencil') === 'frozen' ? '../style/pencil.frozen.js' : '../../resources/jaden/pencil.js') + '"><\/script>');
+</script>
+<script src="../../resources/jaden/box.style.js"></script>
+<script src="../../resources/jaden/ball.style.js"></script>
+<script src="../../resources/jaden/bg.style.js"></script>
+<script>
+(function () {
+  const q = PQ, BG = JADEN.bg;
+  const WORLD = [-2600, -2000, 2600, 700];
+  // figures on the ground at x = 0 (box: body bottom ~776, centre ~420; ball: centre 462, bottom 832.5)
+  const FIG = { box: { fig: JADEN.box, x: -420, y: -776 }, ball: { fig: JADEN.ball, x: -462, y: -832.5 } };
+
+  /**
+   * Draw the world: view = [x0, y0, x1, y1] (world units) fitted into W x H device px of ctx.
+   * o: {seed, color, layout: 'wide'|'tall', dusk: beats laid (0 = golden, Infinity = all),
+   *     build: {el: build|null} (sketch-in; missing = complete, null = not started), fig: 'box'|'ball'|'none'}
+   */
+  function drawWorld(ctx, W, H, view, o) {
+    const s = Math.min(W / (view[2] - view[0]), H / (view[3] - view[1]));
+    const ox = (W - (view[2] - view[0]) * s) / 2 - view[0] * s, oy = (H - (view[3] - view[1]) * s) / 2 - view[1] * s;
+    Pencil.paper(ctx, 0, 0, W, H, { scale: s });
+    const tall = o.layout === 'tall';
+    const dusk = Math.min(o.dusk || 0, BG.layout.duskBeats.length);
+    const over = Object.assign({}, tall ? BG.layout.tall : {});
+    if (dusk > 0) { const p = BG.sunAt(dusk, tall); over.sun = p; }   // the sun sets in held keys
+    const DS = dusk > 0 ? BG.duskState(dusk) : null;
+    const col = o.color !== undefined ? o.color : BG.layout.color;
+    const at = (p) => ({ x: ox + p.x * s, y: oy + p.y * s, scale: s });
+    for (const name of o.only || BG.layout.order) {
+      const f = BG.elements[name];
+      const b = o.build ? o.build[name] : undefined;
+      if (!f || b === null) continue;
+      const opts = Object.assign({ seed: o.seed, color: col }, at(BG.place(name, over)));
+      if (b) opts.build = b;
+      // the land knocks out the setting sun; over the wash the clouds are knocked out to paper
+      if (f.style.occluders.length && (name.startsWith('hill') || name === 'horizon' || dusk > 0)) opts.layers = { knockout: true };
+      if (name === 'horizon') opts.show = ['hz-mid'];
+      Pencil.render(ctx, f, opts);
+      if (DS && name === 'sky') Pencil.render(ctx, BG.dusk.wash, Object.assign({ seed: o.seed, color: col }, at({ x: 0, y: 0 }), DS.opts.wash));
+      // dusk touches in each element's frame (the sun's before the land, so the hills hide it too)
+      if (DS && BG.dusk[name]) Pencil.render(ctx, BG.dusk[name], Object.assign({}, opts, { layers: undefined, build: undefined, show: undefined }, DS.opts[name]));
+    }
+    if (o.fig && FIG[o.fig]) {
+      const F = FIG[o.fig];
+      Pencil.render(ctx, F.fig, { seed: o.seed, color: 0.64, x: ox + F.x * s, y: oy + F.y * s, scale: s, layers: { knockout: dusk > 0 } });
+    }
+    return { s, ox, oy };
+  }
+
+  /** Hand check: background details beside Jasper's own strokes, all at the same scale (k px per unit). */
+  const ZOOM = [
+    ['box: lid corner (Jasper)', [-440, -735, -110, -455], 'box'],
+    ['ball: outline (Jasper)', [-420, -560, -90, -280], 'ball'],
+    ['cloud crown', [770, -1250, 1100, -970], 'none'],
+    ['sun', [-950, -985, -620, -705], 'none'],
+    ['tuft and ground', [-700, -150, -370, 130], 'box'],
+    ['hill ridge and tree', [-1400, -660, -1070, -380], 'none'],
+  ];
+  function drawZoom(ctx, W, H, o) {
+    const cols = 3, rows = 2, gap = 10 * (W / 1500);
+    const cw = (W - gap * (cols - 1)) / cols, ch = (H - gap * (rows - 1)) / rows;
+    ctx.fillStyle = '#e4ddcf'; ctx.fillRect(0, 0, W, H);
+    ZOOM.forEach(([label, v, fig], i) => {
+      const cx = (i % cols) * (cw + gap), cy = Math.floor(i / cols) * (ch + gap);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(cx, cy, cw, ch); ctx.clip();
+      ctx.translate(cx, cy);
+      drawWorld(ctx, cw, ch, v, Object.assign({}, o, { fig }));
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = 'rgba(47,44,48,.75)'; ctx.font = `${Math.round(13 * W / 1500)}px ui-monospace, Menlo, monospace`;
+      ctx.fillText(label, cx + 8 * W / 1500, cy + ch - 9 * W / 1500);
+      ctx.restore();
+    });
+  }
+  /** a strip of drawings: sketch-in stages or dusk beats */
+  function drawStrip(ctx, W, H, o, frames, view) {
+    const n = frames.length, gap = 8, cw = (W - gap * (n - 1)) / n;
+    ctx.fillStyle = '#e4ddcf'; ctx.fillRect(0, 0, W, H);
+    frames.forEach((fo, i) => {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(i * (cw + gap), 0, cw, H); ctx.clip();
+      ctx.translate(i * (cw + gap), 0);
+      drawWorld(ctx, cw, H, view, Object.assign({}, o, fo));
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = 'rgba(47,44,48,.75)'; ctx.font = '13px ui-monospace, Menlo, monospace';
+      ctx.fillText(fo.label || '', i * (cw + gap) + 8, H - 10);
+      ctx.restore();
+    });
+  }
+  const SKETCH = [
+    { label: 'roughs 0.5s', build: BG.sketchAt('roughs', 500), fig: 'none' },
+    { label: 'roughs done', build: BG.sketchAt('roughs', 1800), fig: 'none' },
+    { label: 'details 1.4s', build: BG.sketchAt('details', 1400) },
+    { label: 'details 2.9s', build: BG.sketchAt('details', 2900) },
+    { label: 'details 3.9s', build: BG.sketchAt('details', 3900) },
+  ];
+  const NB = BG.layout.duskBeats.length;
+  const BEATS = [0.12, 0.3, 0.55, 0.8, 1].map((f) => ({ label: `dusk ${Math.round(f * NB)}/${NB} drawings`, dusk: Math.round(f * NB) }));
+  window.BGPreview = { drawWorld, drawZoom, drawStrip, SKETCH, BEATS };
+
+  // -------- headless export: ?bare=1&w=&h=&view=x0,y0,x1,y1&dusk=N|all&color=&fig=&layout=&panel=zoom|sketch|beats
+  if (q.get('bare')) {
+    document.body.classList.add('bare');
+    const cv = document.getElementById('bare');
+    cv.style.display = 'block';
+    const W = +(q.get('w') || innerWidth), H = +(q.get('h') || innerHeight);
+    cv.width = W; cv.height = H; cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    const ctx = cv.getContext('2d');
+    const view = q.get('view') ? q.get('view').split(',').map(Number) : WORLD;
+    const d = q.get('dusk');
+    const o = { seed: +(q.get('seed') || 1), color: q.has('color') ? +q.get('color') : undefined, dusk: d === 'all' ? Infinity : +(d || 0),
+      fig: q.get('fig') || 'box', layout: q.get('layout') || 'wide', only: q.get('only') ? q.get('only').split(',') : undefined };
+    const panel = q.get('panel');
+    if (panel === 'zoom') drawZoom(ctx, W, H, o);
+    else if (panel === 'sketch') drawStrip(ctx, W, H, o, SKETCH, [-1500, -1300, 1500, 300]);
+    else if (panel === 'beats') drawStrip(ctx, W, H, Object.assign(o, { fig: 'ball' }), BEATS, [-1500, -1450, 1500, 300]);
+    else drawWorld(ctx, W, H, view, o);
+    return;
+  }
+
+  // -------- interactive
+  const state = { seed: 1, color: 0.64, dusk: 0, fig: 'box', layout: 'wide' };
+  const $ = (id) => document.getElementById(id);
+  function size(cv, w, h) { const d = Math.min(2, devicePixelRatio || 1); cv.width = Math.round(w * d); cv.height = Math.round(h * d); cv.style.width = '100%'; return cv.getContext('2d'); }
+  function draw() {
+    const cv = $('sheet'), w = cv.parentElement.clientWidth, h = Math.round(w * 2700 / 5200);
+    drawWorld(size(cv, w, h), cv.width, cv.height, WORLD, state);
+  }
+  function frames() {
+    const F = [
+      ['fr0', 390, 844, [-560, -1640, 560, 780], 'tall'],
+      ['fr1', 1440, 900, [-1000, -1080, 1000, 300], 'wide'],
+      ['fr2', 2560, 1080, [-1530, -1010, 1530, 280], 'wide'],
+    ];
+    for (const [id, w, h, v, lay] of F) {
+      const cv = $(id), cw = cv.parentElement.clientWidth;
+      drawWorld(size(cv, cw, Math.round(cw * h / w)), cv.width, cv.height, v, Object.assign({}, state, { layout: lay, build: undefined }));
+    }
+  }
+  function zoom() { const z = $('zoom'), w = z.parentElement.clientWidth; drawZoom(size(z, w, Math.round(w * 0.56)), z.width, z.height, state); }
+  $('c').oninput = (e) => { state.color = +e.target.value; $('cv').textContent = state.color.toFixed(2); draw(); };
+  $('f').onchange = (e) => { state.fig = e.target.value; draw(); frames(); };
+  $('lay').onchange = (e) => { state.layout = e.target.value; draw(); };
+  $('d').max = NB;
+  $('d').oninput = (e) => { state.dusk = +e.target.value; $('dv').textContent = state.dusk; draw(); };
+  let boil = null;
+  $('boil').onchange = (e) => {
+    if (boil) { clearInterval(boil); boil = null; }
+    if (e.target.checked) boil = setInterval(() => { state.seed = state.seed % 3 + 1; draw(); }, 125);
+  };
+  // the wash goes in on 3s (8 drawings a second), each drawing a new seed
+  $('wash').onclick = () => {
+    let k = 0;
+    const t = setInterval(() => { state.dusk = k; state.seed = 1 + (k % 3); $('d').value = k; $('dv').textContent = k; draw(); if (++k > NB) clearInterval(t); }, 125);
+  };
+  // roughs, a pause where the box would write on, then the details; on 2s (12 drawings a second)
+  $('sketch').onclick = () => {
+    const steps = [];
+    for (let t = 0; t <= 1800; t += 1000 / 12) steps.push(['roughs', t]);
+    for (let t = 0; t <= 4600; t += 1000 / 12) steps.push(['details', t]);
+    let i = 0;
+    const tick = () => {
+      const [ph, t] = steps[i];
+      state.build = BG.sketchAt(ph, t);
+      state.seed = 1 + (i % 3);
+      draw();
+      if (++i < steps.length) setTimeout(tick, 1000 / 12); else { state.build = undefined; draw(); }
+    };
+    tick();
+  };
+  window.addEventListener('resize', () => { draw(); frames(); zoom(); });
+  draw(); frames(); zoom();
+})();
+</script>
+</body>
+</html>

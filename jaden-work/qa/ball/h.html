@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#f3eee3;overflow:hidden}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script src="../../style/pencil.js"></script>
+<script src="../../style/ball.style.js"></script>
+<script src="../../review/sheet.js"></script>
+<script>
+// QA harness. ?mode=boil|split|layers &color=..  (cells in a grid)
+const q = new URLSearchParams(location.search);
+const W = innerWidth, H = innerHeight, cv = document.getElementById('c');
+cv.width = W; cv.height = H; const ctx = cv.getContext('2d');
+const mode = q.get('mode') || 'boil', color = +(q.get('color') || 0.5);
+const fig = JADEN.ball;
+let cells = [];
+if (mode === 'boil') {
+  const zoom = +(q.get('zoom') || 1), cx = +(q.get('cx') || 0.5), cy = +(q.get('cy') || 0.5);
+  cells = [1, 2, 3].map(s => ({ seed: s, color, zoom, cx, cy }));
+} else if (mode === 'split') {
+  cells = [0.15, 0.4, 0.7, 1].map(d => ({ seed: 1, color, split: d }));
+} else if (mode === 'layers') {
+  const L = (o) => Object.assign({ construction: false, colour: false, shadow: false, line: false }, o);
+  cells = [
+    { layers: L({ line: true }) }, { layers: L({ construction: true }) }, { layers: L({ colour: true }) },
+    { layers: L({ shadow: true }) }, { layers: L({ colour: true, shadow: true }) }, { layers: L({ line: true, colour: true, shadow: true }) },
+  ].map(c => Object.assign({ seed: 1, color }, c));
+} else if (mode === 'knock') {
+  cells = [{ seed: 1, color, layers: { knockout: true } }];
+}
+const n = cells.length, cols = mode === 'layers' ? 3 : n, rows = Math.ceil(n / cols);
+const cw = W / cols, ch = H / rows;
+cells.forEach((c, i) => {
+  const ox = (i % cols) * cw, oy = Math.floor(i / cols) * ch;
+  ctx.save(); ctx.beginPath(); ctx.rect(ox, oy, cw, ch); ctx.clip();
+  if (mode === 'knock') { ctx.fillStyle = '#3fa79a'; ctx.fillRect(ox, oy + ch * 0.5, cw, ch * 0.5); }
+  else Pencil.paper(ctx, ox, oy, cw, ch, { scale: 1 });
+  const f = Pencil.fit(fig, cw, ch, mode === 'split' ? 0.2 : 0.04);
+  const b = fig.style.bounds, z = c.zoom || 1;
+  let scale = f.scale * z, x = ox + f.x, y = oy + f.y;
+  if (z !== 1) { const fx = b[0] + c.cx * (b[2] - b[0]), fy = b[1] + c.cy * (b[3] - b[1]); x = ox + cw / 2 - fx * scale; y = oy + ch / 2 - fy * scale; }
+  const opts = { x, y, scale, seed: c.seed, color: c.color, layers: c.layers };
+  if (c.split !== undefined) Sheet.renderBall(ctx, opts, c.split); else Pencil.render(ctx, fig, opts);
+  ctx.restore();
+});
+</script></body></html>

@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GTA VI Logo Review</title>
+<style>
+  :root { --desk: #e4ddcf; --paper: #f3eee3; --ink: #2f2c30; --muted: #6f6970; --line: #cfc6b4; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--desk); color: var(--ink); font: 16px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  header, section, footer { max-width: 1480px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 40px; }
+  h1 { font-size: 34px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; margin: 0 0 4px; }
+  p { margin: 0 0 10px; max-width: 80ch; }
+  .sub { color: var(--muted); }
+  section { padding-top: 36px; }
+  .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; margin-top: 12px; }
+  figure { margin: 0; }
+  figcaption, .ctl, .mono { font: 12px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--muted); }
+  figcaption { padding: 6px 2px 0; }
+  .tile { background: var(--paper); border-radius: 3px; box-shadow: 0 1px 0 rgba(0,0,0,.06); overflow: hidden; }
+  .tile canvas { display: block; }
+  .phone { border: 9px solid #2b2830; border-radius: 26px; background: var(--paper); overflow: hidden; }
+  .panel { background: rgba(255,255,255,.35); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; max-width: 900px; }
+  .ctl { display: flex; align-items: center; gap: 10px; margin: 6px 0; color: #3d383e; flex-wrap: wrap; }
+  .ctl input[type=range] { flex: 1; min-width: 140px; accent-color: #b0408e; }
+  .ctl label { display: inline-flex; gap: 5px; align-items: center; cursor: pointer; }
+  button { font: 12px ui-monospace, Menlo, monospace; background: var(--paper); border: 1px solid #b9b0a0; border-radius: 3px; padding: 5px 10px; cursor: pointer; color: var(--ink); }
+  .live canvas { display: block; width: 100%; }
+  footer { padding-top: 40px; padding-bottom: 60px; color: var(--muted); font-size: 14px; }
+  code { font: 13px ui-monospace, Menlo, monospace; background: rgba(255,255,255,.45); padding: 1px 4px; border-radius: 2px; }
+  body.export { background: var(--paper); overflow: hidden; }
+  body.export canvas { display: block; }
+  @media (max-width: 640px) { header, section, footer { padding-left: 16px; padding-right: 16px; } h1 { font-size: 27px; } }
+</style>
+</head>
+<body>
+<script>
+// renderer: the runtime pencil.js by default; ?r=frozen previews against the frozen snapshot
+(function () {
+  const q = new URLSearchParams(location.search);
+  const r = q.get('r') === 'frozen' ? '../style/pencil.frozen.js' : '../../resources/jaden/pencil.js';
+  for (const src of [r, '../../resources/jaden/ball.style.js', '../../resources/jaden/logo.style.js', '../../resources/jaden/logo-official.js'])
+    document.write('<script src="' + src + '"><\/script>');
+})();
+</script>
+<script>
+/* ---------------------------------------------------------------- shared drawing */
+const Q = new URLSearchParams(location.search);
+const DPR = window.devicePixelRatio || 1;
+const LOGO = JADEN.logo, BALL = JADEN.ball;
+const LB = LOGO.style.bounds;
+
+function canvasOf(cv, w, h) {
+  cv.width = Math.round(w * DPR); cv.height = Math.round(h * DPR);
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  return ctx;
+}
+
+/** the logo alone, `lw` CSS px wide (official 1400-unit width), centred in a w x h canvas */
+function drawSolo(ctx, w, h, lw, o) {
+  const s = lw / 1400;
+  Pencil.paper(ctx, 0, 0, w, h, { scale: s });
+  if (o.bgtest) {   // paper-out check: something behind the logo (sky-wash stand-in stripes)
+    ctx.save(); ctx.globalCompositeOperation = 'multiply';
+    for (let i = -h; i < w; i += 26) { ctx.fillStyle = i % 52 ? '#f5b8c8' : '#b8cdf0'; ctx.beginPath(); ctx.moveTo(i, h); ctx.lineTo(i + h, 0); ctx.lineTo(i + h + 11, 0); ctx.lineTo(i + 11, h); ctx.fill(); }
+    ctx.restore();
+  }
+  const x = w / 2, y = h / 2 + (1086 * s) / 2;   // base centre anchor
+  if (o.official) { JADEN.logoOfficial.draw(ctx, { x, y, scale: s, groups: o.groups }); return; }
+  LOGO.render(ctx, Object.assign({ x, y, scale: s, seed: 1 }, o));
+}
+
+/** the cracked ball, halves apart, with the logo risen out of it: for scale */
+function drawWithBall(ctx, w, h, o) {
+  const fit = BALL.strokes.fit;                    // ball disc: cx, cy, r (~400)
+  const sheetW = 2200, sheetH = 1900;
+  const s = Math.min(w / sheetW, h / sheetH);
+  const ox = (w - sheetW * s) / 2, oy = (h - sheetH * s) / 2;
+  Pencil.paper(ctx, 0, 0, w, h, { scale: s });
+  const bx = ox + (1100 - fit.cx) * s, by = oy + (1880 - 870) * s;
+  // logo first, risen above the opening; the ball halves go in front of it
+  const lx = ox + 1100 * s, ly = oy + 1290 * s;
+  if (o.official) JADEN.logoOfficial.draw(ctx, { x: lx, y: ly, scale: s });
+  else LOGO.render(ctx, Object.assign({ x: lx, y: ly, scale: s, seed: 1 }, o));
+  const split = o.split === undefined ? 1 : o.split;
+  renderHalves(ctx, Object.assign({ x: bx, y: by, scale: s, seed: 1, color: o.color, layers: { knockout: true } }), split);
+}
+
+// ball halves: the runtime renderer has them built in (opts.crack); the frozen one needs clipping
+function renderHalves(ctx, opts, split) {
+  if (Q.get('r') !== 'frozen') { Pencil.render(ctx, BALL, Object.assign({}, opts, { crack: { split } })); return; }
+  const f = BALL.strokes.fit, c = BALL.style.crack, d = split, n = c.length, top = c[0][1], bot = c[n - 1][1];
+  Pencil.render(ctx, BALL, Object.assign({}, opts, { layers: { construction: false }, groups: { ball: { visible: false }, ground: { alpha: Math.max(0, 1 - d * 1.6) } } }));
+  for (const [sgn, far] of [[-1, -300], [1, 1300]]) {
+    const poly = c.concat([[far, bot], [far, top]]);
+    const inset = c.map(([x, y], i) => [x - sgn * (3 + 2.5 * Math.abs(Math.sin(i * 1.7))), y]);
+    const root = { x: sgn * d * 70, y: -d * 30 + d * d * 40, rot: sgn * d * 0.22, pivot: [f.cx, f.cy + f.r] };
+    Pencil.render(ctx, BALL, Object.assign({}, opts, { clip: poly, colourClip: inset.concat([[far, bot], [far, top]]), groups: { root, ground: { visible: false } } }));
+  }
+}
+
+/* ---------------------------------------------------------------- export mode (headless PNGs) */
+// logo.html?export=solo|ball&color=0.64&lw=350&w=390&h=420&official=1&seed=1&draw=1&zoom=...
+if (Q.get('export') === 'info') {   // timing / bench for the notes: --dump-dom prints it
+  const tl = Pencil.timeline(LOGO), wd = Pencil.writeDuration(LOGO);
+  const span = (g) => { const t = tl.filter((q) => LOGO.style.lines[q.id].group === g); return [t[0].startMs, t[t.length - 1].endMs].map(Math.round); };
+  const cv = document.createElement('canvas'), ctx = canvasOf(cv, 700, 560);
+  const t0 = performance.now();
+  drawSolo(ctx, 700, 560, 640, { color: 0.64, seed: 1 });
+  const t1 = performance.now();
+  for (let i = 0; i < 12; i++) drawSolo(ctx, 700, 560, 640, { color: 0.64, seed: 1 + (i % 3) });
+  ctx.getImageData(0, 0, 1, 1);
+  const t2 = performance.now();
+  const N = 24;
+  const bench = (o) => { drawSolo(ctx, 700, 560, 640, Object.assign({ color: 0.64, seed: 1 }, o)); ctx.getImageData(0, 0, 1, 1);
+    const a = performance.now(); for (let i = 0; i < N; i++) drawSolo(ctx, 700, 560, 640, Object.assign({ color: 0.64, seed: 1 + (i % 3) }, o)); ctx.getImageData(0, 0, 1, 1); return +((performance.now() - a) / N).toFixed(1); };
+  const benchBall = () => { const f = Pencil.fit(BALL, 700, 560, 0.04), o = { x: f.x, y: f.y, scale: f.scale * 1.0, color: 0.64 };
+    Pencil.paper(ctx, 0, 0, 700, 560, { scale: f.scale }); Pencil.render(ctx, BALL, o); ctx.getImageData(0, 0, 1, 1);
+    const a = performance.now(); for (let i = 0; i < N; i++) { Pencil.paper(ctx, 0, 0, 700, 560, { scale: f.scale }); Pencil.render(ctx, BALL, Object.assign({ seed: 1 + (i % 3) }, o)); } ctx.getImageData(0, 0, 1, 1); return +((performance.now() - a) / N).toFixed(1); };
+  const parts = {};
+  for (const k of [0, 1]) {
+    parts['full' + k] = bench({});
+    parts['ball' + k] = benchBall();
+    parts['vi' + k] = bench({ groups: { word: { visible: false } } });
+    parts['word' + k] = bench({ groups: { vi: { visible: false } } });
+    parts['lines' + k] = bench({ layers: { colour: false, shadow: false, construction: false } });
+    parts['paper' + k] = bench({ groups: { vi: { visible: false }, word: { visible: false } } });
+  }
+  window.addEventListener('DOMContentLoaded', () => { document.body.textContent = 'INFO ' + JSON.stringify(Object.assign({ writeMs: Math.round(wd), vi: span('vi'), word: span('word'), firstMs: Math.round(t1 - t0) }, parts)); });
+} else if (Q.get('export')) {
+  document.body.className = 'export';
+  const cv = document.createElement('canvas');
+  document.body.appendChild(cv);
+  const w = +(Q.get('cw') || innerWidth), h = +(Q.get('ch') || innerHeight), ctx = canvasOf(cv, w, h);
+  const o = { color: +(Q.get('color') || 0.64), seed: +(Q.get('seed') || 1), official: Q.get('official') === '1',
+    bgtest: Q.get('bgtest') === '1', knockoutVI: Q.get('kvi') === '1' };
+  if (Q.get('only')) o.only = Q.get('only').split(',');
+  if (Q.has('draw')) o.draw = +Q.get('draw');
+  if (Q.get('layers')) { o.layers = { construction: false, colour: false, shadow: false, line: false }; Q.get('layers').split(',').forEach(k => (o.layers[k] = true)); }
+  if (Q.get('groups')) o.groups = JSON.parse(Q.get('groups'));
+  const go = () => {
+    const t0 = performance.now();
+    if (Q.get('export') === 'ball') drawWithBall(ctx, w, h, o);
+    else drawSolo(ctx, w, h, +(Q.get('lw') || Math.min(w * 0.9, 1400)), o);
+    if (Q.get('ghost')) {   // geometry check: the official mark over the pencil at low alpha
+      const lw = +(Q.get('lw') || Math.min(w * 0.9, 1400)), s = lw / 1400;
+      ctx.save(); ctx.globalAlpha = +Q.get('ghost');
+      JADEN.logoOfficial.draw(ctx, { x: w / 2, y: h / 2 + (1086 * s) / 2, scale: s });
+      ctx.restore();
+    }
+    document.title = 'done ' + (performance.now() - t0).toFixed(0) + 'ms';
+  };
+  if (o.official || Q.get('ghost')) JADEN.logoOfficial.ready.then(go); else go();
+}
+</script>
+
+<header id="hdr">
+  <h1>The GTA VI logo, in pencil</h1>
+  <p class="sub">The official Wikimedia trace (from v1) redrawn by the same hand as the box and ball: graphite key line on the
+    official contours, the sunset field laid in marker bands, the dark plum keyline with its near-black outer half, the white
+    keyline left as paper, and the wordmark as paper letters on a dark slab. Units: 100 = one ruled line; the logo is 1400 wide
+    (the ball is ~800); anchor at its base centre.</p>
+  <p class="sub mono">renderer: <span id="rname"></span> · keyline mode: <span id="kmode"></span> · write-on: <span id="wdur"></span></p>
+</header>
+
+<section>
+  <h2>Phone size</h2>
+  <p class="sub">Logo 340 CSS px wide inside a 390 px portrait screen, at this display's pixel ratio.</p>
+  <div class="row" id="phone"></div>
+</section>
+
+<section>
+  <h2>Desktop size</h2>
+  <p class="sub">Logo 640 CSS px wide.</p>
+  <div class="row" id="desk"></div>
+</section>
+
+<section>
+  <h2>Beside the ball halves</h2>
+  <p class="sub">The ball cracked open with the logo risen out of it, at true relative size, colour 0.64. Left: pencil; right: the crisp official fallback.</p>
+  <div class="row" id="ballrow"></div>
+</section>
+
+<section class="live">
+  <h2>Live</h2>
+  <div class="row" style="align-items:stretch">
+    <div class="tile" style="flex:1 1 640px; max-width:900px"><canvas id="live"></canvas></div>
+    <div class="panel" style="flex:1 1 280px">
+      <div class="ctl">colour <input type="range" id="c" min="0" max="1" step="0.01" value="0.64"><span id="cv">0.64</span></div>
+      <div class="ctl"><label><input type="checkbox" id="boil"> boil (8 fps)</label>
+        <label><input type="checkbox" id="off"> official (dev flag)</label></div>
+      <div class="ctl"><button id="wr">write on + build up (9 s)</button><button id="slam">VI rises, wordmark slams (on 2s)</button></div>
+      <div class="ctl">layers: <label><input type="checkbox" data-l="construction" checked> construction</label>
+        <label><input type="checkbox" data-l="colour" checked> colour</label>
+        <label><input type="checkbox" data-l="shadow" checked> shadow</label>
+        <label><input type="checkbox" data-l="line" checked> line</label></div>
+      <p class="mono" id="ms"></p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Data: <code>resources/jaden/logo.style.js</code> (built by <code>jaden-work/tools/logo/build.py</code>). Notes: <code>jaden-work/style/logo-NOTES.md</code>.
+  Draw it with <code>JADEN.logo.render(ctx, opts)</code> (two passes: the VI, then the wordmark knocked out over it). Dev flag / fallback: <code>JADEN.logoOfficial.draw(ctx, opts)</code> from <code>resources/jaden/logo-official.js</code>.
+  Paper-out check: <code>logo.html?export=solo&amp;bgtest=1&amp;kvi=1&amp;groups={"word":{"visible":false}}</code>.
+</footer>
+
+<script>
+if (!Q.get('export')) {
+  document.getElementById('rname').textContent = Q.get('r') === 'frozen' ? 'style/pencil.frozen.js' : 'resources/jaden/pencil.js';
+  document.getElementById('kmode').textContent = LOGO.style.keyline;
+  document.getElementById('wdur').textContent = (Pencil.writeDuration(LOGO) / 1000).toFixed(1) + ' s at natural pen speed';
+
+  function tile(parent, w, h, cap, paint, frame) {
+    const fig = document.createElement('figure');
+    const box = document.createElement('div');
+    box.className = frame ? 'phone' : 'tile';
+    const cv = document.createElement('canvas');
+    box.appendChild(cv); fig.appendChild(box);
+    const fc = document.createElement('figcaption'); fc.textContent = cap; fig.appendChild(fc);
+    parent.appendChild(fig);
+    const ctx = canvasOf(cv, w, h);
+    paint(ctx, w, h);
+  }
+  for (const c of [0, 0.64, 1]) tile(document.getElementById('phone'), 390, 400, 'color ' + c, (ctx, w, h) => drawSolo(ctx, w, h, 340, { color: c }), true);
+  tile(document.getElementById('phone'), 390, 400, 'official (dev flag)', (ctx, w, h) => JADEN.logoOfficial.ready.then(() => drawSolo(ctx, w, h, 340, { official: true })), true);
+  for (const c of [0, 0.64, 1]) tile(document.getElementById('desk'), 700, 580, 'color ' + c, (ctx, w, h) => drawSolo(ctx, w, h, 640, { color: c }));
+  tile(document.getElementById('ballrow'), 700, 600, 'pencil, colour 0.64', (ctx, w, h) => drawWithBall(ctx, w, h, { color: 0.64 }));
+  tile(document.getElementById('ballrow'), 700, 600, 'official logo (dev flag)', (ctx, w, h) => JADEN.logoOfficial.ready.then(() => drawWithBall(ctx, w, h, { color: 0.64, official: true })));
+
+  // live
+  const cv = document.getElementById('live');
+  const st = { color: 0.64, boil: false, official: false, draw: 1, layers: {}, anim: null };
+  let W = 0, H = 0, ctx = null;
+  function size() { W = cv.parentElement.clientWidth; H = Math.round(W * 0.8); ctx = canvasOf(cv, W, H); }
+  function frame(now) {
+    const seed = st.boil ? Pencil.boilSeed(now) : 1;
+    let groups = {}, draw = st.draw;
+    let build;
+    if (st.anim && st.anim.kind === 'slam') groups = slamPose(now - st.anim.t0);
+    if (st.anim && st.anim.kind === 'write') {   // line first, then construction, colour, shadow (build-up)
+      const t = (now - st.anim.t0) / st.anim.ms, k = (a, b) => Math.max(0, Math.min(1, (t - a) / (b - a)));
+      build = { line: k(0, 0.62), construct: k(0.62, 0.7), color: k(0.7, 0.9), shadow: k(0.86, 1) };
+      draw = undefined;
+    }
+    const t0 = performance.now();
+    drawSolo(ctx, W, H, W * 0.82, { color: st.color, seed, draw, build, layers: st.layers, groups, official: st.official });
+    document.getElementById('ms').textContent = (performance.now() - t0).toFixed(1) + ' ms/frame';
+  }
+  // a quick held-drawing demo of v1's beat: VI rises with a landing squash, wordmark slams down (12 drawings/s)
+  function slamPose(ms) {
+    const k = Math.floor(ms / 83.3);   // on 2s
+    const vi = [[300, 0.0], [140, 0.6], [40, 0.95], [-14, 1], [6, 1], [0, 1]];
+    const sq = [1, 1, 1.05, 0.93, 1.02, 1];
+    const i = Math.min(vi.length - 1, k);
+    const g = { vi: { y: vi[i][0], alpha: vi[i][1], scale: sq[i] } };
+    const wk = k - 7;
+    const ws = [2.2, 1.5, 0.94, 1.03, 1];
+    if (wk < 0) g.word = { visible: false };
+    else g.word = { scale: ws[Math.min(ws.length - 1, wk)], alpha: wk === 0 ? 0.6 : 1 };
+    return g;
+  }
+  let loopOn = false, lastKey = '';
+  function loop(now) {
+    let busy = false;
+    if (st.anim) {
+      const t = now - st.anim.t0;
+      if (st.anim.kind === 'write') { busy = t < st.anim.ms; if (!busy) { st.anim = null; st.draw = 1; } }
+      else { busy = t < 1400; if (!busy) st.anim = null; }
+    }
+    const key = (st.boil ? Pencil.boilSeed(now) : 1) + '|' + (st.anim ? Math.floor((now - st.anim.t0) / 41.7) : 'x');
+    if (busy || key !== lastKey || st.dirty) { frame(now); lastKey = key; st.dirty = false; }
+    if (busy || st.boil || st.anim) requestAnimationFrame(loop); else loopOn = false;
+  }
+  function kick() { st.dirty = true; if (!loopOn) { loopOn = true; requestAnimationFrame(loop); } }
+  document.getElementById('c').addEventListener('input', (e) => { st.color = +e.target.value; document.getElementById('cv').textContent = st.color.toFixed(2); kick(); });
+  document.getElementById('boil').addEventListener('change', (e) => { st.boil = e.target.checked; kick(); });
+  document.getElementById('off').addEventListener('change', (e) => { st.official = e.target.checked; JADEN.logoOfficial.ready.then(kick); });
+  document.getElementById('wr').addEventListener('click', () => { st.anim = { kind: 'write', t0: performance.now(), ms: 9000 }; kick(); });
+  document.getElementById('slam').addEventListener('click', () => { st.anim = { kind: 'slam', t0: performance.now() }; st.draw = 1; kick(); });
+  document.querySelectorAll('[data-l]').forEach((el) => el.addEventListener('change', () => { st.layers[el.dataset.l] = el.checked; kick(); }));
+  size(); kick();
+  let rt = 0;
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { size(); kick(); }, 150); });
+}
+</script>
+</body>
+</html>

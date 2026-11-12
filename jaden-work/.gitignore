@@ -1,0 +1,13 @@
+# Not in git because it regenerates. See README.md, "What is not in git".
+venv/
+__pycache__/
+.DS_Store
+
+# extraction intermediates (some are crops of the original photos and still carry their location metadata)
+tools/box/debug/
+tools/box/_preview.jpg
+extract/*/work/
+extract/*/_work/
+
+# static exports of the review pages
+review/png/

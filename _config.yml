@@ -1,1 +1,5 @@
 theme: jekyll-theme-tactile
+
+# Work folders are kept in git as reference but are not part of the site.
+exclude:
+  - jaden-work

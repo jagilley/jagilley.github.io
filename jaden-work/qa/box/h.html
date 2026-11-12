@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>box qa</title>
+<style>html,body{margin:0;background:#f3eee3;overflow:hidden}canvas{display:block}</style>
+</head><body><canvas id="c"></canvas>
+<script src="../../style/pencil.js"></script>
+<script src="../../style/box.style.js"></script>
+<script>
+// box QA harness. ?cols=N&p=[{color,seed,groups,show,layers,zoom,cx,cy,draw,label}, ...]  (URL-encoded JSON)
+const q = new URLSearchParams(location.search);
+const panels = JSON.parse(q.get('p') || '[{}]');
+const cols = +(q.get('cols') || panels.length);
+const rows = Math.ceil(panels.length / cols);
+const W = innerWidth, H = innerHeight, cv = document.getElementById('c');
+cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d');
+const pw = W / cols, ph = H / rows, fig = JADEN.box;
+let err = '';
+panels.forEach((P, i) => {
+  const ox = (i % cols) * pw, oy = Math.floor(i / cols) * ph;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(ox, oy, pw, ph); ctx.clip();
+  const f = Pencil.fit(fig, pw, ph, 0.04), b = fig.style.bounds;
+  const zoom = P.zoom || 1, cx = P.cx ?? 0.5, cy = P.cy ?? 0.5;
+  const fx = b[0] + cx * (b[2] - b[0]), fy = b[1] + cy * (b[3] - b[1]);
+  const scale = f.scale * zoom;
+  const x = zoom === 1 ? ox + f.x : ox + pw / 2 - fx * scale, y = zoom === 1 ? oy + f.y : oy + ph / 2 - fy * scale;
+  Pencil.paper(ctx, ox, oy, pw, ph, {scale});
+  const o = {x, y, scale, seed: P.seed ?? 1, color: P.color ?? 0};
+  for (const k of ['groups', 'show', 'layers', 'draw', 'blend']) if (P[k] !== undefined) o[k] = P[k];
+  try { Pencil.render(ctx, fig, o); } catch (e) { err += i + ': ' + e.message + ' '; }
+  ctx.restore();
+  ctx.fillStyle = '#c00'; ctx.font = '14px sans-serif';
+  if (P.label) ctx.fillText(P.label, ox + 6, oy + 16);
+  ctx.strokeStyle = '#999'; ctx.strokeRect(ox + 0.5, oy + 0.5, pw - 1, ph - 1);
+});
+if (err) { ctx.fillStyle = '#f00'; ctx.font = '20px sans-serif'; ctx.fillText('ERR ' + err, 10, H - 10); }
+</script></body></html>

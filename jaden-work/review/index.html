@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pencil Pass Review</title>
+<style>
+  :root {
+    --desk: #e4ddcf;
+    --paper: #f3eee3;
+    --ink: #2f2c30;
+    --muted: #6f6970;
+    --line: #cfc6b4;
+    --blue: #7aa6dc;
+    --red: #d4574d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--desk); color: var(--ink); font: 16px/1.55 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+  header, section, footer { max-width: 1480px; margin: 0 auto; padding: 0 24px; }
+  header { padding-top: 40px; padding-bottom: 8px; }
+  h1 { font-size: 34px; font-weight: 600; margin: 0 0 6px; letter-spacing: -0.01em; }
+  h2 { font-size: 24px; font-weight: 600; margin: 0 0 4px; }
+  h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
+  p { margin: 0 0 10px; max-width: 78ch; }
+  .lede { color: #4a454b; font-size: 17px; }
+  .mono, figcaption, .ctl, .val { font: 12px/1.45 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  section { padding-top: 40px; }
+  section > .sub { color: var(--muted); margin-bottom: 16px; }
+  .strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+  figure { margin: 0; }
+  .tile { background: var(--paper); border-radius: 3px; box-shadow: 0 1px 0 rgba(0,0,0,.06); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .tile img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .tile.vec img { padding: 4%; }
+  .tile canvas { display: block; }
+  figcaption { color: var(--muted); padding: 6px 2px 0; }
+  .live { display: grid; grid-template-columns: minmax(0, 820px) minmax(260px, 1fr); gap: 24px; margin-top: 18px; align-items: start; }
+  .live .stage { background: var(--paper); border-radius: 3px; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+  .live canvas { display: block; width: 100%; }
+  .panel { background: rgba(255,255,255,.35); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; }
+  .ctl { display: flex; align-items: center; gap: 10px; margin: 8px 0; color: #3d383e; flex-wrap: wrap; }
+  .ctl label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+  .ctl input[type=range] { flex: 1; min-width: 120px; accent-color: #6d5ea8; }
+  .ctl .name { width: 84px; flex: none; }
+  .val { width: 34px; text-align: right; color: var(--muted); }
+  button { font: 12px ui-monospace, "SF Mono", Menlo, monospace; background: var(--paper); border: 1px solid #b9b0a0; border-radius: 3px; padding: 5px 10px; cursor: pointer; color: var(--ink); }
+  button:hover { background: #fff; }
+  .hr { height: 1px; background: var(--line); margin: 12px 0; }
+  .note { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 14px 0 4px; }
+  .chip { display: inline-flex; align-items: center; gap: 7px; font: 12px ui-monospace, Menlo, monospace; color: #4a454b; }
+  .chip i { width: 18px; height: 18px; border-radius: 2px; display: inline-block; border: 1px solid rgba(0,0,0,.08); }
+  .together .stage { background: var(--paper); border-radius: 3px; }
+  .together canvas { display: block; width: 100%; }
+  .notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
+  .notes ul { margin: 0; padding-left: 20px; }
+  .notes li { margin-bottom: 8px; max-width: 70ch; }
+  footer { padding-top: 40px; padding-bottom: 60px; color: var(--muted); font-size: 14px; }
+  code { font: 13px ui-monospace, Menlo, monospace; background: rgba(255,255,255,.45); padding: 1px 4px; border-radius: 2px; }
+  @media (max-width: 1100px) {
+    .strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .live { grid-template-columns: 1fr; }
+    .notes { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    header, section, footer { padding-left: 16px; padding-right: 16px; }
+    .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    h1 { font-size: 27px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>For Jaden: the pencil pass</h1>
+  <p class="lede">Your three drawings, kept as the key line and redrawn in graphite, then given a half-finished anime colour pass.
+    One dial runs from <b>genga</b> (0: pencil, blue construction, red shadow and blue highlight boundaries) to
+    <b>quick colour</b> (1: loose marker cel colour with its shadow tone). The resting look is <b>0.64</b>. Runtime files live in <code>resources/jaden/</code>.</p>
+  <div class="chips" id="chips"></div>
+  <p class="note">Light comes from the upper left on every figure. Colour is multiplied onto the paper like real marker and pencil, so lines and paper tooth show through it.</p>
+</header>
+
+<section id="box"></section>
+<section id="ball"></section>
+<section id="text"></section>
+
+<section class="together" id="together">
+  <h2>Together, on one sheet</h2>
+  <p class="sub">All three at their true relative sizes (same units: 100 = one ruled line), to check they came from the same hand and the same paper.</p>
+  <div class="stage"><canvas id="tg"></canvas></div>
+  <div class="panel" style="margin-top:12px">
+    <div class="ctl"><span class="name">colour</span><input type="range" id="tg-color" min="0" max="1" step="0.01" value="0.64"><span class="val" id="tg-color-v">0.64</span>
+      <label><input type="checkbox" id="tg-boil"> boil (8 fps)</label>
+      <button id="tg-reveal">play colour reveal</button>
+      <label><input type="checkbox" id="tg-accent"> greeting accent</label></div>
+  </div>
+</section>
+
+<section>
+  <div class="notes">
+    <div>
+      <h2>Where this departs from the drawings or the brief</h2>
+      <ul>
+        <li><b>Box shading is designed, not drawn.</b> Your box is drawn face-on with no side face, so its form comes from a lid cast-shadow band, a strip down the right edge, a thin cast shadow beside the ribbon, and a contact shadow on the ground. I didn't add a side face, because that would mean redrawing the box.</li>
+        <li><b>The lid's two middle lines are read as a ribbon band</b> and coloured pink, so the lid reads as ribboned.</li>
+        <li><b>Bow tails are single lines,</b> so each gets a narrow pink strip that stops just short of its end. The bow loops are coloured as ribbon: pink along the outside, darker inside near the knot.</li>
+        <li><b>Designed additions that are not your lines:</b> a small knot for the bow, drawn with two short pencil strokes, and a rim for the box's open top (it appears only when the lid lifts).</li>
+        <li><b>Ball swirls</b> get coloured-pencil strokes that wander along your lines and lift a few times. The two faint swirls stay faint.</li>
+        <li><b>No gloss.</b> All glints and drop shadows are gone. The ball keeps one specular area, a comma that follows its curve, marked at colour 0 by two open blue arcs.</li>
+        <li><b>Searching passes</b> are used sparingly: three on the box, one on the ball, none in the handwriting.</li>
+        <li><b>The ball's crack</b> in the halves test is a designed placeholder zigzag. A drawn crack stroke can be swapped in (<code>style.crack</code>).</li>
+        <li><b>The greeting accent</b> is off by default; toggle it above. It's two quick coloured-pencil passes under "Jaden", ending in a flick, drawn over ~350 ms after the last dot.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>Weak spots to look at</h2>
+      <ul id="weak">
+        <li><b>Mid colour (0.3 to 0.6).</b> The lit-side front is built from marker strokes of uneven length with chisel ends. On the big box face it can still read a little torn.</li>
+        <li><b>Boil.</b> Each stroke now moves as a whole, with its grain, so interiors hold still between frames. What changes is the line's position and edges, by about a unit.</li>
+        <li><b>Deliberately bare paper</b> at the lid's left end, the box's top-left corner and the rims of the ball and loops. Check that it reads as intentional.</li>
+        <li><b>The tooth is generated,</b> not scanned. Zoomed in past about 3x, it reads as a fine granite texture.</li>
+        <li><b>Hatching is generated</b> from a design seed, so a shape can get a small clump or gap. Changing <code>designSeed</code> reshuffles it.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Renderer <code>style/pencil.js</code>; style data <code>style/*.style.js</code> (built by <code>tools/style/build.py</code>); API notes in <code>style/README.md</code>.
+  Static exports are in <code>review/png/</code>.
+</footer>
+
+<script src="../../resources/jaden/pencil.js"></script>
+<script src="../../resources/jaden/box.style.js"></script>
+<script src="../../resources/jaden/ball.style.js"></script>
+<script src="../../resources/jaden/text.style.js"></script>
+<script src="sheet.js"></script>
+<script>
+(function () {
+  const DPR = Math.min(2, window.devicePixelRatio || 1);
+  const META = {
+    box: { title: 'Gift box', sub: '18 strokes: lid, body, ribbon and bow. The ribbon is split at the lid edge, so the lid can lift with its share of ribbon.', writeMs: 5200 },
+    ball: { title: 'Bowling ball', sub: '8 strokes: a lumpy outline (kept lumpy), three holes and three swirls; the two faint swirls stay faint.', writeMs: 4200 },
+    text: { title: 'The greeting', sub: '31 strokes in writing order, grouped by word. It stays graphite; the colour dial only affects the optional accent.', writeMs: 5600 },
+  };
+
+  // palette chips
+  const P = JADEN.box.style.palette;
+  const chipKeys = ['paper', 'graphite', 'blue', 'red', 'teal', 'tealShade', 'pink', 'pinkShade', 'violet', 'violetShade', 'lilac', 'rose', 'hole', 'ground'];
+  document.getElementById('chips').innerHTML = chipKeys.map(k => `<span class="chip"><i style="background:${P[k]}"></i>${k}</span>`).join('');
+
+  function sizeCanvas(cv, cssW, cssH) {
+    cv.width = Math.round(cssW * DPR); cv.height = Math.round(cssH * DPR);
+    cv.style.width = cssW + 'px'; cv.style.height = cssH + 'px';
+    return cv.getContext('2d');
+  }
+  function aspect(fig) { const b = fig.style.bounds; return (b[3] - b[1]) / (b[2] - b[0]); }
+
+  /** Draw one figure filling a canvas: paper first, then the figure. */
+  function paint(ctx, cssW, cssH, fig, opts, paperOn) {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    const f = Pencil.fit(fig, cssW, cssH, 0.035);
+    if (paperOn === false) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cssW, cssH); }
+    else Pencil.paper(ctx, 0, 0, cssW, cssH, { scale: f.scale });
+    return Object.assign({ x: f.x, y: f.y, scale: f.scale }, opts);
+  }
+
+  const renderBall = Sheet.renderBall;
+
+  /* ---------------- one figure section: strip + live canvas ---------------- */
+  function buildSection(name) {
+    const fig = JADEN[name], meta = META[name], el = document.getElementById(name);
+    const extras = {
+      box: `<div class="hr"></div><h3>Parts (checks the group transforms)</h3>
+        <div class="ctl"><span class="name">lift lid</span><input type="range" data-k="lid" min="0" max="1" step="0.01" value="0"><span class="val">0.00</span></div>
+        <div class="ctl"><span class="name">bow off</span><input type="range" data-k="bow" min="0" max="1" step="0.01" value="0"><span class="val">0.00</span></div>`,
+      ball: `<div class="hr"></div><h3>Halves (checks clipping to the disc)</h3>
+        <div class="ctl"><span class="name">crack open</span><input type="range" data-k="split" min="0" max="1" step="0.01" value="0"><span class="val">0.00</span></div>`,
+      text: `<div class="hr"></div><h3>Option</h3>
+        <div class="ctl"><label><input type="checkbox" data-k="accent"> pink coloured-pencil swash under "Jaden!!!"</label></div>`,
+    }[name];
+    el.innerHTML = `
+      <h2>${meta.title}</h2>
+      <p class="sub">${meta.sub}</p>
+      <div class="strip">
+        <figure><div class="tile"><img src="photo/${name}.jpg" alt="Jasper's original drawing"></div><figcaption>photo (<a href="../extract/${name}/${name}-overlay.png">extract overlay</a>)</figcaption></figure>
+        <figure><div class="tile vec"><img src="../extract/${name}/${name}.svg" alt="extracted vectors"></div><figcaption>extracted vectors</figcaption></figure>
+        <figure><div class="tile"><canvas data-c="0"></canvas></div><figcaption>color: 0 (genga)</figcaption></figure>
+        <figure><div class="tile"><canvas data-c="0.64"></canvas></div><figcaption>color: 0.64 (the resting look)</figcaption></figure>
+        <figure><div class="tile"><canvas data-c="1"></canvas></div><figcaption>color: 1 (quick colour)</figcaption></figure>
+      </div>
+      <div class="live">
+        <div class="stage"><canvas class="livecv"></canvas></div>
+        <div class="panel">
+          <h3>Live</h3>
+          <div class="ctl"><span class="name">colour</span><input type="range" data-k="color" min="0" max="1" step="0.01" value="0.64"><span class="val"></span></div>
+          <div class="ctl"><label><input type="checkbox" data-k="boil"> boil (8 fps, seeds 1-3)</label></div>
+          <div class="ctl"><button data-k="replay">replay write-on</button><button data-k="buildup">replay build-up</button><span class="mono" data-k="timing"></span></div>
+          <div class="hr"></div>
+          <h3>Layers</h3>
+          <div class="ctl">${['paper', 'construction', 'colour', 'shadow', 'line'].map(k => `<label><input type="checkbox" data-layer="${k}" checked> ${k}</label>`).join('')}</div>
+          ${extras}
+        </div>
+      </div>`;
+
+    // static strip
+    const tiles = [...el.querySelectorAll('.strip canvas')];
+    function drawStrip() {
+      const w = el.querySelector('.strip .tile').clientWidth;
+      const h = Math.round(w * Math.max(aspect(fig), 0.62));
+      el.querySelectorAll('.strip .tile').forEach(t => (t.style.height = h + 'px'));
+      for (const cv of tiles) {
+        const ctx = sizeCanvas(cv, w, h);
+        Pencil.render(ctx, fig, paint(ctx, w, h, fig, { color: +cv.dataset.c, seed: 1 }));
+      }
+    }
+
+    // live
+    const cv = el.querySelector('.livecv'), panel = el.querySelector('.panel');
+    const st = { color: 0.64, boil: false, draw: 1, layers: {}, lid: 0, bow: 0, split: 0, accent: false, accentAmt: 0 };
+    let cssW = 0, cssH = 0, ctx = null, anim = null, accAnim = null, last = -1;
+    const ACCENT_MS = 350;
+    function size() {
+      cssW = cv.parentElement.clientWidth; cssH = Math.round(cssW * Math.max(aspect(fig), 0.5));
+      ctx = sizeCanvas(cv, cssW, cssH);
+    }
+    let bu = null;   // build-up replay: {t0}
+    const BUILD = [['line', 0.55], ['construct', 0.15], ['color', 0.18], ['shadow', 0.12]];   // shares of the run
+    function buildAt(ms) {
+      // the drawing shown at this moment: held on 2s (12 drawings/s), lines on 1s (24/s)
+      const total = Math.max(5000, Pencil.writeDuration(fig) * 0.75 + 2600);
+      const b = {}; let t = ms / total;
+      for (const [k, share] of BUILD) { b[k] = Math.max(0, Math.min(1, t / share)); t -= share; }
+      const step = 1000 / (b.line < 1 ? 24 : 12), n = Math.floor(ms / step);
+      if (b.line >= 1) { const t2 = n * step / total; let tt = t2; for (const [k, share] of BUILD) { b[k] = Math.max(0, Math.min(1, tt / share)); tt -= share; } }
+      return { build: b, drawing: n, done: ms >= total };
+    }
+    function frame(now) {
+      let seed = st.boil ? Pencil.boilSeed(now || performance.now()) : 1, extra = {};
+      if (bu) {
+        const s0 = buildAt(now - bu.t0), r = (k) => ((Math.sin(s0.drawing * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1;
+        seed = 1 + (s0.drawing % 6);   // a small pool of seeds stays cached
+        extra = { build: s0.build, colorSeed: 1 + (s0.drawing % 5), reg: { dx: (r(1) - 0.5) * 1.6, dy: (r(2) - 0.5) * 1.6, rot: (r(3) - 0.5) * 0.004 } };
+        if (s0.done) bu = null;
+      }
+      const groups = {};
+      if (name === 'box') {
+        if (st.lid) { groups.lid = { y: -st.lid * 150, rot: -st.lid * 0.07 }; groups.lidShadow = { alpha: 1 - st.lid }; }
+        if (st.bow) groups.bow = { x: st.bow * 230, y: -st.bow * 260, rot: st.bow * 0.8 };
+      }
+      const t0 = performance.now();
+      const show = [];
+      if (st.lid) show.push('body-rim');
+      const opts = paint(ctx, cssW, cssH, fig, Object.assign({ color: st.color, seed, draw: bu ? undefined : st.draw, layers: st.layers, groups, show,
+        accent: st.accent ? 'underline' : undefined, accentAmount: st.accentAmt }, extra), st.layers.paper);
+      if (name === 'ball') renderBall(ctx, opts, st.split); else Pencil.render(ctx, fig, opts);
+      const dt = performance.now() - t0;
+      panel.querySelector('[data-k=timing]').textContent = `${dt.toFixed(1)} ms/frame`;
+    }
+    function loop(now) {
+      let busy = false;
+      if (anim) {
+        // real pen time: Pencil.writeDuration gives the natural length of the write-on
+        const t = (now - anim.t0) / anim.ms;
+        st.draw = Math.min(1, t);
+        if (t >= 1) { anim = null; if (st.accent) accAnim = { t0: now + 200 }; }   // a beat after the last dot
+        busy = true;
+      }
+      if (bu) busy = true;
+      if (accAnim) {   // the accent goes down after the last dot, over ~350 ms
+        const t = (now - accAnim.t0) / ACCENT_MS;
+        st.accentAmt = Math.max(0, Math.min(1, t));
+        if (t >= 1) accAnim = null;
+        busy = true;
+      }
+      // only redraw when the drawing changes (held drawings, like the real thing)
+      const seedNow = bu ? 'b' + buildAt(now - bu.t0).drawing : st.boil ? Pencil.boilSeed(now) : 1;
+      if ((busy && !bu) || seedNow !== last || st._dirty) { frame(now); last = seedNow; st._dirty = false; }
+      if (busy || st.boil) requestAnimationFrame(loop); else loopOn = false;
+    }
+    let loopOn = false;
+    function kick() { st._dirty = true; if (!loopOn) { loopOn = true; requestAnimationFrame(loop); } }
+
+    panel.querySelectorAll('input[type=range]').forEach(inp => {
+      const out = inp.nextElementSibling;
+      const upd = () => { st[inp.dataset.k] = +inp.value; if (out) out.textContent = (+inp.value).toFixed(2); kick(); };
+      inp.addEventListener('input', upd); upd();
+    });
+    panel.querySelector('[data-k=boil]').addEventListener('change', e => { st.boil = e.target.checked; kick(); });
+    panel.querySelector('[data-k=buildup]').addEventListener('click', () => { bu = { t0: performance.now() }; anim = null; kick(); });
+    panel.querySelector('[data-k=replay]').addEventListener('click', () => {
+      anim = { t0: performance.now(), ms: Pencil.writeDuration(fig) }; st.draw = 0; st.accentAmt = 0; accAnim = null; kick();
+    });
+    panel.querySelectorAll('[data-layer]').forEach(inp => {
+      const upd = () => { st.layers[inp.dataset.layer] = inp.checked; kick(); };
+      inp.addEventListener('change', upd); upd();
+    });
+    const acc = panel.querySelector('[data-k=accent]');
+    if (acc) acc.addEventListener('change', e => {
+      st.accent = e.target.checked; st.accentAmt = 0;
+      accAnim = st.accent && !anim ? { t0: performance.now() } : null; kick();
+    });
+
+    return {
+      layout() { drawStrip(); size(); kick(); },
+    };
+  }
+
+  /* ---------------- together sheet ---------------- */
+  function buildTogether() {
+    const cv = document.getElementById('tg');
+    const st = { color: 0.64, boil: false, accent: false, accentAmt: 0 };
+    let accT0 = null;
+    let w = 0, h = 0, ctx = null, reveal = null, loopOn = false, last = -1;
+    function size() { w = cv.parentElement.clientWidth; h = Math.round(w * Sheet.SHEET[1] / Sheet.SHEET[0]); ctx = sizeCanvas(cv, w, h); }
+    function frame(now) {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const seed = st.boil ? Pencil.boilSeed(now) : 1;
+      Sheet.drawTogether(ctx, w, h, { color: st.color, seed, accent: st.accent ? 'underline' : undefined, accentAmount: st.accentAmt });
+    }
+    const slider = document.getElementById('tg-color'), out = document.getElementById('tg-color-v');
+    function loop(now) {
+      let busy = false;
+      if (reveal) {
+        const t = Math.min(1, (now - reveal) / 1800);
+        st.color = 0.64 * t * t * (3 - 2 * t); slider.value = st.color; out.textContent = st.color.toFixed(2);
+        if (t >= 1) reveal = null; else busy = true;
+      }
+      if (accT0 !== null) {
+        const t = (now - accT0) / 350;
+        st.accentAmt = Math.min(1, t);
+        if (t >= 1) accT0 = null;
+        busy = true;
+      }
+      const s = st.boil ? Pencil.boilSeed(now) : 1;
+      if (busy || s !== last || st._dirty) { frame(now); last = s; st._dirty = false; }
+      if (busy || st.boil) requestAnimationFrame(loop); else loopOn = false;
+    }
+    function kick() { st._dirty = true; if (!loopOn) { loopOn = true; requestAnimationFrame(loop); } }
+    slider.addEventListener('input', () => { st.color = +slider.value; out.textContent = st.color.toFixed(2); kick(); });
+    document.getElementById('tg-boil').addEventListener('change', e => { st.boil = e.target.checked; kick(); });
+    document.getElementById('tg-accent').addEventListener('change', e => { st.accent = e.target.checked; st.accentAmt = 0; accT0 = st.accent ? performance.now() : null; kick(); });
+    document.getElementById('tg-reveal').addEventListener('click', () => { reveal = performance.now(); kick(); });
+    return { layout() { size(); kick(); } };
+  }
+
+  const parts = ['box', 'ball', 'text'].map(buildSection).concat([buildTogether()]);
+  const layoutAll = () => parts.forEach(p => p.layout());
+  layoutAll();
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layoutAll, 150); });
+})();
+</script>
+</body>
+</html>
